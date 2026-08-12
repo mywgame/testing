@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" fill="none">
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#1565F0"/>
+    </linearGradient>
+    <linearGradient id="panelFar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1E2E52"/>
+      <stop offset="100%" stop-color="#182545"/>
+    </linearGradient>
+    <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#29ABE2" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#29ABE2" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- content kept within a comfortable margin (y ~40 to ~260 of a 300-tall
+       canvas) so object-cover cropping on wide/short card banners never
+       clips the sun or the front row of panels -->
+
+  <!-- sun -->
+  <circle cx="360" cy="80" r="66" fill="url(#sunGlow)"/>
+  <circle cx="360" cy="80" r="15" fill="#EAF6FF"/>
+  <g stroke="#29ABE2" stroke-width="1.5" stroke-opacity="0.6">
+    <path d="M360 50 V41"/>
+    <path d="M360 109 V118"/>
+    <path d="M330 80 H321"/>
+    <path d="M390 80 H399"/>
+    <path d="M338 58 L331 51"/>
+    <path d="M382 102 L389 109"/>
+    <path d="M382 58 L389 51"/>
+    <path d="M338 102 L331 109"/>
+  </g>
+
+  <!-- far row (small, receding) -->
+  <g opacity="0.9">
+    <polygon points="70,165 150,165 140,181 60,181" fill="url(#panelFar)" stroke="#3B82F6" stroke-opacity="0.25"/>
+    <polygon points="160,165 240,165 230,181 150,181" fill="url(#panelFar)" stroke="#3B82F6" stroke-opacity="0.25"/>
+    <polygon points="250,165 330,165 320,181 240,181" fill="url(#panelFar)" stroke="#3B82F6" stroke-opacity="0.25"/>
+  </g>
+
+  <!-- mid row -->
+  <g>
+    <polygon points="50,190 160,190 147,213 38,213" fill="url(#panel)" opacity="0.55"/>
+    <polygon points="170,190 280,190 267,213 157,213" fill="url(#panel)" opacity="0.8"/>
+    <polygon points="290,190 400,190 387,213 277,213" fill="url(#panel)" opacity="0.55"/>
+  </g>
+
+  <!-- front row (large, closest) -->
+  <g>
+    <polygon points="30,222 178,222 161,254 15,254" fill="url(#panel)"/>
+    <polygon points="190,222 338,222 321,254 173,254" fill="url(#panel)" opacity="0.9"/>
+    <polygon points="350,222 460,222 449,254 337,254" fill="url(#panel)" opacity="0.7"/>
+  </g>
+
+  <!-- panel grid lines (front row) -->
+  <g stroke="#0B1224" stroke-opacity="0.45" stroke-width="1.2">
+    <path d="M63 222 L49 254"/>
+    <path d="M97 222 L86 254"/>
+    <path d="M131 222 L122 254"/>
+    <path d="M223 222 L209 254"/>
+    <path d="M257 222 L246 254"/>
+    <path d="M291 222 L282 254"/>
+    <path d="M383 222 L371 254"/>
+    <path d="M417 222 L408 254"/>
+  </g>
+</svg>

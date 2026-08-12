@@ -1,0 +1,6 @@
+{
+  "name": "CeFi Platform Foundation",
+  "description": "A production-grade, enterprise-scale full-stack foundation for a centralized finance platform, built with Express, Vite, React, Tailwind CSS, PostgreSQL, and Drizzle ORM.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

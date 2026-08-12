@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* MetaFirm custom brand colors (for the premium dark fintech experience) */
+  --color-navy-950: #070B18;
+  --color-navy-900: #0B1224;
+  --color-navy-800: #111A32;
+  --color-navy-700: #182545;
+
+  --color-brand-blue: #1565F0;
+  --color-brand-blue-light: #3B82F6;
+  --color-brand-cyan: #29ABE2;
+  --color-brand-magenta: #E91E8C;
+  --color-brand-magenta-light: #F04FA6;
+
+  --color-ink-50: #F4F6FB;
+  --color-ink-300: #B9C2D6;
+  --color-ink-500: #7C889F;
+
+  --background-image-brand-gradient: linear-gradient(90deg, #E91E8C, #1565F0 60%, #29ABE2);
+
+  --animate-shimmer: shimmer 2s infinite linear;
+
+  @keyframes shimmer {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    background-color: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.5rem;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+/* Momentum scrolling for touch devices */
+.overflow-y-auto, .overflow-x-auto, .overflow-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure smooth scrolling when utilizing anchor points or programmatic scrolls */
+.scroll-smooth {
+  scroll-behavior: smooth;
+}
+
+/* High performance rendering optimization for scroll animations */
+.transform-gpu {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Optimized custom scrollbars to prevent default layout shift and reduce visual clutter */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(124, 136, 159, 0.25);
+  border-radius: 9999px;
+  border: 1px solid transparent;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 136, 159, 0.45);
+}
+
+::selection {
+  background-color: #E91E8C;
+  color: white;
+}

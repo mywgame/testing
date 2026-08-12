@@ -1,0 +1,80 @@
+import React from 'react';
+import { useTheme } from '../../../hooks/useTheme.ts';
+import { SkeletonBlock } from './DashboardSkeleton.tsx';
+
+export const WithdrawalSkeleton: React.FC = () => {
+  const { t } = useTheme();
+
+  return (
+    <div className="space-y-6 max-w-xl text-left animate-fade-in" id="withdrawal-skeleton">
+      {/* 1. Header Skeleton */}
+      <div className="space-y-2">
+        <SkeletonBlock className="h-8 w-64 sm:h-9" />
+        <SkeletonBlock className="h-4 w-full" />
+        <SkeletonBlock className="h-4 w-4/5" />
+      </div>
+
+      {/* 2. Network Selection */}
+      <div className="space-y-2 pt-2">
+        <SkeletonBlock className="h-3 w-36" />
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          {[1, 2, 3].map((i) => (
+            <SkeletonBlock key={i} className="h-9 rounded-2xl" />
+          ))}
+        </div>
+      </div>
+
+      {/* 3. Verified Address Input */}
+      <div className="space-y-2">
+        <SkeletonBlock className="h-3.5 w-40" />
+        <SkeletonBlock className="h-11 w-full rounded-2xl" />
+      </div>
+
+      {/* 4. Withdrawal Amount Input */}
+      <div className="space-y-2">
+        <SkeletonBlock className="h-3.5 w-32" />
+        <SkeletonBlock className="h-11 w-full rounded-2xl" />
+      </div>
+
+      {/* 5. Verification Code Blocks */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <SkeletonBlock className="h-3.5 w-24" />
+          <div className="flex gap-2">
+            <SkeletonBlock className="h-11 flex-1 rounded-2xl" />
+            <SkeletonBlock className="h-11 w-20 rounded-2xl" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <SkeletonBlock className="h-3.5 w-28" />
+          <SkeletonBlock className="h-11 w-full rounded-2xl" />
+        </div>
+      </div>
+
+      {/* 6. Action Button */}
+      <SkeletonBlock className="h-12 w-full rounded-2xl" />
+
+      {/* 7. History */}
+      <div className="pt-6 border-t border-white/5 space-y-3">
+        <div className="flex items-center space-x-2">
+          <SkeletonBlock className="h-4 w-4" circle />
+          <SkeletonBlock className="h-3.5 w-28" />
+        </div>
+        <div className="space-y-2.5">
+          {[1, 2].map((i) => (
+            <div key={i} className="p-3.5 rounded-2xl bg-white/5 border border-white/5 space-y-2">
+              <div className="flex justify-between">
+                <SkeletonBlock className="h-4 w-24" />
+                <SkeletonBlock className="h-4 w-14 font-bold" />
+              </div>
+              <div className="flex justify-between">
+                <SkeletonBlock className="h-3 w-28" />
+                <SkeletonBlock className="h-4 w-16 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};

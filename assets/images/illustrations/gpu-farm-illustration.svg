@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" fill="none">
+  <defs>
+    <linearGradient id="gpuChip" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F04FA6"/>
+      <stop offset="100%" stop-color="#E91E8C"/>
+    </linearGradient>
+    <linearGradient id="gpuChipDim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3A2A3D"/>
+      <stop offset="100%" stop-color="#2A2035"/>
+    </linearGradient>
+    <radialGradient id="gpuGlow" cx="50%" cy="38%" r="60%">
+      <stop offset="0%" stop-color="#E91E8C" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#E91E8C" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- transparent canvas — no background fill, so the card's own bg-navy-800
+       shows through seamlessly (no separate "framed" box) -->
+  <rect width="480" height="300" fill="url(#gpuGlow)"/>
+
+  <!-- content sits within a comfortable margin (y ~50 to ~250) so that
+       object-cover cropping on wide/short card banners never clips it -->
+  <g>
+    <g stroke="#E91E8C" stroke-opacity="0.12" stroke-width="1">
+      <path d="M40 90 H440"/>
+      <path d="M40 150 H440"/>
+      <path d="M40 210 H440"/>
+      <path d="M120 60 V260"/>
+      <path d="M240 60 V260"/>
+      <path d="M360 60 V260"/>
+    </g>
+
+    <g stroke="#F04FA6" stroke-opacity="0.45" stroke-width="1.5" fill="none">
+      <path d="M96 106 L96 134"/>
+      <path d="M96 168 L96 196"/>
+      <path d="M216 106 L216 134"/>
+      <path d="M216 168 L216 196"/>
+      <path d="M336 106 L336 134"/>
+      <path d="M336 168 L336 196"/>
+      <path d="M132 120 L204 120"/>
+      <path d="M132 182 L204 182"/>
+      <path d="M252 120 L324 120"/>
+      <path d="M252 182 L324 182"/>
+    </g>
+
+    <rect x="56" y="90" width="80" height="60" rx="9" fill="url(#gpuChip)" opacity="0.95"/>
+    <rect x="176" y="90" width="80" height="60" rx="9" fill="url(#gpuChipDim)" stroke="#F04FA6" stroke-opacity="0.4"/>
+    <rect x="296" y="90" width="80" height="60" rx="9" fill="url(#gpuChip)" opacity="0.7"/>
+
+    <rect x="56" y="172" width="80" height="60" rx="9" fill="url(#gpuChipDim)" stroke="#F04FA6" stroke-opacity="0.4"/>
+    <rect x="176" y="172" width="80" height="60" rx="9" fill="url(#gpuChip)" opacity="0.85"/>
+    <rect x="296" y="172" width="80" height="60" rx="9" fill="url(#gpuChipDim)" stroke="#F04FA6" stroke-opacity="0.4"/>
+
+    <g stroke="#0B1224" stroke-width="1.5" stroke-opacity="0.5">
+      <path d="M70 105 H122 M70 116 H122 M70 127 H122 M70 138 H122"/>
+      <path d="M310 105 H362 M310 116 H362 M310 127 H362 M310 138 H362"/>
+      <path d="M190 187 H242 M190 198 H242 M190 209 H242 M190 220 H242"/>
+    </g>
+
+    <g fill="#F04FA6">
+      <circle cx="96" cy="120" r="2.5"/>
+      <circle cx="216" cy="120" r="2.5"/>
+      <circle cx="336" cy="120" r="2.5"/>
+      <circle cx="96" cy="182" r="2.5"/>
+      <circle cx="216" cy="182" r="2.5"/>
+      <circle cx="336" cy="182" r="2.5"/>
+    </g>
+  </g>
+</svg>

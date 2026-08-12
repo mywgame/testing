@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 25 480 180" fill="none">
+  <defs>
+    <linearGradient id="firmBar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#A855F7"/>
+      <stop offset="100%" stop-color="#6366F1"/>
+    </linearGradient>
+    <linearGradient id="firmBarAccent" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F04FA6"/>
+      <stop offset="100%" stop-color="#9333EA"/>
+    </linearGradient>
+    <linearGradient id="firmBarDim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2E1A47"/>
+      <stop offset="100%" stop-color="#1E1433"/>
+    </linearGradient>
+    <linearGradient id="trendLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#29ABE2"/>
+      <stop offset="50%" stop-color="#A855F7"/>
+      <stop offset="100%" stop-color="#F04FA6"/>
+    </linearGradient>
+    <radialGradient id="firmGlow" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#9333EA" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#9333EA" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background Glow -->
+  <rect width="480" height="240" fill="url(#firmGlow)"/>
+
+  <!-- Grid lines -->
+  <g stroke="#9333EA" stroke-opacity="0.12" stroke-width="1">
+    <path d="M40 50 H440"/>
+    <path d="M40 100 H440"/>
+    <path d="M40 150 H440"/>
+    <path d="M40 195 H440"/>
+    <path d="M100 30 V210"/>
+    <path d="M180 30 V210"/>
+    <path d="M260 30 V210"/>
+    <path d="M340 30 V210"/>
+    <path d="M420 30 V210"/>
+  </g>
+
+  <!-- Trading Candlesticks & Volume Bars -->
+  <g>
+    <!-- Candle 1 -->
+    <line x1="80" y1="100" x2="80" y2="170" stroke="#A855F7" stroke-opacity="0.5" stroke-width="1.5"/>
+    <rect x="72" y="115" width="16" height="35" rx="3" fill="url(#firmBarDim)" stroke="#A855F7" stroke-opacity="0.4"/>
+
+    <!-- Candle 2 -->
+    <line x1="130" y1="85" x2="130" y2="155" stroke="#F04FA6" stroke-opacity="0.6" stroke-width="1.5"/>
+    <rect x="122" y="98" width="16" height="42" rx="3" fill="url(#firmBarAccent)" opacity="0.9"/>
+
+    <!-- Candle 3 -->
+    <line x1="180" y1="110" x2="180" y2="185" stroke="#6366F1" stroke-opacity="0.5" stroke-width="1.5"/>
+    <rect x="172" y="125" width="16" height="38" rx="3" fill="url(#firmBar)" opacity="0.85"/>
+
+    <!-- Candle 4 -->
+    <line x1="230" y1="70" x2="230" y2="145" stroke="#A855F7" stroke-opacity="0.6" stroke-width="1.5"/>
+    <rect x="222" y="82" width="16" height="45" rx="3" fill="url(#firmBarAccent)" opacity="0.95"/>
+
+    <!-- Candle 5 -->
+    <line x1="280" y1="95" x2="280" y2="170" stroke="#6366F1" stroke-opacity="0.5" stroke-width="1.5"/>
+    <rect x="272" y="108" width="16" height="42" rx="3" fill="url(#firmBarDim)" stroke="#A855F7" stroke-opacity="0.4"/>
+
+    <!-- Candle 6 -->
+    <line x1="330" y1="55" x2="330" y2="130" stroke="#29ABE2" stroke-opacity="0.7" stroke-width="1.5"/>
+    <rect x="322" y="68" width="16" height="48" rx="3" fill="url(#firmBar)" opacity="0.95"/>
+
+    <!-- Candle 7 -->
+    <line x1="380" y1="45" x2="380" y2="115" stroke="#F04FA6" stroke-opacity="0.8" stroke-width="1.5"/>
+    <rect x="372" y="52" width="16" height="45" rx="3" fill="url(#firmBarAccent)"/>
+  </g>
+
+  <!-- Dynamic Upward Growth Trend Line -->
+  <path d="M60 160 Q120 148, 170 128 T270 102 T360 68 T430 42" fill="none" stroke="url(#trendLine)" stroke-width="3.5" stroke-linecap="round"/>
+
+  <!-- Glowing Trend Line Dots / Nodes -->
+  <g fill="#F04FA6">
+    <circle cx="170" cy="128" r="4" fill="#A855F7"/>
+    <circle cx="270" cy="102" r="4" fill="#6366F1"/>
+    <circle cx="360" cy="68" r="5" fill="#29ABE2"/>
+    <circle cx="430" cy="42" r="6" fill="#F04FA6"/>
+    <circle cx="430" cy="42" r="10" fill="#F04FA6" opacity="0.3"/>
+  </g>
+
+  <!-- Crypto Token / Hex Shield Emblems -->
+  <g transform="translate(380, 125)">
+    <!-- Hexagon 1 -->
+    <polygon points="22,0 44,12 44,36 22,48 0,36 0,12" fill="#1E1433" stroke="#A855F7" stroke-width="1.5" opacity="0.9"/>
+    <!-- Currency Symbol ₿/₮ -->
+    <path d="M18 16 H25 C28 16, 29.5 17.5, 29.5 20 C29.5 22.5, 28 23.5, 25 23.5 H18 V16 M18 23.5 H26 C29 23.5, 30.5 25, 30.5 27.5 C30.5 30, 29 31.5, 26 31.5 H18 V23.5 M20 13 V34 M23.5 13 V34" stroke="#F04FA6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <g transform="translate(55, 45)">
+    <!-- Hexagon 2 -->
+    <polygon points="16,0 32,9 32,27 16,36 0,27 0,9" fill="#1E1433" stroke="#6366F1" stroke-width="1.5" opacity="0.85"/>
+    <path d="M16 9 L25 18 L16 27 L7 18 Z" fill="none" stroke="#29ABE2" stroke-width="1.5"/>
+  </g>
+</svg>
