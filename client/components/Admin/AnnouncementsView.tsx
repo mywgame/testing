@@ -192,13 +192,13 @@ export const AnnouncementsView: React.FC<AnnouncementsViewProps> = ({ t, isDark 
                     </span>
                   </div>
 
-                  <h4 className="font-display font-bold text-base tracking-tight">{bc.title}</h4>
-                  <p className={`text-xs leading-relaxed ${t.textSub}`}>{bc.message}</p>
+                  <h4 className="font-display font-bold text-base tracking-tight">{bc.title || (bc as any).headline}</h4>
+                  <p className={`text-xs leading-relaxed ${t.textSub}`}>{bc.message || (bc as any).content}</p>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
                   <button
-                    onClick={() => handleDeleteBroadcast(bc.id, bc.title)}
+                    onClick={() => handleDeleteBroadcast(bc.id, bc.title || (bc as any).headline || 'Announcement')}
                     className="p-2 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
                     title="Delete Announcement"
                   >

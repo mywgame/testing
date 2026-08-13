@@ -29,6 +29,7 @@ import { totp } from '../utils/totp.ts';
 import { otpService } from '../cache/services/otpService.ts';
 import { addressService } from '../blockchain/services/AddressService.ts';
 import { referralService } from '../services/referralService.ts';
+import { adminService } from '../services/adminService.ts';
 import { userRepository } from '../repositories/userRepository.ts';
 import { walletRepository } from '../repositories/walletRepository.ts';
 import { vipRepository } from '../repositories/vipRepository.ts';
@@ -1053,6 +1054,18 @@ export class UserController {
       );
 
       return sendSuccess(res, members, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Fetch active platform announcements broadcasted by admin
+   */
+  async getAnnouncements(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const announcements = await adminService.getAnnouncements();
+      return sendSuccess(res, announcements || [], 200);
     } catch (error) {
       next(error);
     }

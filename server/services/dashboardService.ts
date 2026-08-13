@@ -37,7 +37,7 @@ export class DashboardService {
     const availableBalance = parseFloat(wallet.availableBalance);
     const lockedBalance = parseFloat(wallet.lockedBalance);
     const trialBalance = parseFloat(wallet.trialBalance);
-    const isTrialActive = trialBalance > 0 && (!wallet.trialExpiresAt || new Date(wallet.trialExpiresAt) > new Date());
+    const isTrialActive = trialBalance > 0 && wallet.trialExpiresAt !== null && new Date(wallet.trialExpiresAt) > new Date();
     // Business Logic Spec Section 4: Trial Fund is "Displayed together with the Main Wallet in the UI."
     const totalAssets = availableBalance + lockedBalance + (isTrialActive ? trialBalance : 0);
 

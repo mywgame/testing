@@ -58,9 +58,9 @@ export class ClaimService {
     const mainComponent = activeBalance * rate;
 
     // BUSINESS RULE (Section 4 — Trial Fund): Trial Balance generates DPY at the FIXED
-    // VIP1 rate, independent of the user's actual VIP tier. Only counts if not yet expired.
+    // VIP1 rate, independent of the user's actual VIP tier. Active once claimed and not yet expired.
     const trialBalance = parseFloat(wallet.trialBalance);
-    const trialActive = trialBalance > 0 && (!wallet.trialExpiresAt || new Date(wallet.trialExpiresAt) > date);
+    const trialActive = trialBalance > 0 && wallet.trialExpiresAt !== null && new Date(wallet.trialExpiresAt) > date;
     const trialComponent = trialActive ? trialBalance * TRIAL_FUND_DPY_RATE : 0;
 
     const totalEligibleBalance = activeBalance + (trialActive ? trialBalance : 0);

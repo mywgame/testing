@@ -1,0 +1,13 @@
+/**
+ * MetaFirm Cloudflare Maintenance Worker Configuration
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "metafirm-maintenance-worker",
+  "main": "scripts/cloudflare-maintenance-worker.js",
+  "compatibility_date": "2026-08-12",
+  "observability": {
+    "enabled": true
+  }
+}

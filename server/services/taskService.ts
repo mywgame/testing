@@ -10,6 +10,11 @@ import { referralRepository } from '../repositories/referralRepository.ts';
 import { userRepository } from '../repositories/userRepository.ts';
 import { transactionRepository } from '../repositories/transactionRepository.ts';
 import { auditRepository } from '../repositories/auditRepository.ts';
+import { settingsRepository } from '../repositories/settingsRepository.ts';
+
+export const TASK_REWARDS_LAUNCH_DATE = process.env.TASK_REWARDS_LAUNCH_DATE
+  ? new Date(process.env.TASK_REWARDS_LAUNCH_DATE)
+  : new Date('2026-08-12T00:00:00.000Z');
 
 export interface UserTaskStatusDTO {
   id: string;
@@ -33,14 +38,17 @@ export interface UserTaskStatusDTO {
 export class TaskService {
   /**
    * Get total real approved deposit amount for a user (excluding trial funds)
+   * Optionally filtered by sinceDate for launch cutoff
    */
-  async getUserRealTotalDeposits(userId: string): Promise<number> {
+  async getUserRealTotalDeposits(userId: string, sinceDate?: Date): Promise<number> {
     try {
       const userDeposits = await depositRepository.findByUserId(userId, { limit: 500 });
       let totalReal = 0;
       for (const dep of userDeposits) {
         if ((dep.status === 'APPROVED' || dep.status === 'COMPLETED') && !dep.adminNotes?.includes('TRIAL_FUND')) {
-          totalReal += parseFloat(dep.amount || '0');
+          if (!sinceDate || new Date(dep.createdAt) >= sinceDate) {
+            totalReal += parseFloat(dep.amount || '0');
+          }
         }
       }
       return totalReal;
@@ -51,8 +59,9 @@ export class TaskService {
 
   /**
    * Get verified referrals count for a parent user (Level-1 direct referrals with >= $50 REAL deposit)
+   * Optionally filtered by sinceDate for launch cutoff
    */
-  async getVerifiedReferralsDetails(parentId: string): Promise<{
+  async getVerifiedReferralsDetails(parentId: string, sinceDate?: Date): Promise<{
     totalDirectCount: number;
     verifiedCount: number;
     verifiedRefUserIds: string[];
@@ -63,7 +72,8 @@ export class TaskService {
       const verifiedRefUserIds: string[] = [];
 
       for (const rel of relationships) {
-        const childTotalDeposit = await this.getUserRealTotalDeposits(rel.childId);
+        // Qualifying achievement (>= $50 REAL deposit) must occur on or after TASK_REWARDS_LAUNCH_DATE
+        const childTotalDeposit = await this.getUserRealTotalDeposits(rel.childId, sinceDate);
         if (childTotalDeposit >= 50) {
           verifiedCount++;
           verifiedRefUserIds.push(rel.childId);
@@ -98,10 +108,16 @@ export class TaskService {
     const definitions = await taskRepository.findAllActiveTaskDefinitions();
     const claims = await taskRepository.findUserTaskClaims(userId);
     const user = await userRepository.findById(userId);
+    const userSettings = await settingsRepository.findUserSettingsByUserId(userId);
     const wallet = await walletRepository.findByUserId(userId);
 
-    const realTotalDeposits = await this.getUserRealTotalDeposits(userId);
-    const { totalDirectCount, verifiedCount: verifiedRefUsersCount } = await this.getVerifiedReferralsDetails(userId);
+    // Apply TASK_REWARDS_LAUNCH_DATE cutoff for deposit and referral milestone progress
+    const realTotalDeposits = await this.getUserRealTotalDeposits(userId, TASK_REWARDS_LAUNCH_DATE);
+    const directReferrals = await referralRepository.findRelationshipsByParentId(userId, { referralLevel: 1, limit: 500 });
+    // Filter post-launch Level-1 direct referrals for referral registration reward
+    const postLaunchDirectReferrals = directReferrals.filter((r) => new Date(r.createdAt) >= TASK_REWARDS_LAUNCH_DATE);
+    const { verifiedCount: verifiedRefUsersCount } = await this.getVerifiedReferralsDetails(userId, TASK_REWARDS_LAUNCH_DATE);
+    const totalDirectCount = postLaunchDirectReferrals.length;
 
     const claimMap = new Map<string, any[]>();
     for (const c of claims) {
@@ -122,7 +138,7 @@ export class TaskService {
 
       let currentProgress = 0;
       const targetProgress = parseFloat(def.targetProgress || '1');
-      const rewardAmount = parseFloat(def.rewardAmount || '0');
+      let rewardAmount = parseFloat(def.rewardAmount || '0');
       const minDepRequired = parseFloat(def.minDepositRequired || '0');
       let status: 'LOCKED' | 'IN_PROGRESS' | 'COMPLETED' | 'CLAIMED' = 'IN_PROGRESS';
       let ruleConfigObj: any = {};
@@ -135,15 +151,20 @@ export class TaskService {
 
       // Calculate logic per task type
       if (taskCode === 'REGISTRATION_TRIAL_FUND') {
+        const isTrialClaimed = hasDefaultClaim || userClaimsForTask.length > 0 || wallet?.trialExpiresAt !== null;
         currentProgress = 1;
-        // Check if user has received trial fund or wallet has trial balance
-        const trialBal = wallet ? parseFloat(wallet.trialBalance) : 0;
-        const hasTrial = trialBal > 0 || !!wallet?.trialExpiresAt || hasDefaultClaim;
-        status = hasTrial ? 'CLAIMED' : 'COMPLETED';
+        if (isTrialClaimed) {
+          status = 'CLAIMED';
+        } else if (parseFloat(wallet?.trialBalance || '0') > 0) {
+          status = 'COMPLETED';
+        } else {
+          status = 'LOCKED';
+        }
       } else if (taskCode === 'AUTHENTICATOR_SETUP') {
-        const is2FA = user?.twoFactorEnabled || false;
-        currentProgress = is2FA ? 1 : 0;
-        if (hasDefaultClaim) {
+        const isClaimed = hasDefaultClaim || userClaimsForTask.length > 0;
+        const is2FA = !!userSettings?.mfaEnabled || !!(user as any)?.twoFactorEnabled;
+        currentProgress = isClaimed || is2FA ? 1 : 0;
+        if (isClaimed) {
           status = 'CLAIMED';
         } else if (is2FA) {
           status = 'COMPLETED';
@@ -151,35 +172,47 @@ export class TaskService {
           status = 'IN_PROGRESS';
         }
       } else if (taskCode === 'JOIN_TELEGRAM') {
-        currentProgress = hasDefaultClaim ? 1 : 0;
-        status = hasDefaultClaim ? 'CLAIMED' : 'IN_PROGRESS';
+        const isClaimed = hasDefaultClaim || userClaimsForTask.length > 0;
+        currentProgress = isClaimed ? 1 : 0;
+        status = isClaimed ? 'CLAIMED' : 'IN_PROGRESS';
       } else if (taskCode === 'REFERRAL_REGISTRATION_SINGLE') {
         currentProgress = totalDirectCount;
-        const totalClaimedCount = userClaimsForTask.length;
-        if (totalDirectCount > totalClaimedCount) {
+        const claimedChildIds = new Set(userClaimsForTask.map((c) => c.claimKey));
+        const unclaimedRefs = postLaunchDirectReferrals.filter((r) => !claimedChildIds.has(r.childId));
+        const unclaimedCount = unclaimedRefs.length;
+        const unitReward = parseFloat(def.rewardPerUnit || def.rewardAmount || '0.10');
+
+        if (unclaimedCount > 0) {
           status = 'COMPLETED';
-        } else if (totalClaimedCount > 0) {
+          rewardAmount = unclaimedCount * unitReward;
+        } else if (totalDirectCount > 0) {
           status = 'CLAIMED';
         } else {
           status = 'IN_PROGRESS';
         }
       } else if (def.category === 'DEPOSIT' || def.triggerType === 'DEPOSIT_TOTAL') {
         currentProgress = Math.min(targetProgress, realTotalDeposits);
-        if (hasDefaultClaim) {
+        const isClaimed = hasDefaultClaim || userClaimsForTask.length > 0;
+        if (isClaimed) {
           status = 'CLAIMED';
         } else if (realTotalDeposits >= targetProgress) {
           status = 'COMPLETED';
-        } else {
+        } else if (realTotalDeposits > 0) {
           status = 'IN_PROGRESS';
+        } else {
+          status = 'LOCKED';
         }
       } else if (def.category === 'REFERRAL' || def.triggerType === 'REFERRAL_COUNT') {
         currentProgress = Math.min(targetProgress, verifiedRefUsersCount);
-        if (hasDefaultClaim) {
+        const isClaimed = hasDefaultClaim || userClaimsForTask.length > 0;
+        if (isClaimed) {
           status = 'CLAIMED';
         } else if (verifiedRefUsersCount >= targetProgress) {
           status = 'COMPLETED';
-        } else {
+        } else if (verifiedRefUsersCount > 0) {
           status = 'IN_PROGRESS';
+        } else {
+          status = 'LOCKED';
         }
       }
 
@@ -189,12 +222,21 @@ export class TaskService {
           (sum, c) => sum + parseFloat(c.rewardAmount || '0'),
           0
         );
-        totalEarned += totalClaimedForThis > 0 ? totalClaimedForThis : rewardAmount;
+        if (def.rewardType === 'CASH') {
+          totalEarned += totalClaimedForThis > 0 ? totalClaimedForThis : rewardAmount;
+        }
         completedCount++;
       } else if (status === 'COMPLETED') {
         claimableTotal += rewardAmount;
+        if (taskCode === 'REFERRAL_REGISTRATION_SINGLE') {
+          const totalClaimedForThis = userClaimsForTask.reduce(
+            (sum, c) => sum + parseFloat(c.rewardAmount || '0'),
+            0
+          );
+          totalEarned += totalClaimedForThis;
+        }
         completedCount++;
-      } else {
+      } else if (status === 'IN_PROGRESS') {
         inProgressCount++;
       }
 
@@ -213,7 +255,7 @@ export class TaskService {
         status,
         actionUrl: ruleConfigObj.actionUrl,
         minDepositRequired: minDepRequired,
-        claimedAt: hasDefaultClaim ? userClaimsForTask[0]?.claimedAt : null,
+        claimedAt: (hasDefaultClaim || userClaimsForTask.length > 0) ? userClaimsForTask[0]?.claimedAt : (taskCode === 'REGISTRATION_TRIAL_FUND' && wallet?.trialExpiresAt ? wallet.trialExpiresAt : null),
         ruleConfig: ruleConfigObj,
       };
     });
@@ -270,7 +312,28 @@ export class TaskService {
 
     // Validate Qualification Rules
     if (taskCode === 'REGISTRATION_TRIAL_FUND') {
-      // RULE: Do NOT create or credit another trial fund. Registration task only reads trial state and marks as claimed.
+      if (wallet.trialExpiresAt !== null) {
+        return {
+          alreadyClaimed: true,
+          message: 'Registration Trial Fund has already been claimed.',
+          claim: null,
+        };
+      }
+
+      const trialBal = parseFloat(wallet.trialBalance || '0');
+      if (trialBal <= 0) {
+        throw new Error('No eligible Trial Fund balance available to claim.');
+      }
+
+      const durationSetting = await settingsRepository.findSystemSettingByKey('TRIAL_FUND_DURATION_DAYS');
+      const trialDurationDays = durationSetting ? parseInt(durationSetting.value, 10) : 3;
+      const validDays = !isNaN(trialDurationDays) && trialDurationDays > 0 ? trialDurationDays : 3;
+      const trialExpiresAt = new Date(Date.now() + validDays * 24 * 60 * 60 * 1000);
+
+      await walletRepository.updateBalances(wallet.id, {
+        trialExpiresAt,
+      });
+
       const claim = await taskRepository.createTaskClaim({
         userId,
         taskId: taskDef.id,
@@ -278,38 +341,108 @@ export class TaskService {
         claimKey,
         rewardAmount: '0.00000000',
         rewardType: 'TRIAL_FUND',
-        claimMetadata: JSON.stringify({ note: 'Welcome Trial Fund verified' }),
+        claimMetadata: JSON.stringify({ note: 'Welcome Trial Fund verified', claimedAt: new Date() }),
       });
       return {
         alreadyClaimed: false,
-        message: 'Trial Fund registration reward status acknowledged.',
+        message: 'Trial Fund registration reward acknowledged and trial expiration countdown started!',
         claim,
       };
     }
 
     if (taskCode === 'AUTHENTICATOR_SETUP') {
-      if (!user.twoFactorEnabled) {
+      const userSettings = await settingsRepository.findUserSettingsByUserId(userId);
+      const is2FA = !!userSettings?.mfaEnabled || !!(user as any)?.twoFactorEnabled;
+      if (!is2FA) {
         throw new Error('Please complete 2FA Authenticator setup in Security Settings first.');
       }
     } else if (taskCode === 'REFERRAL_REGISTRATION_SINGLE') {
-      const { totalDirectCount } = await this.getVerifiedReferralsDetails(userId);
+      const directReferrals = await referralRepository.findRelationshipsByParentId(userId, { referralLevel: 1, limit: 500 });
+      const postLaunchDirectReferrals = directReferrals.filter((r) => new Date(r.createdAt) >= TASK_REWARDS_LAUNCH_DATE);
       const userClaimsForTask = await taskRepository.findUserTaskClaims(userId);
-      const currentClaimsCount = userClaimsForTask.filter((c) => c.taskCode === 'REFERRAL_REGISTRATION_SINGLE').length;
+      const referralClaims = userClaimsForTask.filter((c) => c.taskCode === 'REFERRAL_REGISTRATION_SINGLE');
+      const claimedChildIds = new Set(referralClaims.map((c) => c.claimKey));
 
-      if (totalDirectCount <= currentClaimsCount) {
+      const unclaimedRefs = postLaunchDirectReferrals.filter((r) => !claimedChildIds.has(r.childId));
+      if (unclaimedRefs.length === 0) {
         throw new Error('No unclaimed referral registration rewards available. Invite new registered referrals to earn $0.10 per registration.');
       }
+
+      const unitReward = parseFloat(taskDef.rewardPerUnit || taskDef.rewardAmount || '0.10');
+      const totalPayout = unclaimedRefs.length * unitReward;
+
+      // Atomic Balance Credit for aggregated USDT reward
+      const currentAvailable = parseFloat(wallet.availableBalance);
+      const updatedAvailable = (currentAvailable + totalPayout).toFixed(8);
+
+      await walletRepository.updateBalances(wallet.id, {
+        availableBalance: updatedAvailable,
+      });
+
+      // Single Ledger Transaction Record
+      const txRecord = await transactionRepository.createTransaction({
+        userId,
+        walletId: wallet.id,
+        type: 'TASK_REWARD',
+        referenceId: `TASK_CLAIM_REF_REG_${Date.now()}`,
+        amount: totalPayout.toFixed(8),
+        balanceBefore: currentAvailable.toFixed(8),
+        balanceAfter: updatedAvailable,
+        status: 'COMPLETED',
+        description: `Task Reward: Successful Referral Registration (${unclaimedRefs.length} referral${unclaimedRefs.length > 1 ? 's' : ''}: +$${totalPayout.toFixed(2)} USDT)`,
+      });
+
+      // Record individual claim records for each childId for eligibility tracking & idempotency
+      const claimRecords = [];
+      for (const ref of unclaimedRefs) {
+        const claimRec = await taskRepository.createTaskClaim({
+          userId,
+          taskId: taskDef.id,
+          taskCode,
+          claimKey: ref.childId, // Per-referral childId as claimKey
+          rewardAmount: unitReward.toFixed(8),
+          rewardType: 'CASH',
+          transactionId: txRecord.id,
+          claimMetadata: JSON.stringify({
+            childId: ref.childId,
+            batchClaimCount: unclaimedRefs.length,
+            batchTotalPayout: totalPayout.toFixed(8),
+          }),
+        });
+        claimRecords.push(claimRec);
+      }
+
+      await auditRepository.createAuditLog({
+        actorUid: userId,
+        userId,
+        action: 'TASK_REWARD_CLAIMED',
+        resource: `tasks/${taskDef.id}`,
+        newValue: JSON.stringify({
+          taskCode,
+          claimedReferralCount: unclaimedRefs.length,
+          totalPayout,
+          claimedChildIds: unclaimedRefs.map((r) => r.childId),
+        }),
+      });
+
+      return {
+        alreadyClaimed: false,
+        message: `🎉 Successfully claimed $${totalPayout.toFixed(2)} USDT for ${unclaimedRefs.length} referral registration${unclaimedRefs.length > 1 ? 's' : ''}!`,
+        rewardAmount: totalPayout,
+        newAvailableBalance: updatedAvailable,
+        claim: claimRecords[0],
+      };
     } else if (taskDef.category === 'DEPOSIT' || taskDef.triggerType === 'DEPOSIT_TOTAL') {
-      const realDeposits = await this.getUserRealTotalDeposits(userId);
+      const realDeposits = await this.getUserRealTotalDeposits(userId, TASK_REWARDS_LAUNCH_DATE);
       const target = parseFloat(taskDef.targetProgress || '0');
       if (realDeposits < target) {
-        throw new Error(`Deposit milestone requirement not met. Required: $${target} REAL deposit.`);
+        throw new Error(`Deposit milestone requirement not met. Required: $${target} REAL deposit after launch.`);
       }
     } else if (taskDef.category === 'REFERRAL' || taskDef.triggerType === 'REFERRAL_COUNT') {
-      const { verifiedCount } = await this.getVerifiedReferralsDetails(userId);
+      const { verifiedCount } = await this.getVerifiedReferralsDetails(userId, TASK_REWARDS_LAUNCH_DATE);
       const target = parseFloat(taskDef.targetProgress || '0');
       if (verifiedCount < target) {
-        throw new Error(`Referral milestone requirement not met. Required: ${target} verified referrals with min $50 REAL deposit.`);
+        throw new Error(`Referral milestone requirement not met. Required: ${target} verified referrals with min $50 REAL deposit after launch.`);
       }
     }
 

@@ -70,20 +70,17 @@ export class UserService {
         const isTrialEnabled = trialEnabledRaw && !isNaN(trialAmountNum) && trialAmountNum > 0;
         const trialAmountStr = isTrialEnabled ? trialAmountNum.toFixed(8) : '0.00000000';
 
-        let trialExpiresAt: Date | null = null;
-        if (isTrialEnabled && !isNaN(trialDurationDays) && trialDurationDays > 0) {
-          trialExpiresAt = new Date(Date.now() + trialDurationDays * 24 * 60 * 60 * 1000);
-        }
-
         // Main wallet balances (availableBalance, principalBalance) remain 0.
         // Trial Wallet is kept separate under trialBalance & trialExpiresAt.
+        // NOTE: trialExpiresAt is set to null at signup. The expiry countdown starts
+        // ONLY when the user claims the Registration Trial Fund task.
         const createdWallet = await walletRepository.createWallet({
           userId,
           availableBalance: '0.00000000',
           lockedBalance: '0.00000000',
           principalBalance: '0.00000000',
           trialBalance: trialAmountStr,
-          trialExpiresAt,
+          trialExpiresAt: null,
         });
 
         // Record an immutable transaction ledger entry if Trial Fund is enabled

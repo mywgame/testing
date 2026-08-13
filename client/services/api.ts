@@ -613,6 +613,13 @@ class ApiService {
   }
 
   /**
+   * User: Get system announcements published by admin
+   */
+  async getUserAnnouncements(): Promise<ApiResponse<any>> {
+    return this.get<any>('/users/announcements');
+  }
+
+  /**
    * Admin: Get system announcements
    */
   async getAnnouncements(): Promise<ApiResponse<any>> {

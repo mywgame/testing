@@ -39,6 +39,8 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({ transactions, on
           const lowerType = (tx.type || '').toLowerCase();
           const isDeposit = lowerType.includes('deposit');
           const isWithdrawal = lowerType.includes('withdrawal');
+          const isExpiry = lowerType.includes('expiry');
+          const isDeduction = isWithdrawal || isExpiry;
           const displayType =
             tx.displayType ||
             (tx.type || '')
@@ -53,14 +55,14 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({ transactions, on
                   className={`p-2 rounded-xl shrink-0 ${
                     isDeposit
                       ? 'bg-green-500/15 ring-1 ring-green-500/25'
-                      : isWithdrawal
+                      : isDeduction
                       ? 'bg-red-500/15 ring-1 ring-red-500/25'
                       : 'bg-blue-500/15 ring-1 ring-blue-500/25'
                   }`}
                 >
                   {isDeposit ? (
                     <ArrowDownLeft className="w-4 h-4 text-green-500" />
-                  ) : isWithdrawal ? (
+                  ) : isDeduction ? (
                     <ArrowUpRight className="w-4 h-4 text-red-500" />
                   ) : (
                     <Star className="w-4 h-4 text-blue-500" />
@@ -74,10 +76,10 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({ transactions, on
               <div className="text-right">
                 <p
                   className={`text-sm font-bold ${
-                    isDeposit ? 'text-green-500' : isWithdrawal ? 'text-red-500' : 'text-blue-500'
+                    isDeposit ? 'text-green-500' : isDeduction ? 'text-red-500' : 'text-blue-500'
                   }`}
                 >
-                  {isWithdrawal ? '-' : '+'}${typeof tx.amount === 'number' ? tx.amount.toLocaleString() : tx.amount} {tx.token || 'USDT'}
+                  {isDeduction ? '-' : '+'}${typeof tx.amount === 'number' ? tx.amount.toLocaleString() : tx.amount} {tx.token || 'USDT'}
                 </p>
                 <p className={`text-xs ${t.textMuted}`}>{tx.time}</p>
               </div>

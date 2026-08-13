@@ -435,4 +435,15 @@ router.get(
   userController.getTeamMembers
 );
 
+/**
+ * @route GET /api/v1/users/announcements
+ * @desc Get platform announcements for users
+ * @access Private
+ */
+router.get(
+  '/announcements',
+  requireAuth,
+  userController.getAnnouncements
+);
+
 export default router;

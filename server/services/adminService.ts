@@ -1280,17 +1280,16 @@ export class AdminService {
    */
   async getAnnouncements() {
     const stored = await settingsService.getSystemSetting('SYSTEM_ANNOUNCEMENTS', '');
-    let announcements;
+    let announcements: any[] = [];
     if (stored) {
-      try { announcements = JSON.parse(stored); } catch (e) {}
-    }
-
-    if (!announcements) {
-      announcements = [
-        { id: 'ANN-992', headline: 'Scheduled Platform Maintenance & Database Integrity Tuning', content: 'We are completing an infrastructure optimization run on July 20th, 02:00-04:00 UTC. Ledger modifications will be paused.', category: 'Critical', target: 'All Accounts', publishedBy: 'superadmin', date: 'Jul 15, 2024' },
-        { id: 'ANN-991', headline: 'Matched First Deposit Match Commissions Boost!', content: 'Earn an additional 2.5% yield matching commissions when direct referrals fund their balances with over $5,000.', category: 'Standard', target: 'Gold & Diamond Tiers', publishedBy: 'marketing_op', date: 'Jul 12, 2024' },
-        { id: 'ANN-990', headline: 'Security Update: Mandatory Two-Factor Validation for Withdrawals', content: 'Starting August 1st, all outgoing transactions must pass dual-factor OTP security checks to secure platform reserves.', category: 'Critical', target: 'All Accounts', publishedBy: 'security_lead', date: 'Jul 10, 2024' }
-      ];
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          announcements = parsed;
+        }
+      } catch (e) {
+        announcements = [];
+      }
     }
 
     return announcements;
@@ -1301,16 +1300,23 @@ export class AdminService {
    */
   async createAnnouncement(newBroadcast: any, adminUid: string) {
     const announcements = await this.getAnnouncements();
-    const id = `ANN-${990 - announcements.length}`;
+    const id = `ANN-${Date.now()}`;
     const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const created = {
       id,
-      headline: newBroadcast.headline,
-      content: newBroadcast.content,
-      category: newBroadcast.category,
-      target: newBroadcast.target,
+      title: newBroadcast.title || newBroadcast.headline || '',
+      headline: newBroadcast.headline || newBroadcast.title || '',
+      message: newBroadcast.message || newBroadcast.content || '',
+      content: newBroadcast.content || newBroadcast.message || '',
+      excerpt: newBroadcast.message || newBroadcast.content || '',
+      category: newBroadcast.category || (newBroadcast.priority === 'Urgent' ? 'Security' : 'Audit'),
+      priority: newBroadcast.priority || 'Standard',
+      targetAudience: newBroadcast.targetAudience || newBroadcast.target || 'All Users',
+      target: newBroadcast.target || newBroadcast.targetAudience || 'All Users',
+      pinned: Boolean(newBroadcast.pinned),
       publishedBy: adminUid,
       date: dateStr,
+      createdAt: dateStr,
     };
 
     const updatedList = [created, ...announcements];

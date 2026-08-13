@@ -196,14 +196,12 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ dashboardData, onR
             <span className="truncate">Withdraw</span>
           </button>
           <button
+            id="btn-quick-staking"
             onClick={() => onQuickAction?.('staking')}
-            className="relative flex items-center justify-center gap-1 sm:gap-2 px-1.5 sm:px-4 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 hover:opacity-90 text-white font-sans font-bold text-[9px] sm:text-xs tracking-wider uppercase transition-all shadow-lg shadow-orange-900/10 active:scale-[0.98] cursor-pointer"
+            className="flex items-center justify-center gap-1 sm:gap-2 px-1.5 sm:px-4 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 hover:opacity-90 text-white font-sans font-bold text-[9px] sm:text-xs tracking-wider uppercase transition-all shadow-lg shadow-blue-900/10 active:scale-[0.98] cursor-pointer"
           >
-            <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-amber-100" />
+            <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
             <span className="truncate">Staking</span>
-            <span className="ml-0.5 px-1 py-0.2 rounded text-[7px] sm:text-[8px] bg-black/30 border border-white/20 text-amber-200 font-mono tracking-normal leading-none font-extrabold">
-              SOON
-            </span>
           </button>
           <button
             onClick={() => onQuickAction?.('task')}
@@ -245,10 +243,8 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ dashboardData, onR
           <RecentActivity transactions={realRecentTransactions} onViewAll={() => onQuickAction?.('team')} />
         </div>
 
-        {/* 6. Announcements (preserved from earlier phase; no figma equivalent) */}
-        <div className="w-full" id="announcements-container">
-          <Announcements />
-        </div>
+        {/* 6. Announcements (only rendered if admin published announcements; otherwise hidden) */}
+        <Announcements />
 
         {/* 7. Download Apps Placeholders (Android APK, iOS, Chrome WebApp) */}
         <div className="w-full" id="download-apps-container">

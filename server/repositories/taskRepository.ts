@@ -14,7 +14,7 @@ export const DEFAULT_TASK_DEFINITIONS = [
     description: 'Welcome gift for new members upon successful registration.',
     category: 'ACTIVITY',
     rewardType: 'TRIAL_FUND',
-    rewardAmount: '1000.00000000',
+    rewardAmount: '100.00000000',
     rewardPerUnit: '0.00000000',
     triggerType: 'REGISTRATION',
     targetProgress: '1.00000000',

@@ -48,7 +48,7 @@ const MOCK_DEFAULT_TASKS: TaskItemDTO[] = [
     description: 'Welcome gift for new members upon successful registration.',
     category: 'ACTIVITY',
     rewardType: 'TRIAL_FUND',
-    rewardAmount: 1000,
+    rewardAmount: 100,
     rewardPerUnit: 0,
     currentProgress: 1,
     targetProgress: 1,
