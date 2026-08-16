@@ -1085,7 +1085,10 @@ export class UserController {
             formattedIncome = `$${contributionAmount.toFixed(2)}`;
           }
 
-          const visibleUserId = childUser?.userId || (childUser ? `DS${childUser.id.replace(/-/g, '').slice(0, 6).toUpperCase()}` : 'DS000000');
+          const rawUserId = childUser?.userId || (childUser as any)?.user_id;
+          const visibleUserId = (rawUserId && rawUserId !== 'DS------')
+            ? rawUserId
+            : (childUser ? `DS${childUser.id.replace(/-/g, '').slice(0, 6).toUpperCase()}` : 'DS000000');
 
           return {
             id: d.childId,

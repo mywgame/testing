@@ -45,138 +45,134 @@ export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, isLoa
 
   return (
     <div className="w-full rounded-2xl border border-black/5 dark:border-white/5 bg-black/5 dark:bg-white/1 overflow-hidden">
-      {/* Scrollable table ledger container - optimized for no horizontal scrollbars on modern devices */}
-      <div className="w-full overflow-x-auto no-scrollbar">
-        <div className="min-w-[340px] xs:min-w-[420px] sm:min-w-full">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className={`border-b ${t.sep} ${t.isDark ? 'bg-white/1' : 'bg-black/1'}`}>
-                <th className={`py-4 px-3 sm:px-6 font-bold font-display text-[11px] tracking-wider uppercase ${t.textMuted} w-[50%] sm:w-1/2`}>
-                  Username / Identity
-                </th>
-                <th className={`py-4 px-3 sm:px-6 font-bold font-display text-[11px] tracking-wider uppercase ${t.textMuted} w-[25%] sm:w-1/4`}>
-                  VIP Rank
-                </th>
-                <th className={`py-4 px-3 sm:px-6 font-bold font-display text-[11px] tracking-wider uppercase ${t.textMuted} w-[25%] sm:w-1/4 text-right`}>
-                  Today's Contribution
-                </th>
-              </tr>
-            </thead>
-            
-            <motion.tbody
-              key={`${levelLabel}-${members.length}-${isLoading}`}
-              variants={container}
-              initial="hidden"
-              animate="show"
-              className={`divide-y ${t.sep}`}
-            >
-              {isLoading ? (
-                // Loading skeleton placeholder rows
-                [...Array(3)].map((_, i) => (
-                  <motion.tr key={`skeleton-${i}`} variants={item} className="animate-pulse">
-                    <td className="py-3.5 px-3 sm:px-6">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-8 h-8 rounded-full ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
-                        <div className="space-y-1.5 flex-1">
-                          <div className={`h-3.5 w-24 rounded ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
-                          <div className={`h-2.5 w-16 rounded ${t.isDark ? 'bg-white/5' : 'bg-gray-100'}`} />
-                        </div>
+      {/* 100% Responsive table ledger container - fits natively on mobile without horizontal scrolling */}
+      <div className="w-full overflow-hidden">
+        <table className="w-full table-fixed text-left border-collapse">
+          <thead>
+            <tr className={`border-b ${t.sep} ${t.isDark ? 'bg-white/1' : 'bg-black/1'}`}>
+              <th className={`py-3 sm:py-4 px-2.5 sm:px-6 font-bold font-display text-[10px] sm:text-[11px] tracking-wider uppercase ${t.textMuted} w-[45%]`}>
+                Username / Identity
+              </th>
+              <th className={`py-3 sm:py-4 px-1 sm:px-4 font-bold font-display text-[10px] sm:text-[11px] tracking-wider uppercase ${t.textMuted} w-[25%]`}>
+                VIP Rank
+              </th>
+              <th className={`py-3 sm:py-4 px-2.5 sm:px-6 font-bold font-display text-[10px] sm:text-[11px] tracking-wider uppercase ${t.textMuted} w-[30%] text-right`}>
+                Today's Contribution
+              </th>
+            </tr>
+          </thead>
+          
+          <motion.tbody
+            key={`${levelLabel}-${members.length}-${isLoading}`}
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className={`divide-y ${t.sep}`}
+          >
+            {isLoading ? (
+              // Loading skeleton placeholder rows
+              [...Array(3)].map((_, i) => (
+                <motion.tr key={`skeleton-${i}`} variants={item} className="animate-pulse">
+                  <td className="py-3 px-2.5 sm:px-6">
+                    <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+                      <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full shrink-0 ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                      <div className="space-y-1.5 flex-1 min-w-0">
+                        <div className={`h-3 w-16 sm:w-24 rounded ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                        <div className={`h-2.5 w-12 sm:w-16 rounded ${t.isDark ? 'bg-white/5' : 'bg-gray-100'}`} />
                       </div>
-                    </td>
-                    <td className="py-3.5 px-3 sm:px-6">
-                      <div className={`h-6 w-16 rounded-full ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
-                    </td>
-                    <td className="py-3.5 px-3 sm:px-6 text-right">
-                      <div className="flex flex-col items-end space-y-1">
-                        <div className={`h-3.5 w-14 rounded ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
-                        <div className={`h-2 w-8 rounded ${t.isDark ? 'bg-white/5' : 'bg-gray-100'}`} />
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))
-              ) : members.length === 0 ? (
-                <motion.tr variants={item}>
-                  <td colSpan={3} className={`py-16 text-center text-xs sm:text-sm font-sans ${t.textMuted}`}>
-                    <div className="flex flex-col items-center justify-center space-y-2">
-                      <div className="p-3 bg-white/5 border border-white/10 rounded-full text-gray-400">
-                        <Search className="w-5 h-5" />
-                      </div>
-                      <p className="font-bold">No members found</p>
-                      <p className="text-xs text-gray-500 max-w-xs px-4">
-                        There are no active members recorded in {levelLabel} yet.
-                      </p>
+                    </div>
+                  </td>
+                  <td className="py-3 px-1 sm:px-4">
+                    <div className={`h-5 sm:h-6 w-14 sm:w-16 rounded-full ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                  </td>
+                  <td className="py-3 px-2.5 sm:px-6 text-right">
+                    <div className="flex flex-col items-end space-y-1">
+                      <div className={`h-3 w-12 sm:w-14 rounded ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                      <div className={`h-2 w-8 rounded ${t.isDark ? 'bg-white/5' : 'bg-gray-100'}`} />
                     </div>
                   </td>
                 </motion.tr>
-              ) : (
-                members.map((member, index) => {
-                  const vip = VIP_CONFIG[member.vipRank] || VIP_CONFIG['VIP1'];
-                  const amountValue = parseFloat(member.todaysIncome.replace(/[^0-9.-]/g, '')) || 0;
-                  const hasContribution = amountValue >= 0.01;
+              ))
+            ) : members.length === 0 ? (
+              <motion.tr variants={item}>
+                <td colSpan={3} className={`py-14 sm:py-16 text-center text-xs sm:text-sm font-sans ${t.textMuted}`}>
+                  <div className="flex flex-col items-center justify-center space-y-2 px-4">
+                    <div className="p-3 bg-white/5 border border-white/10 rounded-full text-gray-400">
+                      <Search className="w-5 h-5" />
+                    </div>
+                    <p className="font-bold">No members found</p>
+                    <p className="text-xs text-gray-500 max-w-xs">
+                      There are no active members recorded in {levelLabel} yet.
+                    </p>
+                  </div>
+                </td>
+              </motion.tr>
+            ) : (
+              members.map((member, index) => {
+                const vip = VIP_CONFIG[member.vipRank] || VIP_CONFIG['VIP1'];
+                const amountValue = parseFloat(member.todaysIncome.replace(/[^0-9.-]/g, '')) || 0;
+                const hasContribution = amountValue >= 0.01;
 
-                  return (
-                    <motion.tr
-                      key={`${member.username}-${index}`}
-                      variants={item}
-                      className="hover:bg-white/3 dark:hover:bg-white/2 transition-colors duration-150 group"
-                    >
-                      {/* Column 1: Secure Username with clean placeholder avatar and DS ID */}
-                      <td className="py-3.5 px-3 sm:px-6">
-                        <div className="flex items-center space-x-2 sm:space-x-3">
-                          <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full border flex items-center justify-center shrink-0 ${
-                            t.isDark ? 'bg-white/5 border-white/10 text-gray-300' : 'bg-gray-100 border-black/5 text-gray-600'
-                          }`}>
-                            <span className="text-[10px] sm:text-xs font-mono font-bold uppercase">
-                              {member.username.substring(0, 2)}
-                            </span>
-                          </div>
-                          <div className="flex flex-col min-w-0">
-                            <span className={`font-mono font-bold text-xs sm:text-sm truncate ${t.text}`}>
-                              {member.username}
-                            </span>
-                            <span className={`text-[10px] font-mono tracking-tight ${t.textMuted}`}>
-                              {member.userId}
-                            </span>
-                          </div>
+                return (
+                  <motion.tr
+                    key={`${member.username}-${index}`}
+                    variants={item}
+                    className="hover:bg-white/3 dark:hover:bg-white/2 transition-colors duration-150 group"
+                  >
+                    {/* Column 1: Secure Username with clean placeholder avatar and DS ID */}
+                    <td className="py-3 sm:py-3.5 px-2.5 sm:px-6 overflow-hidden">
+                      <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+                        <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full border flex items-center justify-center shrink-0 ${
+                          t.isDark ? 'bg-white/5 border-white/10 text-gray-300' : 'bg-gray-100 border-black/5 text-gray-600'
+                        }`}>
+                          <span className="text-[9px] sm:text-xs font-mono font-bold uppercase">
+                            {member.username.substring(0, 2)}
+                          </span>
                         </div>
-                      </td>
+                        <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
+                          <span className={`font-mono font-bold text-[11px] sm:text-sm truncate ${t.text}`} title={member.username}>
+                            {member.username}
+                          </span>
+                          <span className={`text-[9px] sm:text-[10px] font-mono tracking-tight truncate ${t.textMuted}`} title={member.userId}>
+                            {member.userId}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
 
-                      {/* Column 2: VIP Rank */}
-                      <td className="py-3.5 px-3 sm:px-6">
-                        <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold border ${vip.bg}`}>
-                          <span>{vip.icon}</span>
-                          <span className="font-mono tracking-tight">{vip.label}</span>
+                    {/* Column 2: VIP Rank */}
+                    <td className="py-3 sm:py-3.5 px-1 sm:px-4 overflow-hidden">
+                      <span className={`inline-flex items-center space-x-0.5 sm:space-x-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold border ${vip.bg} truncate max-w-full`}>
+                        <span className="shrink-0">{vip.icon}</span>
+                        <span className="font-mono tracking-tight truncate">{vip.label}</span>
+                      </span>
+                    </td>
+
+                    {/* Column 3: Today's Contribution (Qualified / Missed / Standard) */}
+                    <td className="py-3 sm:py-3.5 px-2.5 sm:px-6 text-right overflow-hidden">
+                      <div className="flex flex-col items-end min-w-0">
+                        <span className={`font-mono font-extrabold text-[11px] sm:text-sm truncate max-w-full ${
+                          member.contributionStatus === 'Qualified' && hasContribution
+                            ? 'text-emerald-500'
+                            : t.textSub
+                        }`}>
+                          {member.todaysIncome || '$0.00'}
                         </span>
-                      </td>
-
-                      {/* Column 3: Today's Contribution (Qualified / Missed) - only shown if >= $0.01 */}
-                      <td className="py-3.5 px-3 sm:px-6 text-right">
-                        {hasContribution && (
-                          <div className="flex flex-col items-end">
-                            <span className={`font-mono font-extrabold text-xs sm:text-sm ${
-                              member.contributionStatus === 'Qualified'
-                                ? 'text-emerald-500'
-                                : t.textSub
-                            }`}>
-                              {member.todaysIncome}
-                            </span>
-                            <span className={`text-[9px] font-medium font-sans ${
-                              member.contributionStatus === 'Qualified'
-                                ? 'text-emerald-500 font-semibold'
-                                : t.textMuted
-                            } tracking-tight`}>
-                              {member.contributionStatus}
-                            </span>
-                          </div>
-                        )}
-                      </td>
-                    </motion.tr>
-                  );
-                })
-              )}
-            </motion.tbody>
-          </table>
-        </div>
+                        <span className={`text-[8px] sm:text-[9px] font-medium font-sans truncate max-w-full ${
+                          member.contributionStatus === 'Qualified' && hasContribution
+                            ? 'text-emerald-500 font-semibold'
+                            : t.textMuted
+                        } tracking-tight`}>
+                          {member.contributionStatus}
+                        </span>
+                      </div>
+                    </td>
+                  </motion.tr>
+                );
+              })
+            )}
+          </motion.tbody>
+        </table>
       </div>
 
       {/* Audit warning / compliance rule at the bottom of the table */}

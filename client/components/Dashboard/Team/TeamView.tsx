@@ -87,10 +87,21 @@ export const TeamView: React.FC<TeamViewProps> = ({ dashboardData }) => {
         m.referralLevel === 2 ? 'Level B' :
         m.referralLevel === 3 ? 'Level C' : 'Level D';
 
+      const memberUserId =
+        (m.userId && m.userId !== 'DS------')
+          ? m.userId
+          : (m as any).user_id && (m as any).user_id !== 'DS------'
+          ? (m as any).user_id
+          : (m as any).userVisibleId
+          ? (m as any).userVisibleId
+          : m.id
+          ? `DS${m.id.replace(/-/g, '').slice(0, 6).toUpperCase()}`
+          : 'DS000000';
+
       grouped[levelKey].push({
         id: m.id,
         username: m.username,
-        userId: m.userId || 'DS------',
+        userId: memberUserId,
         vipRank: m.vipRank || 'VIP1',
         todaysIncome: m.todaysIncome || '$0.00',
         contributionStatus: m.contributionStatus || 'Missed',
@@ -153,7 +164,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ dashboardData }) => {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           
           {/* Glassmorphic level tab selectors */}
-          <div className={`flex flex-wrap gap-1 p-1 rounded-2xl border transition-all duration-300 ${
+          <div className={`grid grid-cols-4 sm:flex sm:flex-wrap gap-1 p-1 rounded-2xl border transition-all duration-300 w-full sm:w-auto ${
             t.isDark ? 'bg-white/3 border-white/5' : 'bg-black/3 border-black/5'
           }`}>
             {(['Level A', 'Level B', 'Level C', 'Level D'] as ReferralLevel[]).map((level) => {
@@ -164,7 +175,7 @@ export const TeamView: React.FC<TeamViewProps> = ({ dashboardData }) => {
                 <button
                   key={level}
                   onClick={() => setSelectedLevel(level)}
-                  className={`relative text-[10px] xs:text-xs font-bold px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-colors duration-200 cursor-pointer focus:outline-none select-none z-10 ${
+                  className={`relative text-[10px] xs:text-xs font-bold px-1 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-colors duration-200 cursor-pointer focus:outline-none select-none z-10 text-center flex flex-col sm:flex-row items-center justify-center sm:gap-1 ${
                     isActive
                       ? t.isDark ? 'text-cyan-400' : 'text-blue-600'
                       : `${t.textSub} hover:${t.text}`
@@ -181,7 +192,8 @@ export const TeamView: React.FC<TeamViewProps> = ({ dashboardData }) => {
                       }`}
                     />
                   )}
-                  <span>{level} ({count})</span>
+                  <span className="truncate">{level}</span>
+                  <span className="text-[9px] sm:text-xs opacity-75">({count})</span>
                 </button>
               );
             })}
