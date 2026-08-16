@@ -124,6 +124,7 @@ export interface MockTransaction {
   token?: string;
   time?: string;
   timestampIso?: string;
+  createdAt?: string | Date;
   status?: string;
   hash?: string;
   network?: string;

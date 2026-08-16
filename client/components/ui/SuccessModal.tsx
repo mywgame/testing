@@ -6,6 +6,7 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { playSuccessSound } from '../../utils/sound.ts';
 
 export interface SuccessModalProps {
   isOpen: boolean;
@@ -65,6 +66,7 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      playSuccessSound();
     } else {
       document.body.style.overflow = '';
     }

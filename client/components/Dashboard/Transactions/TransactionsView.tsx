@@ -118,7 +118,7 @@ export const TransactionsView: React.FC = () => {
   return (
     <DashboardLayout
       title="Transaction History"
-      description="View and track all your secure, verified blockchain wallet transactions in real-time."
+      description="View and track all your secure, verified blockchain wallet transactions of the last 3 months in real-time."
     >
       <div className="space-y-6 text-left" id="transactions-view-feature-container">
         

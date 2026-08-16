@@ -11,6 +11,7 @@ import { TeamMember } from './types.ts';
 interface TeamTableProps {
   members: TeamMember[];
   levelLabel: string;
+  isLoading?: boolean;
   t: any; // Theme object from useTheme
 }
 
@@ -25,7 +26,7 @@ const VIP_CONFIG: Record<string, { label: string; color: string; bg: string; ico
   VIP8: { label: 'VIP8', color: '#3b82f6', bg: 'bg-blue-500/10 text-blue-400 border-blue-500/20', icon: '🚀' },
 };
 
-export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, t }) => {
+export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, isLoading = false, t }) => {
   // Animation configs
   const container = {
     hidden: { opacity: 0 },
@@ -63,12 +64,37 @@ export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, t }) 
             </thead>
             
             <motion.tbody
+              key={`${levelLabel}-${members.length}-${isLoading}`}
               variants={container}
               initial="hidden"
               animate="show"
               className={`divide-y ${t.sep}`}
             >
-              {members.length === 0 ? (
+              {isLoading ? (
+                // Loading skeleton placeholder rows
+                [...Array(3)].map((_, i) => (
+                  <motion.tr key={`skeleton-${i}`} variants={item} className="animate-pulse">
+                    <td className="py-3.5 px-3 sm:px-6">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-8 h-8 rounded-full ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                        <div className="space-y-1.5 flex-1">
+                          <div className={`h-3.5 w-24 rounded ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                          <div className={`h-2.5 w-16 rounded ${t.isDark ? 'bg-white/5' : 'bg-gray-100'}`} />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-3 sm:px-6">
+                      <div className={`h-6 w-16 rounded-full ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                    </td>
+                    <td className="py-3.5 px-3 sm:px-6 text-right">
+                      <div className="flex flex-col items-end space-y-1">
+                        <div className={`h-3.5 w-14 rounded ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                        <div className={`h-2 w-8 rounded ${t.isDark ? 'bg-white/5' : 'bg-gray-100'}`} />
+                      </div>
+                    </td>
+                  </motion.tr>
+                ))
+              ) : members.length === 0 ? (
                 <motion.tr variants={item}>
                   <td colSpan={3} className={`py-16 text-center text-xs sm:text-sm font-sans ${t.textMuted}`}>
                     <div className="flex flex-col items-center justify-center space-y-2">
@@ -85,8 +111,8 @@ export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, t }) 
               ) : (
                 members.map((member, index) => {
                   const vip = VIP_CONFIG[member.vipRank] || VIP_CONFIG['VIP1'];
-                  const amountValue = parseFloat(member.todaysIncome.replace(/[^0-9.-]/g, ''));
-                  const isZero = amountValue === 0;
+                  const amountValue = parseFloat(member.todaysIncome.replace(/[^0-9.-]/g, '')) || 0;
+                  const hasContribution = amountValue >= 0.01;
 
                   return (
                     <motion.tr
@@ -94,7 +120,7 @@ export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, t }) 
                       variants={item}
                       className="hover:bg-white/3 dark:hover:bg-white/2 transition-colors duration-150 group"
                     >
-                      {/* Column 1: Secure Username with clean placeholder avatar */}
+                      {/* Column 1: Secure Username with clean placeholder avatar and DS ID */}
                       <td className="py-3.5 px-3 sm:px-6">
                         <div className="flex items-center space-x-2 sm:space-x-3">
                           <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full border flex items-center justify-center shrink-0 ${
@@ -108,8 +134,8 @@ export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, t }) 
                             <span className={`font-mono font-bold text-xs sm:text-sm truncate ${t.text}`}>
                               {member.username}
                             </span>
-                            <span className={`text-[10px] ${t.textMuted}`}>
-                              Partner Active
+                            <span className={`text-[10px] font-mono tracking-tight ${t.textMuted}`}>
+                              {member.userId}
                             </span>
                           </div>
                         </div>
@@ -123,18 +149,26 @@ export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, t }) 
                         </span>
                       </td>
 
-                      {/* Column 3: Today's Income generated (Contribution) */}
+                      {/* Column 3: Today's Contribution (Qualified / Missed) - only shown if >= $0.01 */}
                       <td className="py-3.5 px-3 sm:px-6 text-right">
-                        <div className="flex flex-col items-end">
-                          <span className={`font-mono font-extrabold text-xs sm:text-sm ${
-                            isZero ? t.textSub : 'text-emerald-500'
-                          }`}>
-                            {member.todaysIncome}
-                          </span>
-                          <span className={`text-[9px] font-medium font-sans ${t.textMuted} tracking-tight`}>
-                            TODAY
-                          </span>
-                        </div>
+                        {hasContribution && (
+                          <div className="flex flex-col items-end">
+                            <span className={`font-mono font-extrabold text-xs sm:text-sm ${
+                              member.contributionStatus === 'Qualified'
+                                ? 'text-emerald-500'
+                                : t.textSub
+                            }`}>
+                              {member.todaysIncome}
+                            </span>
+                            <span className={`text-[9px] font-medium font-sans ${
+                              member.contributionStatus === 'Qualified'
+                                ? 'text-emerald-500 font-semibold'
+                                : t.textMuted
+                            } tracking-tight`}>
+                              {member.contributionStatus}
+                            </span>
+                          </div>
+                        )}
                       </td>
                     </motion.tr>
                   );

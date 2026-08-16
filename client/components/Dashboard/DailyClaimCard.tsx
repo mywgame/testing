@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { Zap, CheckCircle, Clock, Flame } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme.ts';
+import { useLocalization } from '../../contexts/LocalizationContext.tsx';
 import { RingProgress } from '../ui/RingProgress.tsx';
 import { MockDailyClaim } from '../../types/index.ts';
 
@@ -23,6 +24,7 @@ interface DailyClaimCardProps {
     }>;
   };
   onClaim?: () => Promise<any>;
+  onClaimSuccess?: (info: { amount: number; streakDays: number }) => void;
 }
 
 /**
@@ -33,8 +35,9 @@ interface DailyClaimCardProps {
  * `onClaim` will call the real `/users/claim-yield` endpoint instead of the
  * local mock timeout below.
  */
-export const DailyClaimCard: React.FC<DailyClaimCardProps> = ({ dailyClaim, onClaim }) => {
+export const DailyClaimCard: React.FC<DailyClaimCardProps> = ({ dailyClaim, onClaim, onClaimSuccess }) => {
   const { t } = useTheme();
+  const { formatCurrency, t: translate } = useLocalization();
   const [secondsLeft, setSecondsLeft] = useState(dailyClaim.secondsRemaining);
   const [claiming, setClaiming] = useState(false);
   const [claimed, setClaimed] = useState(dailyClaim.status === 'CLAIMED');
@@ -61,6 +64,12 @@ export const DailyClaimCard: React.FC<DailyClaimCardProps> = ({ dailyClaim, onCl
       if (onClaim) {
         await onClaim();
         setClaimed(true);
+        if (onClaimSuccess) {
+          onClaimSuccess({
+            amount: dailyClaim.rewardAmount,
+            streakDays: (dailyClaim.streakDays || 0) + 1,
+          });
+        }
       }
     } catch (err: any) {
       console.error(err);
@@ -124,7 +133,7 @@ export const DailyClaimCard: React.FC<DailyClaimCardProps> = ({ dailyClaim, onCl
           </div>
           <div className="text-right">
             <p className={`text-xs uppercase tracking-wider mb-0.5 ${t.textMuted}`}>Est. Rewards</p>
-            <span className="text-emerald-500 font-bold">+${dailyClaim.rewardAmount.toFixed(2)} USDT</span>
+            <span className="text-emerald-500 font-bold">+{formatCurrency(dailyClaim.rewardAmount)}</span>
           </div>
         </div>
 
@@ -143,11 +152,11 @@ export const DailyClaimCard: React.FC<DailyClaimCardProps> = ({ dailyClaim, onCl
           {claiming ? (
             <><Clock className="w-4 h-4 animate-spin" /> Processing…</>
           ) : claimed ? (
-            <><CheckCircle className="w-4 h-4" /> Claimed!</>
+            <><CheckCircle className="w-4 h-4" /> {translate('claimed', 'Claimed!')}</>
           ) : claimReady ? (
-            <><Zap className="w-4 h-4" /> Trigger Claim</>
+            <><Zap className="w-4 h-4" /> {translate('triggerClaim', 'Trigger Claim')}</>
           ) : (
-            <><Clock className="w-4 h-4" /> Cooldown Active</>
+            <><Clock className="w-4 h-4" /> {translate('cooldown', 'Cooldown Active')}</>
           )}
         </button>
 

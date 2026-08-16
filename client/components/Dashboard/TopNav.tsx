@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { Menu, X, User, Lock, Fingerprint, Wallet, Settings, HelpCircle, LogOut } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme.ts';
+import { useLocalization } from '../../contexts/LocalizationContext.tsx';
 import { useAvatar } from '../../hooks/useAvatar.ts';
 import { ThemeSwitch } from '../ui/ThemeSwitch.tsx';
 import { NotificationBell } from './NotificationBell.tsx';
@@ -28,6 +29,7 @@ interface TopNavProps {
  */
 export const TopNav: React.FC<TopNavProps> = ({ identity, activeTab, onNavigate, onLogout }) => {
   const { t } = useTheme();
+  const { t: translate } = useLocalization();
   const { avatarUrl } = useAvatar();
   const [isOpen, setIsOpen] = useState(false);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
@@ -110,12 +112,12 @@ export const TopNav: React.FC<TopNavProps> = ({ identity, activeTab, onNavigate,
                 {/* Account-Related Navigation items */}
                 <div className="space-y-0.5">
                   {[
-                    { id: 'profile' as DashboardTab, label: 'Profile', icon: User },
-                    { id: 'security' as DashboardTab, label: 'Security', icon: Lock },
-                    { id: 'twoFactor' as DashboardTab, label: 'Two-Factor Authentication', icon: Fingerprint },
-                    { id: 'withdrawalAddresses' as DashboardTab, label: 'Withdrawal Addresses', icon: Wallet },
-                    { id: 'settings' as DashboardTab, label: 'Settings', icon: Settings },
-                    { id: 'support' as DashboardTab, label: 'Support', icon: HelpCircle },
+                    { id: 'profile' as DashboardTab, label: translate('profile', 'Profile'), icon: User },
+                    { id: 'security' as DashboardTab, label: translate('security', 'Security'), icon: Lock },
+                    { id: 'twoFactor' as DashboardTab, label: translate('twoFactor', 'Two-Factor Authentication'), icon: Fingerprint },
+                    { id: 'withdrawalAddresses' as DashboardTab, label: translate('withdrawalAddresses', 'Withdrawal Addresses'), icon: Wallet },
+                    { id: 'settings' as DashboardTab, label: translate('settings', 'Settings'), icon: Settings },
+                    { id: 'support' as DashboardTab, label: translate('support', 'Support'), icon: HelpCircle },
                   ].map((item) => {
                     const Icon = item.icon;
                     const isActive = activeTab === item.id;
@@ -148,7 +150,7 @@ export const TopNav: React.FC<TopNavProps> = ({ identity, activeTab, onNavigate,
                     className="w-full flex items-center rounded-xl py-2 px-3 text-xs font-bold transition-all text-left text-red-400 hover:text-red-500 hover:bg-red-500/10 cursor-pointer focus:outline-none"
                   >
                     <LogOut className="w-4 h-4 mr-2.5 shrink-0" />
-                    <span>Logout</span>
+                    <span>{translate('logout', 'Logout')}</span>
                   </button>
                 </div>
               </div>

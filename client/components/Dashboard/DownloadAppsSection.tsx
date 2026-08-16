@@ -5,7 +5,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Download, Check, ExternalLink, ShieldCheck, Info } from 'lucide-react';
-import { Card, Modal } from '../ui/index.ts';
+import { Modal } from '../ui/index.ts';
+import { useTheme } from '../../hooks/useTheme.ts';
 
 const APK_URL = 'https://pub-9c62303890854a49a9eda8efb728c7ff.r2.dev/android/metafirm-v1.0.0.apk';
 
@@ -37,6 +38,7 @@ const ChromeIcon: React.FC<{ className?: string }> = ({ className = 'w-4 h-4' })
 );
 
 export const DownloadAppsSection: React.FC = () => {
+  const { t } = useTheme();
   const [downloadMsg, setDownloadMsg] = useState<string | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState<boolean>(false);
@@ -105,65 +107,68 @@ export const DownloadAppsSection: React.FC = () => {
 
   return (
     <>
-      <Card className="w-full bg-slate-900/50 border-slate-800/80 p-3.5 sm:p-4 backdrop-blur-md rounded-xl shadow-lg" id="download-apps-section">
-        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-          {/* Left: Compact Label */}
-          <div className="flex items-center gap-2.5 shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-              <AndroidIcon className="w-4 h-4 text-emerald-400" />
+      <div className={`w-full backdrop-blur-lg rounded-2xl p-4 sm:p-5 border transition-all duration-300 ${t.card}`} id="download-apps-section">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          {/* Left: Clean Label without Android logo */}
+          <div className="shrink-0 space-y-1">
+            <div className="flex items-center gap-2">
+              <h4 className={`text-sm sm:text-base font-bold font-sans tracking-tight ${t.text}`}>
+                Get MetaFirm App
+              </h4>
+              <span className="inline-flex px-2 py-0.5 text-[9px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full">
+                v1.0 Official
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h4 className="text-xs sm:text-sm font-bold text-slate-100 font-sans">
-                  Get MetaFirm App
-                </h4>
-                <span className="hidden sm:inline-flex px-1.5 py-0.2 text-[9px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full">
-                  v1.0 Official
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400 flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-emerald-400 inline shrink-0" />
-                <span>Available for Android, iOS & Chrome Web</span>
-              </p>
-            </div>
+            <p className={`text-xs ${t.textSub} flex items-center gap-1.5`}>
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 inline shrink-0" />
+              <span>Available for Android, iOS & Chrome Web</span>
+            </p>
           </div>
 
           {/* Right: 3 Compact App Buttons with Official Brand Icons */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full lg:w-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 w-full lg:w-auto">
             {/* Android Button */}
             <button
               onClick={handleDownloadApk}
-              className="flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg bg-slate-800/90 hover:bg-emerald-600/90 hover:text-white text-slate-200 border border-slate-700/60 hover:border-emerald-500/50 text-xs font-medium transition-all group cursor-pointer"
+              className={`flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl border text-xs font-medium transition-all group cursor-pointer ${
+                t.isDark
+                  ? 'bg-white/4 hover:bg-emerald-500/10 text-white border-white/10 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5'
+                  : 'bg-white hover:bg-emerald-50/70 text-gray-900 border-gray-200 hover:border-emerald-500/40 hover:shadow-sm'
+              }`}
               title="Download Android APK"
             >
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-400 group-hover:bg-white/20 group-hover:text-white flex items-center justify-center transition-colors">
-                  <AndroidIcon className="w-3.5 h-3.5 fill-current" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-500 flex items-center justify-center transition-colors">
+                  <AndroidIcon className="w-4 h-4 fill-current" />
                 </div>
                 <div className="text-left leading-tight">
-                  <div className="text-[11px] font-bold">Android APK</div>
-                  <div className="text-[9px] text-slate-400 group-hover:text-emerald-100">Direct Download</div>
+                  <div className={`text-xs font-bold ${t.text}`}>Android APK</div>
+                  <div className={`text-[10px] ${t.textMuted}`}>Direct Download</div>
                 </div>
               </div>
-              <Download className="w-3.5 h-3.5 text-emerald-400 group-hover:text-white shrink-0" />
+              <Download className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform shrink-0" />
             </button>
 
             {/* iOS Button (Disabled / Coming Soon) */}
             <button
               disabled
-              className="flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg bg-slate-800/40 text-slate-400 border border-slate-700/40 text-xs font-medium cursor-not-allowed opacity-75"
+              className={`flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl border text-xs font-medium cursor-not-allowed opacity-70 ${
+                t.isDark
+                  ? 'bg-white/2 text-gray-400 border-white/5'
+                  : 'bg-gray-50/80 text-gray-500 border-gray-200/60'
+              }`}
               title="iOS App - Coming Soon"
             >
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-slate-700/30 text-slate-500 flex items-center justify-center">
-                  <AppleIcon className="w-3.5 h-3.5 fill-current" />
+              <div className="flex items-center gap-2.5">
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${t.isDark ? 'bg-white/5 text-gray-400' : 'bg-gray-200/60 text-gray-500'}`}>
+                  <AppleIcon className="w-4 h-4 fill-current" />
                 </div>
                 <div className="text-left leading-tight">
-                  <div className="text-[11px] font-bold text-slate-300">iOS (iPhone)</div>
-                  <div className="text-[9px] text-amber-400/90 font-semibold">Coming Soon</div>
+                  <div className={`text-xs font-bold ${t.textSub}`}>iOS (iPhone)</div>
+                  <div className="text-[10px] text-amber-500 font-medium">Coming Soon</div>
                 </div>
               </div>
-              <span className="px-1.5 py-0.5 text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded">
+              <span className="px-1.5 py-0.5 text-[9px] font-bold bg-amber-500/15 text-amber-500 border border-amber-500/25 rounded-md">
                 Soon
               </span>
             </button>
@@ -171,32 +176,40 @@ export const DownloadAppsSection: React.FC = () => {
             {/* Chrome WebApp Button */}
             <button
               onClick={handlePwaClick}
-              className="flex items-center justify-between gap-2.5 px-3 py-2 rounded-lg bg-slate-800/90 hover:bg-blue-600/90 hover:text-white text-slate-200 border border-slate-700/60 hover:border-blue-500/50 text-xs font-medium transition-all group cursor-pointer"
+              className={`flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl border text-xs font-medium transition-all group cursor-pointer ${
+                t.isDark
+                  ? 'bg-white/4 hover:bg-blue-500/10 text-white border-white/10 hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-500/5'
+                  : 'bg-white hover:bg-blue-50/70 text-gray-900 border-gray-200 hover:border-blue-500/40 hover:shadow-sm'
+              }`}
               title="Install Chrome Web App"
             >
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-blue-500/10 flex items-center justify-center">
-                  <ChromeIcon className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center transition-colors">
+                  <ChromeIcon className="w-4 h-4" />
                 </div>
                 <div className="text-left leading-tight">
-                  <div className="text-[11px] font-bold">Chrome App</div>
-                  <div className="text-[9px] text-slate-400 group-hover:text-blue-100">
+                  <div className={`text-xs font-bold ${t.text}`}>Chrome App</div>
+                  <div className={`text-[10px] ${t.textMuted}`}>
                     {isInstalled ? 'App Installed' : 'Install Web App'}
                   </div>
                 </div>
               </div>
-              <ExternalLink className="w-3.5 h-3.5 text-blue-400 group-hover:text-white shrink-0" />
+              <ExternalLink className="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform shrink-0" />
             </button>
           </div>
         </div>
 
         {downloadMsg && (
-          <div className="mt-2.5 p-2 bg-blue-500/10 border border-blue-500/20 text-blue-300 text-[11px] rounded-lg flex items-center gap-2 animate-fadeIn">
-            <Check className="w-3.5 h-3.5 shrink-0 text-blue-400" />
+          <div className={`mt-3 p-2.5 border rounded-xl flex items-center gap-2 text-xs transition-all ${
+            t.isDark
+              ? 'bg-blue-500/10 border-blue-500/20 text-blue-300'
+              : 'bg-blue-50 border-blue-200 text-blue-700'
+          }`}>
+            <Check className="w-4 h-4 shrink-0 text-blue-500" />
             <span>{downloadMsg}</span>
           </div>
         )}
-      </Card>
+      </div>
 
       {/* Helper Modal when browser doesn't trigger automated prompt */}
       <Modal
@@ -205,16 +218,18 @@ export const DownloadAppsSection: React.FC = () => {
         title="Install MetaFirm Web App"
         size="sm"
       >
-        <div className="space-y-4 py-1 text-slate-800">
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-3">
-            <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-            <p className="text-xs sm:text-sm text-blue-900 leading-relaxed">
+        <div className={`space-y-4 py-1 ${t.isDark ? 'text-gray-200' : 'text-slate-800'}`}>
+          <div className={`p-3 border rounded-xl flex items-start gap-3 ${
+            t.isDark ? 'bg-blue-950/40 border-blue-800/40 text-blue-200' : 'bg-blue-50 border-blue-200 text-blue-900'
+          }`}>
+            <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+            <p className="text-xs sm:text-sm leading-relaxed">
               Open your browser menu and select <strong>"Add to Home Screen"</strong> or <strong>"Install App"</strong>.
             </p>
           </div>
 
-          <div className="space-y-2 text-xs text-slate-600">
-            <p className="font-bold text-slate-900">How to install manually:</p>
+          <div className={`space-y-2 text-xs ${t.isDark ? 'text-gray-300' : 'text-slate-600'}`}>
+            <p className={`font-bold ${t.text}`}>How to install manually:</p>
             <ol className="list-decimal list-inside space-y-1.5 pl-1 leading-relaxed">
               <li>
                 Tap your browser options menu (the <strong>3 dots ⋮</strong> in Chrome or <strong>Share icon</strong> in Safari).
@@ -229,7 +244,7 @@ export const DownloadAppsSection: React.FC = () => {
           <div className="pt-2 flex justify-end">
             <button
               onClick={() => setShowInstallGuide(false)}
-              className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-colors cursor-pointer"
+              className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-500 transition-colors cursor-pointer"
             >
               Got it
             </button>
@@ -239,4 +254,5 @@ export const DownloadAppsSection: React.FC = () => {
     </>
   );
 };
+
 

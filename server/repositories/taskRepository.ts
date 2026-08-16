@@ -54,7 +54,7 @@ export const DEFAULT_TASK_DEFINITIONS = [
     targetProgress: '1.00000000',
     unit: 'Join',
     minDepositRequired: '0.00000000',
-    ruleConfig: JSON.stringify({ actionUrl: 'https://t.me/metafirm_official' }),
+    ruleConfig: JSON.stringify({}),
     maxClaimsPerUser: 1,
     isActive: true,
     displayOrder: 3,
@@ -79,7 +79,7 @@ export const DEFAULT_TASK_DEFINITIONS = [
   {
     taskCode: 'DEPOSIT_MILESTONE_100',
     title: 'First $100 Deposit',
-    description: 'Make your first cumulative deposit of $100 (REAL) into your wallet.',
+    description: 'Make your first cumulative deposit of $100 into your wallet.',
     category: 'DEPOSIT',
     rewardType: 'CASH',
     rewardAmount: '1.00000000',
@@ -96,7 +96,7 @@ export const DEFAULT_TASK_DEFINITIONS = [
   {
     taskCode: 'DEPOSIT_MILESTONE_500',
     title: 'First $500 Deposit',
-    description: 'Make your first cumulative deposit of $500 (REAL) into your wallet.',
+    description: 'Make your first cumulative deposit of $500 into your wallet.',
     category: 'DEPOSIT',
     rewardType: 'CASH',
     rewardAmount: '5.00000000',
@@ -113,7 +113,7 @@ export const DEFAULT_TASK_DEFINITIONS = [
   {
     taskCode: 'DEPOSIT_MILESTONE_1000',
     title: 'First $1,000 Deposit',
-    description: 'Make your first cumulative deposit of $1,000 (REAL) into your wallet.',
+    description: 'Make your first cumulative deposit of $1,000 into your wallet.',
     category: 'DEPOSIT',
     rewardType: 'CASH',
     rewardAmount: '10.00000000',
@@ -233,7 +233,7 @@ export const DEFAULT_TASK_DEFINITIONS = [
 
 export class TaskRepository {
   /**
-   * Ensure default tasks exist in DB if table is empty
+   * Ensure default tasks exist in DB if table is empty, and sync default text descriptions
    */
   async seedDefaultTasksIfEmpty() {
     try {
@@ -241,6 +241,14 @@ export class TaskRepository {
       if (existing.length === 0) {
         for (const def of DEFAULT_TASK_DEFINITIONS) {
           await db.insert(taskDefinitions).values(def).onConflictDoNothing();
+        }
+      } else {
+        // Sync any updated default descriptions (e.g. deposit milestones)
+        for (const def of DEFAULT_TASK_DEFINITIONS) {
+          await db
+            .update(taskDefinitions)
+            .set({ description: def.description, title: def.title })
+            .where(eq(taskDefinitions.taskCode, def.taskCode));
         }
       }
     } catch (error) {

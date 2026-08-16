@@ -174,7 +174,7 @@ export class TaskService {
       } else if (taskCode === 'JOIN_TELEGRAM') {
         const isClaimed = hasDefaultClaim || userClaimsForTask.length > 0;
         currentProgress = isClaimed ? 1 : 0;
-        status = isClaimed ? 'CLAIMED' : 'IN_PROGRESS';
+        status = isClaimed ? 'CLAIMED' : 'LOCKED';
       } else if (taskCode === 'REFERRAL_REGISTRATION_SINGLE') {
         currentProgress = totalDirectCount;
         const claimedChildIds = new Set(userClaimsForTask.map((c) => c.claimKey));
@@ -227,7 +227,9 @@ export class TaskService {
         }
         completedCount++;
       } else if (status === 'COMPLETED') {
-        claimableTotal += rewardAmount;
+        if (def.rewardType === 'CASH') {
+          claimableTotal += rewardAmount;
+        }
         if (taskCode === 'REFERRAL_REGISTRATION_SINGLE') {
           const totalClaimedForThis = userClaimsForTask.reduce(
             (sum, c) => sum + parseFloat(c.rewardAmount || '0'),
@@ -263,8 +265,8 @@ export class TaskService {
     return {
       tasks: taskDTOs,
       summary: {
-        totalEarned,
-        claimableTotal,
+        totalEarned: parseFloat(totalEarned.toFixed(2)),
+        claimableTotal: parseFloat(claimableTotal.toFixed(2)),
         completedCount,
         inProgressCount,
         totalTasksCount: definitions.length,
@@ -348,6 +350,10 @@ export class TaskService {
         message: 'Trial Fund registration reward acknowledged and trial expiration countdown started!',
         claim,
       };
+    }
+
+    if (taskCode === 'JOIN_TELEGRAM') {
+      throw new Error('Official Telegram verification is currently pending. This task is currently locked.');
     }
 
     if (taskCode === 'AUTHENTICATOR_SETUP') {

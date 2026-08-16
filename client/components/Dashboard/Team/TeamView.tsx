@@ -24,17 +24,23 @@ export const TeamView: React.FC<TeamViewProps> = ({ dashboardData }) => {
   const [selectedLevel, setSelectedLevel] = useState<ReferralLevel>('Level A');
   const [searchQuery, setSearchQuery] = useState('');
   const [dbMembers, setDbMembers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
     async function fetchMembers() {
       try {
+        setIsLoading(true);
         const response = await api.get<any[]>('/users/team/members');
         if (response.success && response.data && isMounted) {
           setDbMembers(response.data);
         }
       } catch (err) {
         console.error('Failed to load team members:', err);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
     fetchMembers();
@@ -82,9 +88,15 @@ export const TeamView: React.FC<TeamViewProps> = ({ dashboardData }) => {
         m.referralLevel === 3 ? 'Level C' : 'Level D';
 
       grouped[levelKey].push({
+        id: m.id,
         username: m.username,
+        userId: m.userId || 'DS------',
         vipRank: m.vipRank || 'VIP1',
-        todaysIncome: m.todaysIncome || '+$0.00',
+        todaysIncome: m.todaysIncome || '$0.00',
+        contributionStatus: m.contributionStatus || 'Missed',
+        isEligible: m.isEligible,
+        contributionAmount: m.contributionAmount,
+        claimedDpy: m.claimedDpy,
       });
     });
 
@@ -96,22 +108,27 @@ export const TeamView: React.FC<TeamViewProps> = ({ dashboardData }) => {
     let total = 0;
     Object.values(allTeamMembers).forEach((levelMembers) => {
       levelMembers.forEach((member) => {
-        const value = parseFloat(member.todaysIncome.replace(/[^0-9.-]/g, ''));
-        if (!isNaN(value)) {
-          total += value;
+        if (member.contributionStatus === 'Qualified') {
+          const value = parseFloat(member.todaysIncome.replace(/[^0-9.-]/g, ''));
+          if (!isNaN(value) && value > 0) {
+            total += value;
+          }
         }
       });
     });
-    return `+$${total.toFixed(2)}`;
+    return total > 0 ? `+$${total.toFixed(2)}` : '$0.00';
   }, [allTeamMembers]);
 
-  // Filter members for active view
+  // Filter members for active view (supporting username and DS ID search)
   const activeLevelMembers = useMemo(() => {
     const list = allTeamMembers[selectedLevel] || [];
     if (!searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase().trim();
-    return list.filter((member) => member.username.toLowerCase().includes(q));
-  }, [selectedLevel, searchQuery]);
+    return list.filter((member) => 
+      member.username.toLowerCase().includes(q) || 
+      member.userId.toLowerCase().includes(q)
+    );
+  }, [selectedLevel, searchQuery, allTeamMembers]);
 
   return (
     <DashboardLayout
@@ -182,8 +199,10 @@ export const TeamView: React.FC<TeamViewProps> = ({ dashboardData }) => {
 
         {/* Team Table list container */}
         <TeamTable
+          key={selectedLevel}
           members={activeLevelMembers}
           levelLabel={selectedLevel}
+          isLoading={isLoading}
           t={t}
         />
       </div>

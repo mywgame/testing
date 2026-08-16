@@ -1,11 +1,13 @@
  # metafir_Architecture
 
-│   .env
-│   .env.example
+││   .env.example
 │   .gitignore
+│   admin_readable_views.sql
 │   bun.lock
+│   capacitor.config.ts
 │   CHANGELOG.md
 │   index.html
+│   MAINTENANCE_MODE_GUIDE.md
 │   metadata.json
 │   Metafirm_Architecture.md
 │   Metafirm_Blockchain_Architecture.md
@@ -14,11 +16,14 @@
 │   MetaFirm_Master_Blueprint.md
 │   package-lock.json
 │   package.json
+│   production_cleanup.sql
 │   READ.MD
 │   README.md
 │   server.ts
 │   tsconfig.json
+│   vercel.json
 │   vite.config.ts
+│   wrangler.jsonc
 │
 ├───assets
 │   ├───.aistudio
@@ -48,6 +53,7 @@
 │   │   │       logo.png
 │   │   │
 │   │   ├───illustrations
+│   │   │       crypto-prop-firm-illustration.svg
 │   │   │       gpu-farm-illustration.svg
 │   │   │       solar-farm-illustration.svg
 │   │   │
@@ -108,6 +114,7 @@
 │   │   │   WhyChooseUs.tsx
 │   │   │
 │   │   ├───Admin
+│   │   │   │   AdminProfileView.tsx
 │   │   │   │   AdminSidebar.tsx
 │   │   │   │   AdminTopbar.tsx
 │   │   │   │   AnnouncementsView.tsx
@@ -117,6 +124,7 @@
 │   │   │   │   IncomeView.tsx
 │   │   │   │   index.tsx
 │   │   │   │   ReferralSystemView.tsx
+│   │   │   │   ResetView.tsx
 │   │   │   │   RewardsView.tsx
 │   │   │   │   SalaryView.tsx
 │   │   │   │   SecurityView.tsx
@@ -145,6 +153,7 @@
 │   │   │   │       Login.tsx
 │   │   │   │
 │   │   │   ├───Mfa
+│   │   │   │       AdminMfaLogin.tsx
 │   │   │   │       Mfa.tsx
 │   │   │   │
 │   │   │   ├───Register
@@ -167,6 +176,7 @@
 │   │   │   │   BottomNav.tsx
 │   │   │   │   DailyClaimCard.tsx
 │   │   │   │   DashboardHome.tsx
+│   │   │   │   DownloadAppsSection.tsx
 │   │   │   │   GradientOrbs.tsx
 │   │   │   │   HeroBalanceCard.tsx
 │   │   │   │   IncomeStatCard.tsx
@@ -208,6 +218,9 @@
 │   │   │   │       TransactionSkeleton.tsx
 │   │   │   │       VIPSkeleton.tsx
 │   │   │   │       WithdrawalSkeleton.tsx
+│   │   │   │
+│   │   │   ├───Staking
+│   │   │   │       StakingView.tsx
 │   │   │   │
 │   │   │   ├───Support
 │   │   │   │       index.tsx
@@ -281,6 +294,7 @@
 │   ├───hooks
 │   │       useAuth.ts
 │   │       useAvatar.ts
+│   │       useTasks.ts
 │   │       useTheme.ts
 │   │
 │   ├───layouts
@@ -291,6 +305,8 @@
 │   │
 │   ├───services
 │   │       api.ts
+│   │       apiConfig.ts
+│   │       taskService.ts
 │   │
 │   ├───types
 │   │       index.ts
@@ -300,18 +316,7 @@
 │           index.ts
 │           landingData.ts
 │           referral.ts
-│
-├───dist
-│   │   index.html
-│   │   server.cjs
-│   │   server.cjs.map
-│   │
-│   └───assets
-│           favicon-DzAemdKg.png
-│           index-C_y3QReu.js
-│           index-DOBGYn2m.css
-│           logo-CPbukfqA.png
-│           logo-mark-CJjUW_hu.png
+│           sound.ts
 │
 ├───drizzle
 │   │   0000_eager_legion.sql
@@ -324,7 +329,10 @@
 │   │   0006_curly_the_stranger.sql
 │   │   0007_abnormal_miracleman.sql
 │   │   0008_complete_princess_powerful.sql
+│   │   0009_equal_gauntlet.sql
 │   │   0009_hard_justin_hammer.sql
+│   │   0009_sweep_queue_and_treasury_controls.sql
+│   │   0010_deposit_address_rotation_history.sql
 │   │
 │   └───meta
 │           0000_snapshot.json
@@ -337,10 +345,18 @@
 │           0007_snapshot.json
 │           0008_snapshot.json
 │           0009_snapshot.json
+│           0010_snapshot.json
 │           _journal.json
 │
+├───public
+│       google9d4c6c3a8e5aa86a.html
+│       robots.txt
+│       sitemap.xml
+│
 ├───scripts
+│       cloudflare-maintenance-worker.js
 │       create-superadmin.ts
+│       production_cleanup.sql
 │
 ├───server
 │   ├───blockchain
@@ -407,6 +423,7 @@
 │   ├───controllers
 │   │       adminController.ts
 │   │       authController.ts
+│   │       taskController.ts
 │   │       userController.ts
 │   │
 │   ├───middlewares
@@ -422,6 +439,7 @@
 │   ├───repositories
 │   │       achievementRepository.ts
 │   │       activityRepository.ts
+│   │       adminSecurityRepository.ts
 │   │       auditRepository.ts
 │   │       authRepository.ts
 │   │       claimRepository.ts
@@ -434,6 +452,7 @@
 │   │       sessionRepository.ts
 │   │       settingsRepository.ts
 │   │       supportRepository.ts
+│   │       taskRepository.ts
 │   │       teamCommissionHistoryRepository.ts
 │   │       transactionRepository.ts
 │   │       userRepository.ts
@@ -448,6 +467,7 @@
 │   │           adminRoutes.ts
 │   │           authRoutes.ts
 │   │           index.ts
+│   │           taskRoutes.ts
 │   │           userRoutes.ts
 │   │           webhookRoutes.ts
 │   │
@@ -461,10 +481,12 @@
 │   │       emailService.ts
 │   │       incomeService.ts
 │   │       notificationService.ts
+│   │       productionCleanupService.ts
 │   │       referralService.ts
 │   │       salaryService.ts
 │   │       settingsService.ts
 │   │       supportService.ts
+│   │       taskService.ts
 │   │       transactionMonitor.ts
 │   │       trialFundService.ts
 │   │       userService.ts
@@ -478,6 +500,7 @@
 │   │       welcomeEmail.ts
 │   │
 │   └───utils
+│           encryption.ts
 │           jwt.ts
 │           logger.ts
 │           otp.ts
@@ -505,6 +528,7 @@
 │   └───db
 │           achievements.ts
 │           activities.ts
+│           admin_security.ts
 │           audit.ts
 │           claims.ts
 │           deposits.ts
@@ -520,6 +544,7 @@
 │           sessions.ts
 │           settings.ts
 │           support.ts
+│           tasks.ts
 │           team_commission_history.ts
 │           transactions.ts
 │           treasury.ts
@@ -527,6 +552,11 @@
 │           vip.ts
 │           wallets.ts
 │           withdrawals.ts
+│
+├───tests
+│       task_and_rewards_full_suite.test.ts
+│       task_eligibility_real_scenarios.test.ts
+│       task_referrals.test.ts
 │
 └───tools
     └───wallet-generator

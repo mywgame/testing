@@ -19,6 +19,7 @@ import { MonthlyEarningsChart } from './MonthlyEarningsChart.tsx';
 import { NetworkLevels } from './NetworkLevels.tsx';
 import { RecentActivity } from './RecentActivity.tsx';
 import { DownloadAppsSection } from './DownloadAppsSection.tsx';
+import { useLocalization } from '../../contexts/LocalizationContext.tsx';
 
 const VIP_CONFIG: Record<string, { label: string; color: string; bg: string; icon: string }> = {
   VIP1: { label: 'VIP1', color: '#94a3b8', bg: 'from-slate-400/30 to-slate-500/30', icon: '🥈' },
@@ -34,11 +35,18 @@ const VIP_CONFIG: Record<string, { label: string; color: string; bg: string; ico
 interface DashboardHomeProps {
   dashboardData: DashboardData | null;
   onRefresh?: () => Promise<void>;
-  onQuickAction?: (actionType: 'deposit' | 'withdraw' | 'claim' | 'staking' | 'team' | 'invite' | 'task') => void;
+  onQuickAction?: (actionType: 'deposit' | 'withdraw' | 'claim' | 'staking' | 'team' | 'invite' | 'task' | 'transactions') => void;
+  onDailyClaimSuccess?: (info: { amount: number; streakDays: number }) => void;
 }
 
-export const DashboardHome: React.FC<DashboardHomeProps> = ({ dashboardData, onRefresh, onQuickAction }) => {
+export const DashboardHome: React.FC<DashboardHomeProps> = ({
+  dashboardData,
+  onRefresh,
+  onQuickAction,
+  onDailyClaimSuccess,
+}) => {
   const { user } = useAuth();
+  const { formatDate, t } = useLocalization();
 
   if (!dashboardData) {
     return <DashboardSkeleton />;
@@ -137,10 +145,10 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ dashboardData, onR
     };
 
     const realIncomeCards = [
-      { key: 'dailyYield', label: 'Daily Yield', today: parseFloat(dashboardData.dailyClaim.amount), total: parseFloat(dashboardData.earnings.dailyYield), icon: Zap, accent: 'emerald' },
-      { key: 'referralIncome', label: 'Referral Income', today: parseFloat(dashboardData.earnings.todayReferralIncome || '0'), total: parseFloat(dashboardData.earnings.referralIncome), icon: LinkIcon, accent: 'cyan' },
-      { key: 'teamIncome', label: 'Team Income', today: parseFloat(dashboardData.earnings.todayTeamIncome || '0'), total: parseFloat(dashboardData.earnings.teamIncome), icon: Users, accent: 'purple' },
-      { key: 'incentiveIncome', label: 'Incentive Income', today: parseFloat(dashboardData.earnings.todayIncentiveIncome || '0'), total: parseFloat(dashboardData.earnings.incentiveIncome), icon: Award, accent: 'amber' },
+      { key: 'dailyYield', label: t('dailyYield', 'Daily Yield'), today: parseFloat(dashboardData.dailyClaim.amount), total: parseFloat(dashboardData.earnings.dailyYield), icon: Zap, accent: 'emerald' as const },
+      { key: 'referralIncome', label: t('referralIncome', 'Referral Income'), today: parseFloat(dashboardData.earnings.todayReferralIncome || '0'), total: parseFloat(dashboardData.earnings.referralIncome), icon: LinkIcon, accent: 'cyan' as const },
+      { key: 'teamIncome', label: t('teamIncome', 'Team Income'), today: parseFloat(dashboardData.earnings.todayTeamIncome || '0'), total: parseFloat(dashboardData.earnings.teamIncome), icon: Users, accent: 'purple' as const },
+      { key: 'incentiveIncome', label: t('incentiveIncome', 'Incentive Income'), today: parseFloat(dashboardData.earnings.todayIncentiveIncome || '0'), total: parseFloat(dashboardData.earnings.incentiveIncome), icon: Award, accent: 'amber' as const },
     ];
 
     const realRecentTransactions = (dashboardData.recentTransactions || []).map((tx: any) => {
@@ -157,7 +165,8 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ dashboardData, onR
         hash: tx.referenceId || `TX-${tx.id.slice(0, 8)}`,
         amount: Math.abs(parseFloat(tx.amount || '0')),
         token: 'USDT',
-        time: tx.createdAt ? new Date(tx.createdAt).toLocaleDateString() : 'N/A',
+        createdAt: tx.createdAt,
+        time: tx.createdAt ? formatDate(tx.createdAt) : 'N/A',
       };
     });
 
@@ -223,6 +232,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ dashboardData, onR
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" id="yield-collection-container">
           <DailyClaimCard 
             dailyClaim={realDailyClaim} 
+            onClaimSuccess={onDailyClaimSuccess}
             onClaim={async () => {
               if (dashboardData.dailyClaim.claimId) {
                 const res = await api.claimYield(dashboardData.dailyClaim.claimId);
@@ -240,7 +250,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({ dashboardData, onR
         {/* 5. Network Levels + Recent Transactions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" id="recent-transactions-container">
           <NetworkLevels network={realNetwork} />
-          <RecentActivity transactions={realRecentTransactions} onViewAll={() => onQuickAction?.('team')} />
+          <RecentActivity transactions={realRecentTransactions} onViewAll={() => onQuickAction?.('transactions')} />
         </div>
 
         {/* 6. Announcements (only rendered if admin published announcements; otherwise hidden) */}

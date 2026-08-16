@@ -6,6 +6,7 @@
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme.ts';
+import { useLocalization } from '../../contexts/LocalizationContext.tsx';
 import { IncomeAccent } from '../../types/index.ts';
 
 interface IncomeStatCardProps {
@@ -32,6 +33,7 @@ const ACCENT_CLASSES: Record<IncomeAccent, { iconBg: string; iconText: string; v
  */
 export const IncomeStatCard: React.FC<IncomeStatCardProps> = ({ label, today, total, icon: Icon, accent }) => {
   const { t } = useTheme();
+  const { formatCurrency, t: translate } = useLocalization();
   const a = ACCENT_CLASSES[accent];
 
   return (
@@ -45,17 +47,21 @@ export const IncomeStatCard: React.FC<IncomeStatCardProps> = ({ label, today, to
 
       {/* Total Earned (Primary Metric) */}
       <div className={`rounded-xl px-3 py-2 mb-2 ${t.inset}`}>
-        <p className={`text-[10px] uppercase tracking-widest mb-0.5 ${t.textMuted}`}>Total Earned</p>
+        <p className={`text-[10px] uppercase tracking-widest mb-0.5 ${t.textMuted}`}>
+          {translate('totalEarned', 'Total Earned')}
+        </p>
         <p className={`text-lg font-extrabold ${a.valueText}`}>
-          ${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          {formatCurrency(total)}
         </p>
       </div>
 
       {/* Today (Secondary Metric) */}
       <div className="px-1">
-        <p className={`text-[10px] uppercase tracking-widest mb-0.5 ${t.textMuted}`}>Today</p>
+        <p className={`text-[10px] uppercase tracking-widest mb-0.5 ${t.textMuted}`}>
+          {translate('today', 'Today')}
+        </p>
         <p className={`text-sm font-bold ${t.text}`}>
-          +${today.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          +{formatCurrency(today)}
         </p>
       </div>
     </div>

@@ -22,7 +22,7 @@ import { auditRepository } from '../repositories/auditRepository.ts';
 // Business Logic Spec Section 16 — Team Commission/Level.
 // Commission % is determined by the RECEIVING upline's CURRENT VIP tier — never the
 // downline's tier. Index 0 = Level A, 1 = Level B, 2 = Level C, 3 = Level D.
-const TEAM_COMMISSION_MATRIX: Record<string, [number, number, number, number]> = {
+export const TEAM_COMMISSION_MATRIX: Record<string, [number, number, number, number]> = {
   VIP1: [0, 0, 0, 0],
   VIP2: [0.10, 0.05, 0.03, 0.02],
   VIP3: [0.12, 0.06, 0.04, 0.03],
@@ -40,6 +40,28 @@ export interface DownlineNode {
 }
 
 export class ReferralService {
+  /**
+   * Helper to retrieve the Team Commission rate for a given VIP tier and referral level (1 to 4)
+   */
+  getTeamCommissionRate(tier: string, level: number): number {
+    const rates = TEAM_COMMISSION_MATRIX[tier] || TEAM_COMMISSION_MATRIX.VIP1;
+    if (level >= 1 && level <= 4) {
+      return rates[level - 1];
+    }
+    return 0;
+  }
+
+  /**
+   * Helper to retrieve base VIP qualification commission percentage rate for a given level (1 to 4) (VIP2 tier rate)
+   */
+  getBaseCommissionRate(level: number): number {
+    const rates = TEAM_COMMISSION_MATRIX.VIP2;
+    if (level >= 1 && level <= 4) {
+      return rates[level - 1];
+    }
+    return 0;
+  }
+
   /**
    * Link a newly registered child to their direct parent
    */

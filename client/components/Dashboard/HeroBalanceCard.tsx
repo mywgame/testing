@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
-import { TrendingUp, ArrowUpRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { TrendingUp, ArrowUpRight, Eye, EyeOff } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme.ts';
 import { useAvatar } from '../../hooks/useAvatar.ts';
+import { useLocalization } from '../../contexts/LocalizationContext.tsx';
 import usdtIcon from '../../../assets/icons/usdt-svg.svg';
 
 interface HeroBalanceCardProps {
@@ -23,11 +24,10 @@ interface HeroBalanceCardProps {
   };
 }
 
-const fmt = (n: number) => `$${n.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-
 /**
  * Total Balance hero card — now with User Profile integrated as requested.
- * Shows the user avatar, name, user ID, VIP level, wallet balance, total earned, and total withdrawn.
+ * Shows the user avatar, name, user ID, VIP level, wallet balance, total earned, and total withdrawn,
+ * along with an interactive Eye toggle for balance privacy and real-time localized currency formatting.
  */
 export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
   totalBalance,
@@ -37,10 +37,40 @@ export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
 }) => {
   const { t } = useTheme();
   const { avatarUrl } = useAvatar();
+  const { formatCurrency, t: translate } = useLocalization();
+
+  // Balance privacy state persisted in localStorage
+  const [isBalanceHidden, setIsBalanceHidden] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('metafirm_hide_balance') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleBalancePrivacy = () => {
+    setIsBalanceHidden((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('metafirm_hide_balance', String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   const subStats = [
-    { label: 'Total Earned', value: fmt(totalEarned), color: 'text-emerald-500', Icon: TrendingUp },
-    { label: 'Total Withdrawn', value: fmt(totalWithdrawn), color: 'text-red-400', Icon: ArrowUpRight },
+    {
+      label: translate('totalEarned', 'Total Earned'),
+      value: isBalanceHidden ? '••••••' : formatCurrency(totalEarned),
+      color: 'text-emerald-500',
+      Icon: TrendingUp,
+    },
+    {
+      label: translate('totalWithdrawn', 'Total Withdrawn'),
+      value: isBalanceHidden ? '••••••' : formatCurrency(totalWithdrawn),
+      color: 'text-red-400',
+      Icon: ArrowUpRight,
+    },
   ];
 
   return (
@@ -80,16 +110,40 @@ export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
 
         {/* Bottom content: Balance + Substats */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-          {/* Left: label + big number */}
+          {/* Left: label + Eye Toggle + big number */}
           <div className="text-left">
             <div className="flex items-center gap-2 mb-2">
               <div className={`p-2 rounded-xl ${t.isDark ? 'bg-cyan-500/20' : 'bg-cyan-500/15'}`}>
                 <img src={usdtIcon} alt="USDT" className="w-5 h-5 object-contain" />
               </div>
-              <span className={`text-xs font-semibold uppercase tracking-widest ${t.textSub}`}>Total Balance</span>
+              <span className={`text-xs font-semibold uppercase tracking-widest ${t.textSub}`}>
+                {translate('totalBalance', 'Total Balance')}
+              </span>
+              <button
+                type="button"
+                onClick={toggleBalancePrivacy}
+                className={`p-1.5 rounded-lg transition-all cursor-pointer focus:outline-none ${
+                  t.isDark
+                    ? 'hover:bg-white/10 text-slate-400 hover:text-white'
+                    : 'hover:bg-slate-200 text-slate-500 hover:text-slate-900'
+                }`}
+                title={isBalanceHidden ? 'Show Balance' : 'Hide Balance'}
+                aria-label={isBalanceHidden ? 'Show Balance' : 'Hide Balance'}
+                id="toggle-balance-privacy-btn"
+              >
+                {isBalanceHidden ? (
+                  <EyeOff className="w-4 h-4 text-cyan-400" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
             </div>
-            <p className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-none bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-              ${totalBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            <p className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-none bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent select-none">
+              {isBalanceHidden ? (
+                '••••••••'
+              ) : (
+                formatCurrency(totalBalance)
+              )}
             </p>
             <p className={`text-xs mt-2 ${t.textSub}`}>USDT · MetaFirm Wallet</p>
           </div>
@@ -102,7 +156,7 @@ export const HeroBalanceCard: React.FC<HeroBalanceCardProps> = ({
                   <div className={`p-1.5 rounded-lg mb-2 ${t.isDark ? 'bg-white/8' : 'bg-black/6'}`}>
                     <Icon className={`w-3.5 h-3.5 ${color}`} />
                   </div>
-                  <p className={`text-base font-extrabold ${color}`}>{value}</p>
+                  <p className={`text-base font-extrabold select-none ${color}`}>{value}</p>
                   <p className={`text-[10px] uppercase tracking-wider mt-0.5 ${t.textMuted}`}>{label}</p>
                 </div>
               ))}

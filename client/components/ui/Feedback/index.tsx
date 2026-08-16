@@ -74,9 +74,9 @@ export const Badge: React.FC<BadgeProps> = ({
 }) => {
   const styles = {
     primary: 'bg-blue-50 text-blue-700 border border-blue-100',
-    amber: 'bg-amber-50 text-amber-700 border border-amber-100',
-    emerald: 'bg-emerald-50 text-emerald-700 border border-emerald-100',
-    rose: 'bg-red-50 text-red-700 border border-red-100',
+    amber: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30',
+    emerald: 'bg-emerald-600 text-white font-bold shadow-xs',
+    rose: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30',
     neutral: 'bg-gray-100 text-gray-700 border border-gray-200',
   };
 

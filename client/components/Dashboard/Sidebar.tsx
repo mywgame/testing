@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useTheme } from '../../hooks/useTheme.ts';
+import { useLocalization } from '../../contexts/LocalizationContext.tsx';
 import logoImg from '../../../assets/images/branding/logo.png';
 import logoMarkImg from '../../../assets/images/branding/logo-mark.png';
 
@@ -44,17 +45,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setIsMobileOpen,
   onLogout,
 }) => {
-  const { t } = useTheme();
+  const { t: themeTokens } = useTheme();
+  const { t } = useLocalization();
 
   const menuItems = [
-    { id: 'dashboard' as DashboardTab, label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'vip' as DashboardTab, label: 'VIP Club', icon: Crown },
-    { id: 'profile' as DashboardTab, label: 'Profile', icon: User },
-    { id: 'team' as DashboardTab, label: 'My Team', icon: Users },
-    { id: 'transactions' as DashboardTab, label: 'Transactions', icon: History },
-    { id: 'security' as DashboardTab, label: 'Security', icon: Lock },
-    { id: 'settings' as DashboardTab, label: 'Settings', icon: Settings },
-    { id: 'support' as DashboardTab, label: 'Support', icon: HelpCircle },
+    { id: 'dashboard' as DashboardTab, label: t('dashboard', 'Dashboard'), icon: LayoutDashboard },
+    { id: 'vip' as DashboardTab, label: t('vip', 'VIP Club'), icon: Crown },
+    { id: 'profile' as DashboardTab, label: t('profile', 'Profile'), icon: User },
+    { id: 'team' as DashboardTab, label: t('team', 'My Team'), icon: Users },
+    { id: 'transactions' as DashboardTab, label: t('transactions', 'Transactions'), icon: History },
+    { id: 'security' as DashboardTab, label: t('security', 'Security'), icon: Lock },
+    { id: 'settings' as DashboardTab, label: t('settings', 'Settings'), icon: Settings },
+    { id: 'support' as DashboardTab, label: t('support', 'Support'), icon: HelpCircle },
   ];
 
   // BottomNav already surfaces these on mobile; the mobile drawer ("More") only
@@ -73,7 +75,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ? menuItems.filter((item) => !bottomNavTabs.includes(item.id))
       : menuItems;
     return (
-      <div className={`flex flex-col h-full border-r py-6 text-left backdrop-blur-xl transition-colors duration-300 ${t.navBg} ${t.navBorder}`}>
+      <div className={`flex flex-col h-full border-r py-6 text-left backdrop-blur-xl transition-colors duration-300 ${themeTokens.navBg} ${themeTokens.navBorder}`}>
         {/* Brand Header */}
         <div className={`flex items-center justify-between px-6 mb-8 ${collapsed ? 'justify-center' : ''}`}>
           <button
@@ -94,7 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 src={logoImg}
                 alt="MetaFirm Logo"
                 referrerPolicy="no-referrer"
-                className={`h-8 object-contain ${t.isDark ? 'brightness-0 invert' : ''}`}
+                className={`h-8 object-contain ${themeTokens.isDark ? 'brightness-0 invert' : ''}`}
               />
             )}
           </button>
@@ -102,7 +104,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Collapse toggle button for Desktop/Tablet (hamburger behavior preserved) */}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className={`hidden md:flex p-1.5 rounded-lg border border-transparent transition-all cursor-pointer focus:outline-none ${t.textMuted} hover:text-cyan-500 ${t.cardInner}`}
+            className={`hidden md:flex p-1.5 rounded-lg border border-transparent transition-all cursor-pointer focus:outline-none ${themeTokens.textMuted} hover:text-cyan-500 ${themeTokens.cardInner}`}
             title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
           >
             {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -112,7 +114,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Navigation List */}
         {forceExpand && (
           <div className="px-6 mb-2">
-            <span className={`text-[9px] font-mono font-bold uppercase tracking-widest ${t.textMuted}`}>More</span>
+            <span className={`text-[9px] font-mono font-bold uppercase tracking-widest ${themeTokens.textMuted}`}>More</span>
           </div>
         )}
         <div className="flex-grow px-3 space-y-1" role="menu">
@@ -126,7 +128,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 role="menuitem"
                 aria-current={isActive ? 'page' : undefined}
                 className={`w-full flex items-center rounded-2xl py-3 px-4 text-xs font-bold transition-all relative cursor-pointer focus:outline-none ${
-                  isActive ? `text-cyan-500 ${t.navActiveBg}` : `${t.textSub} hover:${t.text} ${t.cardInner}`
+                  isActive ? `text-cyan-500 ${themeTokens.navActiveBg}` : `${themeTokens.textSub} hover:${themeTokens.text} ${themeTokens.cardInner}`
                 } ${collapsed ? 'justify-center px-0' : ''}`}
                 title={collapsed ? item.label : undefined}
               >
@@ -135,7 +137,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <div className="absolute left-0 top-3 bottom-3 w-1 bg-cyan-500 rounded-r-md" />
                 )}
 
-                <IconComponent className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-cyan-500' : t.textMuted} ${collapsed ? '' : 'mr-3'}`} />
+                <IconComponent className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-cyan-500' : themeTokens.textMuted} ${collapsed ? '' : 'mr-3'}`} />
 
                 {!collapsed && <span className="tracking-wide">{item.label}</span>}
               </button>
@@ -144,16 +146,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Logout Row at bottom */}
-        <div className={`px-3 pt-6 border-t ${t.sep}`}>
+        <div className={`px-3 pt-6 border-t ${themeTokens.sep}`}>
           <button
             onClick={onLogout}
-            className={`w-full flex items-center rounded-2xl py-3 px-4 text-xs font-bold transition-all cursor-pointer focus:outline-none ${t.textSub} hover:text-red-500 hover:bg-red-500/10 ${
+            className={`w-full flex items-center rounded-2xl py-3 px-4 text-xs font-bold transition-all cursor-pointer focus:outline-none ${themeTokens.textSub} hover:text-red-500 hover:bg-red-500/10 ${
               collapsed ? 'justify-center px-0' : ''
             }`}
             title={collapsed ? 'Terminate Session' : undefined}
           >
-            <LogOut className={`w-4 h-4 flex-shrink-0 ${t.textMuted} ${collapsed ? '' : 'mr-3'}`} />
-            {!collapsed && <span className="tracking-wide">Logout</span>}
+            <LogOut className={`w-4 h-4 flex-shrink-0 ${themeTokens.textMuted} ${collapsed ? '' : 'mr-3'}`} />
+            {!collapsed && <span className="tracking-wide">{t('logout', 'Logout')}</span>}
           </button>
         </div>
       </div>
@@ -186,12 +188,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className={`relative w-64 max-w-xs h-full z-50 shadow-2xl flex flex-col ${t.isDark ? 'bg-[#0b0e24]' : 'bg-white'}`}
+            className={`relative w-64 max-w-xs h-full z-50 shadow-2xl flex flex-col ${themeTokens.isDark ? 'bg-[#0b0e24]' : 'bg-white'}`}
           >
             {/* Close button for mobile inside sidebar drawer sheet */}
             <button
               onClick={() => setIsMobileOpen(false)}
-              className={`absolute top-5 right-4 p-1.5 rounded-lg border border-transparent transition-colors cursor-pointer z-10 ${t.textMuted} hover:text-cyan-500`}
+              className={`absolute top-5 right-4 p-1.5 rounded-lg border border-transparent transition-colors cursor-pointer z-10 ${themeTokens.textMuted} hover:text-cyan-500`}
             >
               <X className="w-5 h-5" />
             </button>

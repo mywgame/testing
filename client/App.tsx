@@ -32,6 +32,7 @@ import { AuthModal } from './components/AuthModal.tsx';
 import { getPendingReferralCode } from './components/Auth/Register/Register.tsx';
 import { UserDashboard } from './components/Dashboard/index.tsx';
 import { ThemeProvider } from './contexts/ThemeContext.tsx';
+import { LocalizationProvider } from './contexts/LocalizationContext.tsx';
 import { EnterpriseAdminDashboard } from './components/Admin/index.tsx';
 import { Button } from './components/ui/Buttons/index.tsx';
 import { LoadingScreen } from './components/LoadingScreen.tsx';
@@ -446,7 +447,9 @@ export default function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <MainAppContent />
+        <LocalizationProvider>
+          <MainAppContent />
+        </LocalizationProvider>
       </ThemeProvider>
     </AuthProvider>
   );

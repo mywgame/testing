@@ -13,8 +13,8 @@ export const config = {
   jwt: {
     secret: process.env.JWT_SECRET || 'super-secret-key-change-in-production',
     refreshSecret: process.env.JWT_REFRESH_SECRET || 'super-refresh-secret-key-change-in-production',
-    expiresIn: '15m',
-    refreshExpiresIn: '7d',
+    expiresIn: process.env.JWT_EXPIRES_IN || '30m',
+    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   },
   database: {
     host: process.env.SQL_HOST,

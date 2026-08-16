@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { Crown, LayoutDashboard, Users, History, HelpCircle } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme.ts';
+import { useLocalization } from '../../contexts/LocalizationContext.tsx';
 import { DashboardTab } from './Sidebar.tsx';
 
 interface BottomNavProps {
@@ -20,14 +21,15 @@ interface BottomNavProps {
  */
 export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab }) => {
   const { t } = useTheme();
+  const { t: translate } = useLocalization();
   const [hoveredTab, setHoveredTab] = useState<string | null>(null);
 
   const tabs: { id: DashboardTab; label: string; icon: React.ElementType }[] = [
-    { id: 'vip', label: 'VIP', icon: Crown },
-    { id: 'transactions', label: 'History', icon: History },
-    { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
-    { id: 'team', label: 'Team', icon: Users },
-    { id: 'support', label: 'Support', icon: HelpCircle },
+    { id: 'vip', label: translate('vip', 'VIP'), icon: Crown },
+    { id: 'transactions', label: translate('transactions', 'History'), icon: History },
+    { id: 'dashboard', label: translate('dashboard', 'Home'), icon: LayoutDashboard },
+    { id: 'team', label: translate('team', 'Team'), icon: Users },
+    { id: 'support', label: translate('support', 'Support'), icon: HelpCircle },
   ];
 
   const renderItem = (

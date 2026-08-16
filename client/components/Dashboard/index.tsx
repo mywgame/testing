@@ -58,6 +58,7 @@ import { RewardsView } from './Rewards/RewardsView.tsx';
 import { StakingView } from './Staking/StakingView.tsx';
 import { TaskView } from './Task/TaskView.tsx';
 import { DepositSuccessModal } from './Deposit/DepositSuccessModal.tsx';
+import { DailyClaimModal } from './DailyClaimModal.tsx';
 
 // Overlay
 import { ArrowLeft } from 'lucide-react';
@@ -82,6 +83,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onBackToLanding })
 
   // Deposit Success Modal State
   const [depositSuccessData, setDepositSuccessData] = useState<{ amount: string; network: string } | null>(null);
+  const [dailyClaimSuccessData, setDailyClaimSuccessData] = useState<{ amount: number; streakDays: number } | null>(null);
   const seenCompletedDepositIds = React.useRef<Set<string>>(new Set());
   const isInitialDepositCheck = React.useRef<boolean>(true);
 
@@ -183,7 +185,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onBackToLanding })
     onBackToLanding();
   };
 
-  const handleQuickAction = (actionType: 'deposit' | 'withdraw' | 'claim' | 'staking' | 'team' | 'invite' | 'task') => {
+  const handleQuickAction = (actionType: 'deposit' | 'withdraw' | 'claim' | 'staking' | 'team' | 'invite' | 'task' | 'transactions') => {
     if (actionType === 'deposit') {
       setActiveTab('deposit');
     } else if (actionType === 'withdraw') {
@@ -194,6 +196,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onBackToLanding })
       setActiveTab('team');
     } else if (actionType === 'invite' || actionType === 'task') {
       setActiveTab('task');
+    } else if (actionType === 'transactions') {
+      setActiveTab('transactions');
     }
   };
 
@@ -247,7 +251,12 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onBackToLanding })
       case 'dashboard':
         return (
           <DashboardLayout variant="blank">
-            <DashboardHome dashboardData={dashboardData} onRefresh={fetchDashboard} onQuickAction={handleQuickAction} />
+            <DashboardHome
+              dashboardData={dashboardData}
+              onRefresh={fetchDashboard}
+              onQuickAction={handleQuickAction}
+              onDailyClaimSuccess={(info) => setDailyClaimSuccessData(info)}
+            />
           </DashboardLayout>
         );
       case 'profile':
@@ -265,7 +274,12 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onBackToLanding })
       case 'withdrawalAddresses':
         return <WithdrawalAddressesView />;
       case 'settings':
-        return wrapLegacyView(<SettingsView />);
+        return (
+          <SettingsView
+            onNavigate={(tab) => setActiveTab(tab)}
+            showToast={showToast}
+          />
+        );
       case 'support':
         return <SupportView />;
       case 'deposit':
@@ -297,6 +311,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onBackToLanding })
           <TaskView
             onBack={() => setActiveTab('dashboard')}
             onNavigateToReferrals={() => setActiveTab('team')}
+            onNavigate={(tab) => setActiveTab(tab as DashboardTab)}
           />
         );
       default:
@@ -377,6 +392,14 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onBackToLanding })
         amount={depositSuccessData?.amount || '0'}
         network={depositSuccessData?.network}
         onClose={() => setDepositSuccessData(null)}
+      />
+
+      {/* Daily Claim Reward Success Modal */}
+      <DailyClaimModal
+        isOpen={!!dailyClaimSuccessData}
+        amount={dailyClaimSuccessData?.amount || 0}
+        streakDays={dailyClaimSuccessData?.streakDays}
+        onClose={() => setDailyClaimSuccessData(null)}
       />
 
     </div>
