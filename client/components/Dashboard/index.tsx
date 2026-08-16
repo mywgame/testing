@@ -66,13 +66,25 @@ import { Toast } from '../ui/Feedback/index.tsx';
 
 interface UserDashboardProps {
   onBackToLanding: () => void;
+  onNavigateToVentures?: () => void;
+  initialTab?: DashboardTab;
 }
 
-export const UserDashboard: React.FC<UserDashboardProps> = ({ onBackToLanding }) => {
+export const UserDashboard: React.FC<UserDashboardProps> = ({
+  onBackToLanding,
+  onNavigateToVentures,
+  initialTab,
+}) => {
   const { user, logout } = useAuth();
   const { t } = useTheme();
 
-  const [activeTab, setActiveTab] = useState<DashboardTab>('dashboard');
+  const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab || 'dashboard');
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 

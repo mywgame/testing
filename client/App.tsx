@@ -31,6 +31,8 @@ import { Footer } from './components/Footer.tsx';
 import { AuthModal } from './components/AuthModal.tsx';
 import { getPendingReferralCode } from './components/Auth/Register/Register.tsx';
 import { UserDashboard } from './components/Dashboard/index.tsx';
+import { VenturesPage } from './components/Ventures/VenturesPage.tsx';
+import { DashboardTab } from './components/Dashboard/Sidebar.tsx';
 import { ThemeProvider } from './contexts/ThemeContext.tsx';
 import { LocalizationProvider } from './contexts/LocalizationContext.tsx';
 import { EnterpriseAdminDashboard } from './components/Admin/index.tsx';
@@ -42,8 +44,9 @@ import { LoadingScreen } from './components/LoadingScreen.tsx';
  * MAIN APP CONTAINER WITH EMBEDDED PHASE 4 WEBSITE
  */
 function MainAppContent() {
-  const { user, token, loading: authLoading, syncProfile } = useAuth();
-  const [currentView, setCurrentView] = useState<'landing' | 'dashboard' | 'admin'>('landing');
+  const { user, token, loading: authLoading, syncProfile, logout } = useAuth();
+  const [currentView, setCurrentView] = useState<'landing' | 'dashboard' | 'admin' | 'ventures'>('landing');
+  const [dashboardInitialTab, setDashboardInitialTab] = useState<DashboardTab>('dashboard');
   const [activeSection, setActiveSection] = useState('hero');
   const [isAppLoading, setIsAppLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -81,6 +84,8 @@ function MainAppContent() {
         setCurrentView('admin');
       } else if (path === '/dashboard') {
         setCurrentView('dashboard');
+      } else if (path === '/ventures') {
+        setCurrentView('ventures');
       } else if (path === '/login') {
         setCurrentView('landing');
         setAuthModalMode('login');
@@ -110,6 +115,8 @@ function MainAppContent() {
       window.history.pushState(null, '', '/admin');
     } else if (currentView === 'dashboard' && currentPath !== '/dashboard') {
       window.history.pushState(null, '', '/dashboard');
+    } else if (currentView === 'ventures' && currentPath !== '/ventures') {
+      window.history.pushState(null, '', '/ventures');
     } else if (currentView === 'landing') {
       if (currentPath !== '/' && currentPath !== '/register' && currentPath !== '/login' && !currentPath.startsWith('/ref/')) {
         window.history.pushState(null, '', '/');
@@ -121,7 +128,7 @@ function MainAppContent() {
   useEffect(() => {
     if (authLoading) return;
 
-    if (!user && (currentView === 'dashboard' || currentView === 'admin')) {
+    if (!user && (currentView === 'dashboard' || currentView === 'admin' || currentView === 'ventures')) {
       setCurrentView('landing');
       setAuthModalMode('login');
       setIsAuthModalOpen(true);
@@ -131,7 +138,7 @@ function MainAppContent() {
     }
   }, [user, currentView, authLoading]);
 
-  // 3. Automatically transition logged in users to dashboard/admin immediately
+  // 3. Automatically transition logged in users to ventures (or admin) immediately
   useEffect(() => {
     if (!authLoading && user && currentView === 'landing') {
       if (isAuthModalOpen) {
@@ -141,7 +148,7 @@ function MainAppContent() {
       if (['admin', 'superadmin', 'operator', 'support', 'finance', 'auditor'].includes(role)) {
         setCurrentView('admin');
       } else {
-        setCurrentView('dashboard');
+        setCurrentView('ventures');
       }
     }
   }, [user, currentView, authLoading, isAuthModalOpen]);
@@ -329,6 +336,44 @@ function MainAppContent() {
     );
   }
 
+  if (currentView === 'ventures') {
+    if (authLoading || !user) {
+      return (
+        <AnimatePresence>
+          <LoadingScreen />
+        </AnimatePresence>
+      );
+    }
+
+    return (
+      <>
+        <AnimatePresence>
+          {isAppLoading && <LoadingScreen />}
+        </AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -15 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="min-h-screen flex flex-col"
+          style={{ background: '#04091a' }}
+        >
+          <ThemeProvider>
+            <LocalizationProvider>
+              <VenturesPage
+                onNavigateToDashboard={(tab) => {
+                  if (tab) setDashboardInitialTab(tab);
+                  setCurrentView('dashboard');
+                }}
+                onLogout={logout}
+              />
+            </LocalizationProvider>
+          </ThemeProvider>
+        </motion.div>
+      </>
+    );
+  }
+
   if (currentView === 'dashboard') {
     if (authLoading || !user) {
       return (
@@ -351,7 +396,13 @@ function MainAppContent() {
           className="min-h-screen bg-navy-950 flex flex-col"
         >
           <ThemeProvider>
-            <UserDashboard onBackToLanding={() => setCurrentView('landing')} />
+            <LocalizationProvider>
+              <UserDashboard
+                onBackToLanding={() => setCurrentView('landing')}
+                onNavigateToVentures={() => setCurrentView('ventures')}
+                initialTab={dashboardInitialTab}
+              />
+            </LocalizationProvider>
           </ThemeProvider>
         </motion.div>
       </>
