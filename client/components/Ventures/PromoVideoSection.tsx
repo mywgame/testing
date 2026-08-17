@@ -4,11 +4,14 @@
  */
 
 import React, { useState } from 'react';
-import { GPU_IMG } from './constants.ts';
+import { NETWORK_IMG, GPU_IMG, SOLAR_IMG, TRADING_IMG } from './constants.ts';
 import { Play } from 'lucide-react';
 
 export const PromoVideoSection: React.FC = () => {
   const [activeSlide, setActiveSlide] = useState(1);
+
+  const PROMO_IMAGES = [NETWORK_IMG, GPU_IMG, SOLAR_IMG, TRADING_IMG];
+  const activeImg = PROMO_IMAGES[activeSlide] || GPU_IMG;
 
   return (
     <section className="py-24 px-4 sm:px-6 relative overflow-hidden">
@@ -47,9 +50,10 @@ export const PromoVideoSection: React.FC = () => {
         >
           <div className="aspect-[21/9] bg-slate-900 relative min-h-64 sm:min-h-80">
             <img
-              src={GPU_IMG}
+              src={activeImg}
               alt="MetaFirm vision"
-              className="w-full h-full object-cover opacity-70"
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover opacity-70 transition-all duration-700"
             />
             <div
               className="absolute inset-0"

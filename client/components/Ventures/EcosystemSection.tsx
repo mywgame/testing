@@ -121,6 +121,7 @@ export const EcosystemSection: React.FC<EcosystemSectionProps> = ({ onNavigateTo
                 <img
                   src={project.img}
                   alt={project.name}
+                  referrerPolicy="no-referrer"
                   className="w-full h-full object-cover opacity-75 transition-transform duration-700 group-hover:scale-105"
                 />
                 <div

@@ -61,15 +61,15 @@ export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, isLoa
         <table className="w-full table-fixed text-left border-collapse">
           <thead>
             <tr className={`border-b ${t.sep} ${t.isDark ? 'bg-white/3' : 'bg-black/3'}`}>
-              <th className={`py-3.5 sm:py-4 pl-3.5 sm:pl-6 pr-2 sm:pr-4 font-extrabold font-display text-[10px] sm:text-xs tracking-wider uppercase ${t.isDark ? 'text-slate-300' : 'text-slate-700'} w-[40%] sm:w-[42%]`}>
-                <span className="pl-[2.625rem] sm:pl-[3.125rem] block">
+              <th className={`py-2.5 sm:py-3 pl-3 sm:pl-5 pr-2 sm:pr-3 font-extrabold font-display text-[10px] sm:text-xs tracking-wider uppercase ${t.isDark ? 'text-slate-300' : 'text-slate-700'} w-[40%] sm:w-[42%]`}>
+                <span className="pl-[2.375rem] sm:pl-[2.75rem] block">
                   User
                 </span>
               </th>
-              <th className={`py-3.5 sm:py-4 px-1.5 sm:px-4 font-extrabold font-display text-[10px] sm:text-xs tracking-tight sm:tracking-wider uppercase ${t.isDark ? 'text-slate-300' : 'text-slate-700'} w-[28%] sm:w-[28%] text-right`}>
+              <th className={`py-2.5 sm:py-3 px-1.5 sm:px-3 font-extrabold font-display text-[10px] sm:text-xs tracking-tight sm:tracking-wider uppercase ${t.isDark ? 'text-slate-300' : 'text-slate-700'} w-[28%] sm:w-[28%] text-right`}>
                 Total Contribution
               </th>
-              <th className={`py-3.5 sm:py-4 px-2.5 sm:px-6 font-extrabold font-display text-[10px] sm:text-xs tracking-tight sm:tracking-wider uppercase ${t.isDark ? 'text-slate-300' : 'text-slate-700'} w-[32%] sm:w-[30%] text-right`}>
+              <th className={`py-2.5 sm:py-3 pl-1.5 sm:pl-3 pr-3 sm:pr-5 font-extrabold font-display text-[10px] sm:text-xs tracking-tight sm:tracking-wider uppercase ${t.isDark ? 'text-slate-300' : 'text-slate-700'} w-[32%] sm:w-[30%] text-right`}>
                 Today's Contribution
               </th>
             </tr>
@@ -84,31 +84,31 @@ export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, isLoa
           >
             {isLoading ? (
               // Loading skeleton placeholder rows
-              [...Array(3)].map((_, i) => (
+              [...Array(4)].map((_, i) => (
                 <motion.tr key={`skeleton-${i}`} variants={item} className="animate-pulse">
-                  <td className="py-4 pl-3.5 sm:pl-6 pr-2 sm:pr-4">
-                    <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
-                      <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full shrink-0 ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
-                      <div className="space-y-1.5 flex-1 min-w-0">
-                        <div className={`h-4 w-16 sm:w-24 rounded ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
-                        <div className={`h-3 w-12 sm:w-16 rounded ${t.isDark ? 'bg-white/5' : 'bg-gray-100'}`} />
+                  <td className="py-2.5 sm:py-3 pl-3 sm:pl-5 pr-2 sm:pr-3">
+                    <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
+                      <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full shrink-0 ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                      <div className="space-y-1 flex-1 min-w-0">
+                        <div className={`h-3.5 w-16 sm:w-24 rounded ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                        <div className={`h-2.5 w-12 sm:w-16 rounded ${t.isDark ? 'bg-white/5' : 'bg-gray-100'}`} />
                       </div>
                     </div>
                   </td>
-                  <td className="py-4 px-1.5 sm:px-4 text-right">
-                    <div className={`h-4 w-12 sm:w-16 ml-auto rounded ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                  <td className="py-2.5 sm:py-3 px-1.5 sm:px-3 text-right">
+                    <div className={`h-3.5 w-12 sm:w-16 ml-auto rounded ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
                   </td>
-                  <td className="py-4 px-2.5 sm:px-6 text-right">
+                  <td className="py-2.5 sm:py-3 pl-1.5 sm:pl-3 pr-3 sm:pr-5 text-right">
                     <div className="flex flex-col items-end space-y-1">
-                      <div className={`h-4 w-12 sm:w-16 rounded ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
-                      <div className={`h-2.5 w-10 rounded ${t.isDark ? 'bg-white/5' : 'bg-gray-100'}`} />
+                      <div className={`h-3.5 w-12 sm:w-16 rounded ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                      <div className={`h-2 w-10 rounded ${t.isDark ? 'bg-white/5' : 'bg-gray-100'}`} />
                     </div>
                   </td>
                 </motion.tr>
               ))
             ) : members.length === 0 ? (
               <motion.tr variants={item}>
-                <td colSpan={3} className={`py-14 sm:py-16 text-center text-xs sm:text-sm font-sans ${t.textMuted}`}>
+                <td colSpan={3} className={`py-12 sm:py-14 text-center text-xs sm:text-sm font-sans ${t.textMuted}`}>
                   <div className="flex flex-col items-center justify-center space-y-2 px-4">
                     <div className="p-3 bg-white/5 border border-white/10 rounded-full text-gray-400">
                       <Search className="w-5 h-5" />
@@ -134,20 +134,20 @@ export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, isLoa
                     className="hover:bg-white/4 dark:hover:bg-white/3 transition-colors duration-150 group"
                   >
                     {/* Column 1: Secure Username with VIP rank circle icon and DS ID */}
-                    <td className="py-3.5 sm:py-4 pl-3.5 sm:pl-6 pr-2 sm:pr-4 overflow-hidden">
-                      <div className="flex items-center space-x-2.5 sm:space-x-3.5 min-w-0">
-                        <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full border flex items-center justify-center shrink-0 shadow-2xs font-black ${
+                    <td className="py-2.5 sm:py-3 pl-3 sm:pl-5 pr-2 sm:pr-3 overflow-hidden align-middle">
+                      <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
+                        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full border flex items-center justify-center shrink-0 shadow-2xs font-black ${
                           t.isDark ? avatarTheme.dark : avatarTheme.light
                         }`}>
-                          <span className="text-[11px] sm:text-xs font-mono tracking-tight font-black">
+                          <span className="text-[10px] sm:text-xs font-mono tracking-tight font-black">
                             {(member.vipRank || 'VIP1').replace('VIP', 'V')}
                           </span>
                         </div>
                         <div className="flex flex-col min-w-0 flex-1 overflow-hidden space-y-0.5">
-                          <span className={`font-mono font-bold text-xs sm:text-sm tracking-tight truncate ${t.isDark ? 'text-slate-100' : 'text-slate-900'}`} title={member.username}>
+                          <span className={`font-mono font-bold text-xs sm:text-sm tracking-tight truncate leading-snug ${t.isDark ? 'text-slate-100' : 'text-slate-900'}`} title={member.username}>
                             {member.username}
                           </span>
-                          <span className={`text-[10px] sm:text-xs font-mono font-semibold tracking-normal truncate ${
+                          <span className={`text-[10px] sm:text-xs font-mono font-semibold tracking-normal truncate leading-none ${
                             t.isDark ? 'text-cyan-400/90' : 'text-blue-600'
                           }`} title={member.userId}>
                             {member.userId}
@@ -156,9 +156,9 @@ export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, isLoa
                       </div>
                     </td>
 
-                    {/* Column 2: Total Contribution */}
-                    <td className="py-3.5 sm:py-4 px-1.5 sm:px-4 text-right overflow-hidden">
-                      <span className={`font-mono font-extrabold text-xs sm:text-sm md:text-base tracking-tight truncate max-w-full block ${
+                    {/* Column 2: Total Contribution - vertically centered */}
+                    <td className="py-2.5 sm:py-3 px-1.5 sm:px-3 text-right overflow-hidden align-middle">
+                      <span className={`font-mono font-extrabold text-xs sm:text-sm md:text-base tracking-tight truncate max-w-full block leading-tight ${
                         t.isDark ? 'text-slate-200' : 'text-slate-800'
                       }`}>
                         {member.totalContribution || '$0.00'}
@@ -166,22 +166,26 @@ export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, isLoa
                     </td>
 
                     {/* Column 3: Today's Contribution (Qualified / Missed / Standard) */}
-                    <td className="py-3.5 sm:py-4 px-2.5 sm:px-6 text-right overflow-hidden">
-                      <div className="flex flex-col items-end min-w-0">
-                        <span className={`font-mono font-extrabold text-xs sm:text-sm md:text-base tracking-tight truncate max-w-full ${
+                    <td className="py-2.5 sm:py-3 pl-1.5 sm:pl-3 pr-3 sm:pr-5 text-right overflow-hidden align-middle">
+                      <div className="flex flex-col items-end justify-center min-w-0 space-y-0.5">
+                        <span className={`font-mono font-extrabold text-xs sm:text-sm md:text-base tracking-tight truncate max-w-full leading-snug ${
                           hasContribution && member.contributionStatus === 'Qualified'
                             ? 'text-emerald-400 font-black'
                             : t.isDark ? 'text-slate-200' : 'text-slate-800'
                         }`}>
                           {member.todaysIncome || '$0.00'}
                         </span>
-                        {hasContribution && (
-                          <span className={`text-[10px] sm:text-xs font-bold tracking-wide uppercase truncate max-w-full ${
+                        {hasContribution ? (
+                          <span className={`text-[9px] sm:text-[10px] font-bold tracking-wide uppercase truncate max-w-full leading-none ${
                             member.contributionStatus === 'Qualified'
                               ? 'text-emerald-400'
                               : 'text-rose-400'
                           }`}>
                             {member.contributionStatus}
+                          </span>
+                        ) : (
+                          <span className="text-[9px] sm:text-[10px] font-semibold tracking-wide uppercase text-transparent select-none leading-none">
+                            -
                           </span>
                         )}
                       </div>

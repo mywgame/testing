@@ -28,6 +28,7 @@ export const FeaturedProject: React.FC = () => {
               <img
                 src={GPU_IMG}
                 alt="GPU Computing infrastructure"
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover opacity-85"
               />
               <div
