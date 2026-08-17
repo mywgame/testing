@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export const GPU_IMG = 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1400&h=800&fit=crop&auto=format';
-export const SOLAR_IMG = 'https://images.unsplash.com/photo-1670519808728-335b1eb2ef52?w=1200&h=700&fit=crop&auto=format';
-export const NETWORK_IMG = 'https://images.unsplash.com/photo-1758073519996-6d3c63b4922c?w=1400&h=800&fit=crop&auto=format';
-export const TRADING_IMG = 'https://images.unsplash.com/photo-1745509267699-1b1db256601e?w=1200&h=700&fit=crop&auto=format';
+export const GPU_IMG = 'https://pub-9c62303890854a49a9eda8efb728c7ff.r2.dev/venture/images/datacenter.jpeg';
+export const SOLAR_IMG = 'https://pub-9c62303890854a49a9eda8efb728c7ff.r2.dev/venture/images/solar-farm.jpeg';
+export const NETWORK_IMG = 'https://pub-9c62303890854a49a9eda8efb728c7ff.r2.dev/venture/images/hero-network.jpeg';
+export const TRADING_IMG = 'https://pub-9c62303890854a49a9eda8efb728c7ff.r2.dev/venture/images/funded-trading.jpeg';
 
 export interface HeroSlide {
   img: string;

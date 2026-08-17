@@ -16,6 +16,7 @@ export const VenturesFooter: React.FC = () => {
             alt="MetaFirm mark"
             referrerPolicy="no-referrer"
             className="h-6 sm:h-7 w-auto object-contain"
+            style={{ filter: 'brightness(0) invert(1)' }}
           />
           <span className="text-slate-600 text-xs">·</span>
           <span className="text-slate-400 text-xs font-display-outfit tracking-wider uppercase font-semibold">

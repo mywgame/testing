@@ -9,9 +9,11 @@ export interface TeamMember {
   userId: string;
   vipRank: 'VIP1' | 'VIP2' | 'VIP3' | 'VIP4' | 'VIP5' | 'VIP6' | 'VIP7' | 'VIP8';
   todaysIncome: string;
+  totalContribution?: string;
   contributionStatus: 'Qualified' | 'Missed';
   isEligible?: boolean;
   contributionAmount?: number;
+  totalContributionAmount?: number;
   claimedDpy?: string;
 }
 

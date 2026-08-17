@@ -104,6 +104,8 @@ export const TeamView: React.FC<TeamViewProps> = ({ dashboardData }) => {
         userId: memberUserId,
         vipRank: m.vipRank || 'VIP1',
         todaysIncome: m.todaysIncome || '$0.00',
+        totalContribution: m.totalContribution || '$0.00',
+        totalContributionAmount: m.totalContributionAmount,
         contributionStatus: m.contributionStatus || 'Missed',
         isEligible: m.isEligible,
         contributionAmount: m.contributionAmount,

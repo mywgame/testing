@@ -26,6 +26,17 @@ const VIP_CONFIG: Record<string, { label: string; color: string; bg: string; ico
   VIP8: { label: 'VIP8', color: '#3b82f6', bg: 'bg-blue-500/10 text-blue-400 border-blue-500/20', icon: '🚀' },
 };
 
+const VIP_AVATAR_THEME: Record<string, { dark: string; light: string }> = {
+  VIP1: { dark: 'bg-slate-800/90 border-slate-700/80 text-cyan-300', light: 'bg-slate-100 border-slate-300 text-cyan-700' },
+  VIP2: { dark: 'bg-slate-800/90 border-amber-500/40 text-amber-300', light: 'bg-amber-50 border-amber-300 text-amber-700' },
+  VIP3: { dark: 'bg-slate-800/90 border-sky-500/40 text-sky-300', light: 'bg-sky-50 border-sky-300 text-sky-700' },
+  VIP4: { dark: 'bg-slate-800/90 border-purple-500/40 text-purple-300', light: 'bg-purple-50 border-purple-300 text-purple-700' },
+  VIP5: { dark: 'bg-slate-800/90 border-pink-500/40 text-pink-300', light: 'bg-pink-50 border-pink-300 text-pink-700' },
+  VIP6: { dark: 'bg-slate-800/90 border-rose-500/40 text-rose-300', light: 'bg-rose-50 border-rose-300 text-rose-700' },
+  VIP7: { dark: 'bg-slate-800/90 border-emerald-500/40 text-emerald-300', light: 'bg-emerald-50 border-emerald-300 text-emerald-700' },
+  VIP8: { dark: 'bg-slate-800/90 border-blue-500/40 text-blue-300', light: 'bg-blue-50 border-blue-300 text-blue-700' },
+};
+
 export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, isLoading = false, t }) => {
   // Animation configs
   const container = {
@@ -49,14 +60,16 @@ export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, isLoa
       <div className="w-full overflow-hidden">
         <table className="w-full table-fixed text-left border-collapse">
           <thead>
-            <tr className={`border-b ${t.sep} ${t.isDark ? 'bg-white/1' : 'bg-black/1'}`}>
-              <th className={`py-3 sm:py-4 px-2.5 sm:px-6 font-bold font-display text-[10px] sm:text-[11px] tracking-wider uppercase ${t.textMuted} w-[45%]`}>
-                Username / Identity
+            <tr className={`border-b ${t.sep} ${t.isDark ? 'bg-white/3' : 'bg-black/3'}`}>
+              <th className={`py-3.5 sm:py-4 pl-3.5 sm:pl-6 pr-2 sm:pr-4 font-extrabold font-display text-[10px] sm:text-xs tracking-wider uppercase ${t.isDark ? 'text-slate-300' : 'text-slate-700'} w-[40%] sm:w-[42%]`}>
+                <span className="pl-[2.625rem] sm:pl-[3.125rem] block">
+                  User
+                </span>
               </th>
-              <th className={`py-3 sm:py-4 px-1 sm:px-4 font-bold font-display text-[10px] sm:text-[11px] tracking-wider uppercase ${t.textMuted} w-[25%]`}>
-                VIP Rank
+              <th className={`py-3.5 sm:py-4 px-1.5 sm:px-4 font-extrabold font-display text-[10px] sm:text-xs tracking-tight sm:tracking-wider uppercase ${t.isDark ? 'text-slate-300' : 'text-slate-700'} w-[28%] sm:w-[28%] text-right`}>
+                Total Contribution
               </th>
-              <th className={`py-3 sm:py-4 px-2.5 sm:px-6 font-bold font-display text-[10px] sm:text-[11px] tracking-wider uppercase ${t.textMuted} w-[30%] text-right`}>
+              <th className={`py-3.5 sm:py-4 px-2.5 sm:px-6 font-extrabold font-display text-[10px] sm:text-xs tracking-tight sm:tracking-wider uppercase ${t.isDark ? 'text-slate-300' : 'text-slate-700'} w-[32%] sm:w-[30%] text-right`}>
                 Today's Contribution
               </th>
             </tr>
@@ -73,22 +86,22 @@ export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, isLoa
               // Loading skeleton placeholder rows
               [...Array(3)].map((_, i) => (
                 <motion.tr key={`skeleton-${i}`} variants={item} className="animate-pulse">
-                  <td className="py-3 px-2.5 sm:px-6">
+                  <td className="py-4 pl-3.5 sm:pl-6 pr-2 sm:pr-4">
                     <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
-                      <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full shrink-0 ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                      <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full shrink-0 ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
                       <div className="space-y-1.5 flex-1 min-w-0">
-                        <div className={`h-3 w-16 sm:w-24 rounded ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
-                        <div className={`h-2.5 w-12 sm:w-16 rounded ${t.isDark ? 'bg-white/5' : 'bg-gray-100'}`} />
+                        <div className={`h-4 w-16 sm:w-24 rounded ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                        <div className={`h-3 w-12 sm:w-16 rounded ${t.isDark ? 'bg-white/5' : 'bg-gray-100'}`} />
                       </div>
                     </div>
                   </td>
-                  <td className="py-3 px-1 sm:px-4">
-                    <div className={`h-5 sm:h-6 w-14 sm:w-16 rounded-full ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                  <td className="py-4 px-1.5 sm:px-4 text-right">
+                    <div className={`h-4 w-12 sm:w-16 ml-auto rounded ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
                   </td>
-                  <td className="py-3 px-2.5 sm:px-6 text-right">
+                  <td className="py-4 px-2.5 sm:px-6 text-right">
                     <div className="flex flex-col items-end space-y-1">
-                      <div className={`h-3 w-12 sm:w-14 rounded ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
-                      <div className={`h-2 w-8 rounded ${t.isDark ? 'bg-white/5' : 'bg-gray-100'}`} />
+                      <div className={`h-4 w-12 sm:w-16 rounded ${t.isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+                      <div className={`h-2.5 w-10 rounded ${t.isDark ? 'bg-white/5' : 'bg-gray-100'}`} />
                     </div>
                   </td>
                 </motion.tr>
@@ -100,7 +113,7 @@ export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, isLoa
                     <div className="p-3 bg-white/5 border border-white/10 rounded-full text-gray-400">
                       <Search className="w-5 h-5" />
                     </div>
-                    <p className="font-bold">No members found</p>
+                    <p className="font-bold text-sm">No members found</p>
                     <p className="text-xs text-gray-500 max-w-xs">
                       There are no active members recorded in {levelLabel} yet.
                     </p>
@@ -110,6 +123,7 @@ export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, isLoa
             ) : (
               members.map((member, index) => {
                 const vip = VIP_CONFIG[member.vipRank] || VIP_CONFIG['VIP1'];
+                const avatarTheme = VIP_AVATAR_THEME[member.vipRank] || VIP_AVATAR_THEME['VIP1'];
                 const amountValue = parseFloat(member.todaysIncome.replace(/[^0-9.-]/g, '')) || 0;
                 const hasContribution = amountValue >= 0.01;
 
@@ -117,54 +131,59 @@ export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, isLoa
                   <motion.tr
                     key={`${member.username}-${index}`}
                     variants={item}
-                    className="hover:bg-white/3 dark:hover:bg-white/2 transition-colors duration-150 group"
+                    className="hover:bg-white/4 dark:hover:bg-white/3 transition-colors duration-150 group"
                   >
-                    {/* Column 1: Secure Username with clean placeholder avatar and DS ID */}
-                    <td className="py-3 sm:py-3.5 px-2.5 sm:px-6 overflow-hidden">
-                      <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
-                        <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full border flex items-center justify-center shrink-0 ${
-                          t.isDark ? 'bg-white/5 border-white/10 text-gray-300' : 'bg-gray-100 border-black/5 text-gray-600'
+                    {/* Column 1: Secure Username with VIP rank circle icon and DS ID */}
+                    <td className="py-3.5 sm:py-4 pl-3.5 sm:pl-6 pr-2 sm:pr-4 overflow-hidden">
+                      <div className="flex items-center space-x-2.5 sm:space-x-3.5 min-w-0">
+                        <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full border flex items-center justify-center shrink-0 shadow-2xs font-black ${
+                          t.isDark ? avatarTheme.dark : avatarTheme.light
                         }`}>
-                          <span className="text-[9px] sm:text-xs font-mono font-bold uppercase">
-                            {member.username.substring(0, 2)}
+                          <span className="text-[11px] sm:text-xs font-mono tracking-tight font-black">
+                            {(member.vipRank || 'VIP1').replace('VIP', 'V')}
                           </span>
                         </div>
-                        <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
-                          <span className={`font-mono font-bold text-[11px] sm:text-sm truncate ${t.text}`} title={member.username}>
+                        <div className="flex flex-col min-w-0 flex-1 overflow-hidden space-y-0.5">
+                          <span className={`font-mono font-bold text-xs sm:text-sm tracking-tight truncate ${t.isDark ? 'text-slate-100' : 'text-slate-900'}`} title={member.username}>
                             {member.username}
                           </span>
-                          <span className={`text-[9px] sm:text-[10px] font-mono tracking-tight truncate ${t.textMuted}`} title={member.userId}>
+                          <span className={`text-[10px] sm:text-xs font-mono font-semibold tracking-normal truncate ${
+                            t.isDark ? 'text-cyan-400/90' : 'text-blue-600'
+                          }`} title={member.userId}>
                             {member.userId}
                           </span>
                         </div>
                       </div>
                     </td>
 
-                    {/* Column 2: VIP Rank */}
-                    <td className="py-3 sm:py-3.5 px-1 sm:px-4 overflow-hidden">
-                      <span className={`inline-flex items-center space-x-0.5 sm:space-x-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold border ${vip.bg} truncate max-w-full`}>
-                        <span className="shrink-0">{vip.icon}</span>
-                        <span className="font-mono tracking-tight truncate">{vip.label}</span>
+                    {/* Column 2: Total Contribution */}
+                    <td className="py-3.5 sm:py-4 px-1.5 sm:px-4 text-right overflow-hidden">
+                      <span className={`font-mono font-extrabold text-xs sm:text-sm md:text-base tracking-tight truncate max-w-full block ${
+                        t.isDark ? 'text-slate-200' : 'text-slate-800'
+                      }`}>
+                        {member.totalContribution || '$0.00'}
                       </span>
                     </td>
 
                     {/* Column 3: Today's Contribution (Qualified / Missed / Standard) */}
-                    <td className="py-3 sm:py-3.5 px-2.5 sm:px-6 text-right overflow-hidden">
+                    <td className="py-3.5 sm:py-4 px-2.5 sm:px-6 text-right overflow-hidden">
                       <div className="flex flex-col items-end min-w-0">
-                        <span className={`font-mono font-extrabold text-[11px] sm:text-sm truncate max-w-full ${
-                          member.contributionStatus === 'Qualified' && hasContribution
-                            ? 'text-emerald-500'
-                            : t.textSub
+                        <span className={`font-mono font-extrabold text-xs sm:text-sm md:text-base tracking-tight truncate max-w-full ${
+                          hasContribution && member.contributionStatus === 'Qualified'
+                            ? 'text-emerald-400 font-black'
+                            : t.isDark ? 'text-slate-200' : 'text-slate-800'
                         }`}>
                           {member.todaysIncome || '$0.00'}
                         </span>
-                        <span className={`text-[8px] sm:text-[9px] font-medium font-sans truncate max-w-full ${
-                          member.contributionStatus === 'Qualified' && hasContribution
-                            ? 'text-emerald-500 font-semibold'
-                            : t.textMuted
-                        } tracking-tight`}>
-                          {member.contributionStatus}
-                        </span>
+                        {hasContribution && (
+                          <span className={`text-[10px] sm:text-xs font-bold tracking-wide uppercase truncate max-w-full ${
+                            member.contributionStatus === 'Qualified'
+                              ? 'text-emerald-400'
+                              : 'text-rose-400'
+                          }`}>
+                            {member.contributionStatus}
+                          </span>
+                        )}
                       </div>
                     </td>
                   </motion.tr>

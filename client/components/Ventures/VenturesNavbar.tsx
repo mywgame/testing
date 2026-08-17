@@ -35,6 +35,7 @@ export const VenturesNavbar: React.FC<VenturesNavbarProps> = ({
             alt="MetaFirm"
             referrerPolicy="no-referrer"
             className="h-7 sm:h-8 w-auto object-contain"
+            style={{ filter: 'brightness(0) invert(1)' }}
           />
           <span className="hidden sm:inline-block text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/30">
             Ventures

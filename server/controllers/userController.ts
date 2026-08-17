@@ -34,6 +34,7 @@ import { userRepository } from '../repositories/userRepository.ts';
 import { walletRepository } from '../repositories/walletRepository.ts';
 import { vipRepository } from '../repositories/vipRepository.ts';
 import { claimRepository } from '../repositories/claimRepository.ts';
+import { teamCommissionHistoryRepository } from '../repositories/teamCommissionHistoryRepository.ts';
 
 function isValidCryptoAddress(network: string, address: string): boolean {
   if (network === 'USDT_BEP20' || network === 'USDT_POLYGON') {
@@ -1046,6 +1047,7 @@ export class UserController {
       const userTier = userVip?.tier || 'VIP1';
 
       const descendants = await referralService.getDownlineDescendants(user.id);
+      const totalCommissionsMap = await teamCommissionHistoryRepository.getTotalCommissionsByReceiver(user.id);
       const now = new Date();
 
       const members = await Promise.all(
@@ -1085,6 +1087,10 @@ export class UserController {
             formattedIncome = `$${contributionAmount.toFixed(2)}`;
           }
 
+          // Cumulative total contribution from this member to current user
+          const cumulativeContribution = totalCommissionsMap[d.childId] || 0;
+          const formattedTotalContribution = `$${cumulativeContribution.toFixed(2)}`;
+
           const rawUserId = childUser?.userId || (childUser as any)?.user_id;
           const visibleUserId = (rawUserId && rawUserId !== 'DS------')
             ? rawUserId
@@ -1098,6 +1104,8 @@ export class UserController {
             levelLabel,
             vipRank: childVip?.tier || 'VIP1',
             todaysIncome: formattedIncome,
+            totalContribution: formattedTotalContribution,
+            totalContributionAmount: cumulativeContribution,
             contributionAmount,
             contributionStatus,
             isEligible,

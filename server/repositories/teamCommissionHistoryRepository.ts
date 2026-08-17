@@ -93,6 +93,33 @@ export class TeamCommissionHistoryRepository {
       throw new Error('Failed to load team commission records for claim.');
     }
   }
+
+  /**
+   * Retrieve map of total cumulative commissions earned by receiver grouped by source user.
+   */
+  async getTotalCommissionsByReceiver(receiverUserId: string): Promise<Record<string, number>> {
+    try {
+      const records = await db
+        .select({
+          sourceUserId: teamCommissionHistory.sourceUserId,
+          commissionAmount: teamCommissionHistory.commissionAmount,
+        })
+        .from(teamCommissionHistory)
+        .where(eq(teamCommissionHistory.receiverUserId, receiverUserId));
+
+      const totalMap: Record<string, number> = {};
+      for (const r of records) {
+        if (r.sourceUserId) {
+          const val = parseFloat(r.commissionAmount) || 0;
+          totalMap[r.sourceUserId] = (totalMap[r.sourceUserId] || 0) + val;
+        }
+      }
+      return totalMap;
+    } catch (error) {
+      console.error('Database query (getTotalCommissionsByReceiver) failed:', error);
+      return {};
+    }
+  }
 }
 
 export const teamCommissionHistoryRepository = new TeamCommissionHistoryRepository();
