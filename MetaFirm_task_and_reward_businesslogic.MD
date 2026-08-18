@@ -1,254 +1,225 @@
-# 18. Metafirm Task and Rewards
-18.1 Core Concept
+# 18. Metafirm – Tasks & Rewards
 
-The Task & Rewards system allows users to earn incentives by completing predefined activities and achieving measurable milestones.
+## 18.1 Core Concept
 
-Tasks represent user actions, activities, or milestones that can become eligible for a reward.
-Rewards represent the configured incentive associated with a task.
-Rewards are claimed only through the Task system.
-The Rewards Pool is used for managing and configuring available task rewards and campaigns.
-Task and reward parameters must not be hardcoded in the frontend or business logic.
-Administrators must be able to configure reward amounts, task status, thresholds, eligibility requirements, display order, and campaign dates from the Admin Panel.
+The **Tasks & Rewards** system allows users to earn incentives by completing predefined activities and reaching measurable milestones.
 
-# 18.2 Activity Bonuses
-Successful Registration
+- A **Task** is a user action, activity, or milestone that can become eligible for a reward.
+- A **Reward** is the incentive configured against a task.
+- All rewards are claimed exclusively through the Tasks & Rewards system.
+- The **Rewards Pool** is the administrative configuration layer used to manage tasks, rewards, thresholds, and campaigns.
+- No task parameters (reward amounts, thresholds, status, order, campaign dates, claim limits, etc.) may be hardcoded in the frontend.
+- Administrators must be able to fully configure everything from the Admin Panel.
 
-Reward: $100 Trial Fund
+---
 
-The existing Trial Fund system remains unchanged.
+## 18.2 Activity Bonuses
 
-The Trial Fund is automatically credited during registration according to the existing Trial Fund business rules.
-The Task & Rewards system must never credit the Trial Fund again.
-The registration task only verifies whether the user has already received the Trial Fund.
-If the Trial Fund has already been issued, the task is marked as Claimed.
-The claim state must be recorded in the database.
-Claiming this task must never increase the user's Trial Fund balance a second time.
+### 1. Successful Registration (Trial Fund)
 
-User Experience Flow
-User Registration
-        ↓
-User Logs In
-        ↓
-gets a popup Welcome / Claim Trial Fund Gift
-        ↓
-User lands on dashboard-->task-->claim page
-        ↓
-Registration Task = Claimed
+| Item                    | Value                                                          |
+|-------------------------|----------------------------------------------------------------|
+| Reward                  | $100 Trial Fund (amount + validity days configurable by Admin) |
+| Claim Limit             | Once per user                                                  |
+| Dependency              | Existing Trial Fund system                                     |
 
-The original Trial Fund business logic must remain completely independent of the Task & Rewards system.
+**Critical Rules**
+- The existing Trial Fund issuance logic remains completely independent.
+- The Tasks & Rewards system must **never** credit the Trial Fund itself.
+- This task only checks whether the user has already received the Trial Fund.
+- If already issued → task status = **Claimed**.
+- Claiming this task must never increase the Trial Fund balance again.
+- Claim state must be persisted in the database.
 
-Complete Authenticator Setup
+**UX Flow**
+```
+User registers
+    ↓
+User logs in
+    ↓
+Welcome / Claim Trial Fund popup
+    ↓
+User goes to Tasks → Claim
+    ↓
+Registration Task marked as Claimed
+```
 
-Reward: $0.25
+### 2. Complete Authenticator Setup (2FA)
 
-User becomes eligible after successfully completing authenticator/2FA setup.
-Reward can be claimed once per user.
-Repeated claims must be prevented by the backend.
-Join Telegram
+| Item          | Value                                      |
+|---------------|--------------------------------------------|
+| Reward        | $0.25 USDT                                 |
+| Eligibility   | After successful 2FA / Authenticator setup |
+| Claim Limit   | Once per user                              |
 
-Reward: $0.25
+Backend must prevent repeated claims.
 
-User becomes eligible after completing the configured Telegram participation requirement.
-Reward can be claimed according to the task's configured claim limit.
+### 3. Join Telegram Channel
 
-# 18.3 Referral Rewards
+| Item          | Value                                                      |
+|---------------|------------------------------------------------------------|
+| Reward        | $0.25 USDT                                                 |
+| Eligibility   | After completing the configured Telegram participation requirement |
+| Claim Limit   | default once                                               |
 
-The system contains two separate referral reward mechanisms. They must never be treated as the same reward.
+---
 
-A. Successful Referral Registration
+## 18.3 Referral Rewards
 
-Reward: $0.10 per eligible referral
+There are **two completely separate** referral reward mechanisms.  
+They must never be mixed.
 
-A referring user becomes eligible for a $0.10 reward for each direct referred user who successfully completes registration.
+### A. Successful Referral Registration ($0.10 per referral)
 
-The reward is accumulated until the user claims the available referral-registration rewards.
+| Item                    | Value                                            |
+|-------------------------|--------------------------------------------------|
+| Reward                  | $0.10 USDT per eligible referral                 |
+| Eligibility             | Direct Level-1 referral successfully registers   |
+| Deposit Required        | **No**                                           |
+| Trial Fund Impact       | None                                             |
+| Claim Style             | Aggregated                                       |
 
-Example
-User A refers User B
-User B successfully registers
-→ Pending Referral Reward = $0.10
+**How it works**
+- Every time a direct referred user successfully registers, the referrer gets +$0.10 pending.
+- Multiple unclaimed referral rewards are **aggregated** into a single claimable amount.
+- Claimable Amount = Number of unclaimed eligible referrals × Configured reward per referral.
 
-User A refers User C
-User C successfully registers
-→ Pending Referral Reward = $0.20
+**Example**
+```
+4 eligible referrals registered since last claim
+→ Claimable = 4 × $0.10 = $0.40 USDT
+→ Status: Available to Claim
+```
 
-User A refers User D
-User D successfully registers
-→ Pending Referral Reward = $0.30
+**Claim Behavior**
+1. User claims → entire accumulated amount is credited in one transaction.
+2. All referrals included in that claim are marked as claimed.
+3. Claimable amount resets to $0.00.
+4. Task becomes Claimed (until a new eligible referral appears).
+5. When a new eligible referral registers → task becomes Available to Claim again with the new pending amount.
 
-User A refers User E
-User E successfully registers
-→ Pending Referral Reward = $0.40
+**Implementation Rule (Very Important)**
+- Eligibility/claim records remain **individual** per referred user (for duplicate protection).
+- Payout is **aggregated** (for good UX).
 
-Therefore, if 4 eligible referrals have registered since the user's last claim, the Task should display:
+```
+Referral B → $0.10 (unclaimed)
+Referral C → $0.10 (unclaimed)
+Referral D → $0.10 (unclaimed)
+Referral E → $0.10 (unclaimed)
+                ↓
+           ONE CLAIM
+                ↓
+           $0.40 USDT
+```
 
-Reward: $0.40 USDT
-Status: Available to Claim
-Action: Claim
+### B. Verified Referral Milestones
 
-The user should not need to claim each $0.10 referral separately.
+These are completely independent from the $0.10 registration reward.
 
-Claim Behavior
-All currently unclaimed eligible referral-registration rewards are aggregated into a single claimable amount.
-Claimable Amount = Number of Unclaimed Eligible Referrals × Configured Reward Per Referral
-With the default configuration:
-4 unclaimed eligible referrals × $0.10 = $0.40
-When the user claims the reward, the entire accumulated amount is credited in one claim transaction.
-All referrals included in that claim are marked as claimed.
-The claimable amount immediately becomes $0.00.
-The task changes to Claimed when there is no remaining unclaimed referral reward.
-If another eligible referral registers after the previous claim, a new $0.10 pending reward is created.
-The task then becomes claimable again.
-Example of Repeated Claims
-4 referrals register
-        ↓
-Pending = $0.40
-        ↓
-User clicks Claim
-        ↓
-$0.40 credited
-        ↓
-Pending = $0.00
-        ↓
-Task = Claimed
-        ↓
-New referral registers
-        ↓
-Pending = $0.10
-        ↓
-Task = Available to Claim
-Eligibility
-Only successful direct Level-1 referrals are counted.
-The referred user only needs to successfully complete registration.
-No $50 deposit is required for the Successful Referral Registration reward.
-Trial Fund status does not affect eligibility.
-Each referred user can contribute to the registration reward only once.
-A referred user must never generate duplicate registration rewards.
-The backend must maintain an individual claim/eligibility record for each referred user even though multiple rewards are aggregated into a single payout.
-Important Implementation Rule
+A referral becomes a **Verified Referral** only when the referred user has made a minimum **$50 REAL USDT deposit**.  
+Trial Fund credits do **not** count.
 
-The eligibility records remain individual, but the payout is aggregated.
+| Verified Referrals | Reward   |
+|--------------------|----------|
+| 3                  | $2 USDT  |
+| 5                  | $5 USDT  |
+| 10                 | $10 USDT |
+| 20                 | $35 USDT |
+| 35                 | $50 USDT |
+| 50                 | $75 USDT |
 
-Referral B → $0.10 → unclaimed
-Referral C → $0.10 → unclaimed
-Referral D → $0.10 → unclaimed
-Referral E → $0.10 → unclaimed
+**Key Distinction**
+- A referral can earn the referrer the $0.10 registration reward immediately after registration.
+- The same referral only starts counting toward Verified Milestones after the $50 real deposit is completed.
 
-                    ↓
+---
 
-             ONE CLAIM
+## 18.4 Self Deposit Milestones
 
-                    ↓
+Users earn rewards for reaching their own real deposit milestones.
 
-              $0.40 USDT
+| Milestone              | Reward   |
+|------------------------|----------|
+| First $100 Deposit     | $1 USDT  |
+| First $500 Deposit     | $5 USDT  |
+| First $1,000 Deposit   | $10 USDT |
 
-This is important because it gives us both duplicate-reward protection and the desired simple UX.
+**Rules**
+- Only real / approved deposits count.
+- Trial Fund credits are never treated as real deposits.
+- Eligibility is evaluated exclusively on the backend using authoritative deposit records.
+- Each milestone can be claimed according to its configured claim limit (normally once).
 
-B. Verified Referral Milestones
+---
 
-Verified Referral Milestones remain completely separate from the Successful Referral Registration reward.
+## 18.5 Summary Table (Current Default Values)
 
-A direct Level-1 referral qualifies as a Verified Referral only when the referred user has made a minimum $50 REAL USDT deposit.
+### Activity Bonuses
+| Task                          | Reward                  |
+|-------------------------------|-------------------------|
+| Successful Registration       | $100 Trial Fund         |
+| Complete Authenticator Setup  | $0.25 USDT              |
+| Join Telegram Channel         | $0.25 USDT              |
 
-Trial Fund credits do not qualify.
+### Referral Rewards
+| Task                              | Reward                                      |
+|-----------------------------------|---------------------------------------------|
+| Successful Referral Registration  | $0.10 per eligible referral (aggregated)    |
+| 3 Verified Referrals              | $2 USDT                                     |
+| 5 Verified Referrals              | $5 USDT                                     |
+| 10 Verified Referrals             | $10 USDT                                    |
+| 20 Verified Referrals             | $35 USDT                                    |
+| 35 Verified Referrals             | $50 USDT                                    |
+| 50 Verified Referrals             | $75 USDT                                    |
 
-Verified Referrals	Milestone Reward
-3	$2
-5	$5
-10	$10
-20	$35
-35	$50
-50	$75
+### Self Deposit Milestones
+| Task                    | Reward   |
+|-------------------------|----------|
+| First $100 Deposit      | $1 USDT  |
+| First $500 Deposit      | $5 USDT  |
+| First $1,000 Deposit    | $10 USDT |
 
-Important: The $0.10 registration reward and the Verified Referral Milestone reward are independent rewards. A referral can qualify for the $0.10 registration reward immediately after registration, while contributing to Verified Referral milestones only after the required $50 REAL USDT deposit.
+---
 
-# 18.4 Self Deposit Rewards
+## 18.6 Admin – Rewards Pool
 
-Users can earn rewards for reaching their own real deposit milestones.
+Administrators must be able to:
 
-Deposit Milestone	Reward
-First $100 Deposit	$1
-First $500 Deposit	$5
-First $1,000 Deposit	$10
+- Create / edit / activate / pause tasks
+- Configure reward amount & type
+- Configure progress thresholds & minimum deposit requirements
+- Configure task categories & display order
+- Configure campaign start & end dates
+- Configure claim limits
+- Configure task-specific rules & metadata
+- View user claim history and distribution records
 
-Business rules:
+Configuration changes apply only to future eligibility and claims.  
+They must not retroactively change already claimed rewards (unless an explicit admin override mechanism is added later).
 
-Only qualifying real/approved deposits count.
-Trial Fund credits are never treated as real deposits.
-Deposit milestones are evaluated by the backend.
-Each configured milestone can be claimed according to its configured claim limit.
-Deposit eligibility must be based on authoritative server-side deposit records.
+---
 
-# 18.5 Activity Bonuses
-Task	Reward
-Successful Registration	$100 Trial Fund — Claimed
-Complete Authenticator Setup	$0.25
-Join Telegram	$0.25
-Referral Rewards
-Task	Reward
-Successful Referral Registration	$0.10 per eligible referral
-3 Verified Referrals	$2
-5 Verified Referrals	$5
-10 Verified Referrals	$10
-20 Verified Referrals	$35
-35 Verified Referrals	$50
-50 Verified Referrals	$75
-Self Deposit Rewards
-Task	Reward
-First $100 Deposit	$1
-First $500 Deposit	$5
-First $1,000 Deposit	$10
+## 18.7 Architecture & Ownership
+
+- All business logic lives **server-side** (Services layer).
+- Frontend only displays current state and submits claim requests.
+- Controllers handle HTTP.
+- Repositories handle database operations.
+- Client-side values must never decide eligibility or reward amounts.
+- Every claim must be validated server-side before any wallet credit.
+- Duplicate claims must be prevented via backend idempotency + database constraints.
+- The system integrates with existing Wallet, Transaction, Referral, Deposit, and Audit systems without changing their current business rules.
+
+---
 
 
-# 18.6 Admin Rewards Pool
+## 18.8 Mandatory Distinction (Never Mix These)
 
-The Admin Panel must provide a dedicated Rewards Pool management interface.
+| Reward Type                        | Amount              | Trigger                              | $50 Real Deposit Required? |
+|------------------------------------|---------------------|--------------------------------------|----------------------------|
+| Successful Referral Registration   | $0.10 per referral  | Registration only                    | **No**                     |
+| Verified Referral Milestone        | $2 / $5 / $10 / ... | Referral makes ≥ $50 real deposit    | **Yes**                    |
 
-Administrators can:
+These two systems must remain independently configurable and independently evaluated by the backend.
 
-Create tasks.
-Edit task definitions.
-Activate or pause tasks.
-Configure reward amounts.
-Configure reward type.
-Configure progress thresholds.
-Configure minimum deposit requirements.
-Configure task categories.
-Configure display order.
-Configure campaign start and end dates.
-Configure task-specific rules and metadata.
-Configure claim limits.
-View user reward claim history.
-Review reward distribution and claim records.
-
-Changes to reward configuration should affect future eligibility and claims according to the configured task rules and must not retroactively alter previously completed or claimed rewards unless an explicit administrative mechanism is introduced.
-
-# 18.7 Business Logic Ownership
-
-All Task & Rewards business logic must be handled server-side.
-
-Frontend displays task state and submits claim requests.
-Controllers handle HTTP requests and responses.
-Repositories perform database operations.
-Services contain the complete Task & Rewards business logic.
-Client-side values must never determine reward eligibility or reward amounts.
-Reward claims must be validated server-side before any wallet credit is issued.
-Duplicate claims must be prevented through backend idempotency and database constraints.
-
-The Task & Rewards system must integrate with the existing Wallet, Transaction, Referral, Deposit, and Audit systems without modifying their existing business rules.
-
-# 18.8 Important Business Rule Distinction
-
-The following distinction is mandatory:
-
-Successful Referral Registration
-→ $0.10
-→ Registration is sufficient
-→ $50 deposit NOT required
-
-Verified Referral Milestone
-→ $2 / $5 / $10 / $35 / $50 / $75
-→ Direct referral must make minimum $50 REAL USDT deposit
-→ Trial Fund does NOT qualify
-
-These two reward systems must remain independently configurable and independently evaluated by the backend.

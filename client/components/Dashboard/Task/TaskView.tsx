@@ -24,9 +24,10 @@ interface TaskViewProps {
   onBack: () => void;
   onNavigateToReferrals?: () => void;
   onNavigate?: (tab: string) => void;
+  onRefresh?: () => void;
 }
 
-export const TaskView: React.FC<TaskViewProps> = ({ onBack, onNavigateToReferrals, onNavigate }) => {
+export const TaskView: React.FC<TaskViewProps> = ({ onBack, onNavigateToReferrals, onNavigate, onRefresh }) => {
   const { t, isDark } = useTheme();
   const { tasks, summary, loading, claimingCode, claimReward } = useTasks();
 
@@ -48,6 +49,9 @@ export const TaskView: React.FC<TaskViewProps> = ({ onBack, onNavigateToReferral
   const handleClaim = async (taskCode: string, title: string, rewardAmount: number) => {
     const res = await claimReward(taskCode);
     if (res.success) {
+      if (onRefresh) {
+        onRefresh();
+      }
       setSuccessModalData({
         isOpen: true,
         taskTitle: title,

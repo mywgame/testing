@@ -5,6 +5,17 @@
 
 import { api } from './api.ts';
 
+export interface ReferralChildDetailDTO {
+  childId: string;
+  userId: string;
+  username: string;
+  name?: string | null;
+  registeredAt: string;
+  rewardAmount: number;
+  isClaimed: boolean;
+  claimedAt?: string | null;
+}
+
 export interface TaskItemDTO {
   id: string;
   taskCode: string;
@@ -22,6 +33,7 @@ export interface TaskItemDTO {
   minDepositRequired: number;
   claimedAt?: string | null;
   ruleConfig?: any;
+  referralDetails?: ReferralChildDetailDTO[];
 }
 
 export interface TaskSummaryDTO {

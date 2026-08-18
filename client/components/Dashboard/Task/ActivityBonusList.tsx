@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
-import { Gift, ShieldCheck, Send, Users } from 'lucide-react';
+import React, { useState } from 'react';
+import { Gift, ShieldCheck, Send, Users, Info } from 'lucide-react';
 import { useTheme } from '../../../hooks/useTheme.ts';
 import { TaskItemDTO } from '../../../services/taskService.ts';
 import { TaskStatusButton } from './TaskStatusButton.tsx';
+import { ReferralDetailsModal } from './ReferralDetailsModal.tsx';
 
 interface ActivityBonusListProps {
   tasks: TaskItemDTO[];
@@ -23,8 +24,13 @@ export const ActivityBonusList: React.FC<ActivityBonusListProps> = ({
   onNavigate,
 }) => {
   const { t, isDark } = useTheme();
+  const [isReferralModalOpen, setIsReferralModalOpen] = useState(false);
 
   if (tasks.length === 0) return null;
+
+  const referralTask = tasks.find((t) => t.taskCode === 'REFERRAL_REGISTRATION_SINGLE');
+  const referralList = referralTask?.referralDetails || [];
+  const unclaimedRefsCount = referralList.filter((r) => !r.isClaimed).length;
 
   return (
     <div className="space-y-3">
@@ -38,6 +44,7 @@ export const ActivityBonusList: React.FC<ActivityBonusListProps> = ({
           const isClaimed = task.status === 'CLAIMED';
           const isCompleted = task.status === 'COMPLETED';
           const isClaiming = claimingCode === task.taskCode;
+          const isReferralTask = task.taskCode === 'REFERRAL_REGISTRATION_SINGLE';
 
           return (
             <div
@@ -88,12 +95,41 @@ export const ActivityBonusList: React.FC<ActivityBonusListProps> = ({
                 </div>
 
                 <div className="min-w-0 text-left space-y-0.5">
-                  <h4 className={`text-sm font-bold leading-snug ${t.text}`}>
-                    {task.title}
-                  </h4>
+                  <div className="flex items-center gap-2">
+                    <h4 className={`text-sm font-bold leading-snug ${t.text}`}>
+                      {task.title}
+                    </h4>
+                    {isReferralTask && (
+                      <button
+                        id="btn-open-referral-breakdown"
+                        onClick={() => setIsReferralModalOpen(true)}
+                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-mono font-semibold transition-all border ${
+                          isDark
+                            ? 'bg-white/5 border-white/10 hover:bg-purple-500/20 hover:border-purple-500/30 text-purple-300'
+                            : 'bg-slate-100 border-slate-200 hover:bg-purple-50 hover:border-purple-200 text-purple-700'
+                        }`}
+                        title="View referred users breakdown"
+                      >
+                        <Info className="w-3 h-3" />
+                        <span>Breakdown</span>
+                      </button>
+                    )}
+                  </div>
                   <p className={`text-xs leading-relaxed ${t.textMuted}`}>
                     {task.description}
                   </p>
+                  {isReferralTask && task.referralDetails && task.referralDetails.length > 0 && (
+                    <div className="pt-0.5">
+                      <button
+                        onClick={() => setIsReferralModalOpen(true)}
+                        className={`text-[11px] font-medium underline underline-offset-2 hover:opacity-80 transition-opacity ${
+                          isDark ? 'text-purple-400' : 'text-purple-600'
+                        }`}
+                      >
+                        {task.referralDetails.length} user{task.referralDetails.length === 1 ? '' : 's'} registered ({task.referralDetails.filter((r) => r.isClaimed).length} claimed) • View details
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -137,6 +173,23 @@ export const ActivityBonusList: React.FC<ActivityBonusListProps> = ({
           );
         })}
       </div>
+
+      {/* Referral Aggregated Details Dialogue Box */}
+      {referralTask && (
+        <ReferralDetailsModal
+          isOpen={isReferralModalOpen}
+          onClose={() => setIsReferralModalOpen(false)}
+          referrals={referralList}
+          unitReward={referralTask.rewardPerUnit || 0.1}
+          unclaimedCount={unclaimedRefsCount}
+          isClaiming={claimingCode === referralTask.taskCode}
+          onClaim={() => {
+            if (referralTask.status === 'COMPLETED') {
+              onClaim(referralTask.taskCode, referralTask.title, referralTask.rewardAmount);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

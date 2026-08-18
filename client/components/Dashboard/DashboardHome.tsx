@@ -145,7 +145,7 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
     };
 
     const realIncomeCards = [
-      { key: 'dailyYield', label: t('dailyYield', 'Daily Yield'), today: parseFloat(dashboardData.dailyClaim.amount), total: parseFloat(dashboardData.earnings.dailyYield), icon: Zap, accent: 'emerald' as const },
+      { key: 'dailyYield', label: t('dailyYield', 'Daily Yield'), today: parseFloat(dashboardData.earnings.todayDailyYield || '0'), total: parseFloat(dashboardData.earnings.dailyYield), icon: Zap, accent: 'emerald' as const },
       { key: 'referralIncome', label: t('referralIncome', 'Referral Income'), today: parseFloat(dashboardData.earnings.todayReferralIncome || '0'), total: parseFloat(dashboardData.earnings.referralIncome), icon: LinkIcon, accent: 'cyan' as const },
       { key: 'teamIncome', label: t('teamIncome', 'Team Income'), today: parseFloat(dashboardData.earnings.todayTeamIncome || '0'), total: parseFloat(dashboardData.earnings.teamIncome), icon: Users, accent: 'purple' as const },
       { key: 'incentiveIncome', label: t('incentiveIncome', 'Incentive Income'), today: parseFloat(dashboardData.earnings.todayIncentiveIncome || '0'), total: parseFloat(dashboardData.earnings.incentiveIncome), icon: Award, accent: 'amber' as const },

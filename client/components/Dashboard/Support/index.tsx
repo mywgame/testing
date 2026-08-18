@@ -166,9 +166,9 @@ export const SupportView: React.FC = () => {
       {/* 1. Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center space-x-2">
-            <div className="p-1.5 bg-cyan-500/10 border border-cyan-500/20 rounded-xl text-cyan-500 dark:text-cyan-400">
-              <MessageSquare className="w-5 h-5" />
+          <div className="flex items-center space-x-3">
+            <div className="p-2.5 bg-gradient-to-tr from-purple-600 to-indigo-600 rounded-2xl text-white shadow-lg shadow-purple-900/30">
+              <MessageSquare className="w-5 h-5 text-white" />
             </div>
             <h1 className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${t.text}`}>
               MetaFirm Support
@@ -182,7 +182,7 @@ export const SupportView: React.FC = () => {
 
       {/* Toast Alert Banner */}
       {toastMessage && (
-        <div className="fixed top-24 right-4 z-50 flex items-center space-x-2.5 p-4 rounded-2xl bg-emerald-500 text-black font-semibold shadow-2xl animate-bounce">
+        <div className="fixed top-24 right-4 z-50 flex items-center space-x-2.5 p-4 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold shadow-2xl animate-bounce">
           <CheckCircle className="w-5 h-5" />
           <span className="text-xs sm:text-sm font-sans">{toastMessage}</span>
         </div>

@@ -4,11 +4,11 @@
  */
 
 import React, { useState } from 'react';
-import { Mail, Copy, Check, ChevronDown, ShieldAlert } from 'lucide-react';
+import { Mail, Copy, Check, ChevronDown, ShieldCheck } from 'lucide-react';
 import { useTheme } from '../../../hooks/useTheme.ts';
 
 export const SupportInfo: React.FC = () => {
-  const { t } = useTheme();
+  const { t, isDark } = useTheme();
   const [copied, setCopied] = useState(false);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
@@ -31,7 +31,7 @@ export const SupportInfo: React.FC = () => {
     },
     {
       q: 'Are withdrawals processed instantly?',
-      a: 'To guarantee asset integrity and compliance, every withdrawal is evaluated manually by our finance team. Approvals are typically finalized in less than 6 hours.',
+      a: 'To guarantee asset integrity and security compliance, every withdrawal request undergoes safety checks by our finance department. The standard processing window for MetaFirm withdrawals is up to 72 hours.',
     },
   ];
 
@@ -41,56 +41,106 @@ export const SupportInfo: React.FC = () => {
 
   return (
     <div className="space-y-4 text-left" id="support-info-cards">
-      {/* 1. Simplified Direct Email Assistance */}
-      <div className={`p-5 rounded-3xl border ${t.card} space-y-3`}>
-        <div className="flex items-center space-x-2 text-cyan-600 dark:text-cyan-400">
-          <Mail className="w-4 h-4 shrink-0" />
-          <h4 className={`text-sm font-bold font-sans ${t.text}`}>Direct Assistance</h4>
+      {/* 1. Direct Email Assistance Glass Card */}
+      <div
+        className={`p-5 rounded-3xl border transition-all shadow-xl ${
+          isDark
+            ? 'bg-[#10142e]/95 border-purple-500/20 shadow-purple-950/40'
+            : 'bg-white border-purple-100 shadow-purple-900/10'
+        } space-y-3`}
+      >
+        <div className="flex items-center space-x-2.5">
+          <div className="p-2 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white shadow-md shadow-purple-900/20">
+            <Mail className="w-4 h-4 text-white" />
+          </div>
+          <h4 className={`text-sm font-bold font-sans ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            Direct Assistance
+          </h4>
         </div>
-        <p className={`text-xs font-sans ${t.textSub}`}>
-          For administrative or custom account inquiries, contact our desk.
+        <p className={`text-xs font-sans ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+          For administrative or custom account inquiries, reach our direct desk.
         </p>
-        <div className={`p-3 rounded-xl border flex items-center justify-between gap-4 ${
-          t.isDark ? 'bg-black/20 border-white/5' : 'bg-black/5 border-black/5'
-        }`}>
-          <span className={`text-xs font-mono font-semibold truncate ${t.isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+        <div
+          className={`p-3 rounded-2xl border flex items-center justify-between gap-4 ${
+            isDark
+              ? 'bg-[#0a0d24] border-white/10'
+              : 'bg-slate-50 border-slate-200'
+          }`}
+        >
+          <span
+            className={`text-xs font-mono font-semibold truncate ${
+              isDark ? 'text-purple-300' : 'text-purple-700'
+            }`}
+          >
             {supportEmail}
           </span>
           <div className="flex items-center space-x-1 shrink-0">
             <button
               onClick={handleCopyEmail}
-              className={`p-1.5 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer ${
-                copied ? 'text-emerald-500' : 'text-gray-400 hover:text-cyan-500'
+              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                copied
+                  ? 'text-emerald-400'
+                  : isDark
+                  ? 'text-slate-400 hover:text-white hover:bg-white/10'
+                  : 'text-slate-500 hover:text-purple-600 hover:bg-purple-50'
               }`}
               title="Copy email address"
             >
-              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             </button>
             <a
               href={`mailto:${supportEmail}`}
-              className="p-1.5 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 text-gray-400 hover:text-cyan-500 transition-colors cursor-pointer"
+              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                isDark
+                  ? 'text-slate-400 hover:text-white hover:bg-white/10'
+                  : 'text-slate-500 hover:text-purple-600 hover:bg-purple-50'
+              }`}
               title="Open default email application"
             >
-              <Mail className="w-3.5 h-3.5" />
+              <Mail className="w-4 h-4" />
             </a>
           </div>
         </div>
       </div>
 
-      {/* 2. Security Notice */}
-      <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex items-start space-x-2.5">
-        <ShieldAlert className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-        <div className="space-y-0.5">
-          <h5 className="text-[11px] font-bold text-amber-500 dark:text-amber-400 uppercase tracking-wider">Security Notice</h5>
-          <p className="text-[11px] text-amber-700 dark:text-amber-500/80 leading-relaxed font-sans">
-            Support will **never** ask you for your private keys, seed phrases, or login credentials.
+      {/* 2. Clean Glass Security Notice with Purple-Indigo Accent (No Yellow) */}
+      <div
+        className={`p-4.5 rounded-3xl border backdrop-blur-xl flex items-start space-x-3.5 shadow-lg transition-all ${
+          isDark
+            ? 'bg-gradient-to-r from-purple-950/40 to-indigo-950/30 border-purple-500/30 shadow-purple-950/30'
+            : 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200 shadow-purple-900/5'
+        }`}
+      >
+        <div className="p-2 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white shrink-0 mt-0.5 shadow-md shadow-purple-900/30">
+          <ShieldCheck className="w-4 h-4 text-white" />
+        </div>
+        <div className="space-y-1 text-left">
+          <h5
+            className={`text-xs font-bold uppercase tracking-wider ${
+              isDark ? 'text-purple-300' : 'text-purple-800'
+            }`}
+          >
+            Security Notice
+          </h5>
+          <p
+            className={`text-xs leading-relaxed font-sans font-medium ${
+              isDark ? 'text-slate-200' : 'text-slate-700'
+            }`}
+          >
+            MetaFirm Support will <span className="font-bold underline decoration-purple-400">never</span> ask you for your private keys, seed phrases, or login credentials.
           </p>
         </div>
       </div>
 
-      {/* 3. Accordion-style Frequently Asked Questions */}
-      <div className={`p-5 rounded-3xl border ${t.card} space-y-3`}>
-        <h4 className={`text-xs font-bold font-sans uppercase tracking-wider ${t.textMuted}`}>
+      {/* 3. Accordion-style Frequently Asked Questions (Clean Glass) */}
+      <div
+        className={`p-5 rounded-3xl border transition-all shadow-xl ${
+          isDark
+            ? 'bg-[#10142e]/95 border-purple-500/20 shadow-purple-950/40'
+            : 'bg-white border-purple-100 shadow-purple-900/10'
+        } space-y-3`}
+      >
+        <h4 className={`text-xs font-bold font-sans uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           Frequently Asked Questions
         </h4>
         <div className="space-y-2">
@@ -99,26 +149,36 @@ export const SupportInfo: React.FC = () => {
             return (
               <div
                 key={i}
-                className={`border rounded-xl overflow-hidden transition-all duration-200 ${
+                className={`border rounded-2xl overflow-hidden transition-all duration-200 ${
                   isOpen
-                    ? t.isDark
-                      ? 'border-cyan-500/30 bg-white/3'
-                      : 'border-cyan-500/20 bg-black/3'
-                    : 'border-transparent hover:bg-black/5 dark:hover:bg-white/5'
+                    ? isDark
+                      ? 'border-purple-500/40 bg-purple-950/20 shadow-md shadow-purple-950/20'
+                      : 'border-purple-300 bg-purple-50/50 shadow-xs'
+                    : isDark
+                    ? 'border-white/5 bg-white/[0.02] hover:bg-white/[0.05]'
+                    : 'border-slate-200 bg-slate-50/70 hover:bg-slate-100'
                 }`}
               >
                 {/* Accordion Toggle Header */}
                 <button
                   type="button"
                   onClick={() => handleToggleFaq(i)}
-                  className="w-full p-3 flex items-center justify-between text-left cursor-pointer transition-colors"
+                  className="w-full p-3.5 flex items-center justify-between text-left cursor-pointer transition-colors"
                 >
-                  <span className={`text-xs font-semibold pr-2 leading-relaxed ${t.text}`}>
+                  <span
+                    className={`text-xs sm:text-sm font-semibold pr-2 leading-relaxed ${
+                      isDark ? 'text-white' : 'text-slate-900'
+                    }`}
+                  >
                     {faq.q}
                   </span>
                   <ChevronDown
-                    className={`w-4 h-4 shrink-0 transition-transform duration-200 ${t.textMuted} ${
-                      isOpen ? 'rotate-180 text-cyan-500 dark:text-cyan-400' : ''
+                    className={`w-4 h-4 shrink-0 transition-transform duration-200 ${
+                      isOpen
+                        ? 'rotate-180 text-purple-400'
+                        : isDark
+                        ? 'text-slate-400'
+                        : 'text-slate-500'
                     }`}
                   />
                 </button>
@@ -129,7 +189,11 @@ export const SupportInfo: React.FC = () => {
                     isOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
                   }`}
                 >
-                  <div className={`px-3 pb-3 pt-1 text-[11px] sm:text-xs leading-normal font-sans ${t.textSub}`}>
+                  <div
+                    className={`px-3.5 pb-3.5 pt-1 text-xs sm:text-sm leading-relaxed font-sans ${
+                      isDark ? 'text-slate-300' : 'text-slate-700'
+                    }`}
+                  >
                     {faq.a}
                   </div>
                 </div>

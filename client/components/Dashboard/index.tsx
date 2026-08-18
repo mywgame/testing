@@ -105,14 +105,6 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   const isInitialDepositCheck = React.useRef<boolean>(true);
   const hasCheckedWelcomeTrial = React.useRef<boolean>(false);
 
-  useEffect(() => {
-    setIsPageLoading(true);
-    const timer = setTimeout(() => {
-      setIsPageLoading(false);
-    }, 650);
-    return () => clearTimeout(timer);
-  }, [activeTab]);
-
   // Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -137,7 +129,6 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   }, []);
 
   const fetchDashboard = useCallback(async () => {
-    setIsLoading(true);
     try {
       const response = await api.get<DashboardData>('/users/dashboard');
       if (response.success && response.data) {
@@ -151,6 +142,15 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       setIsLoading(false);
     }
   }, [showToast]);
+
+  useEffect(() => {
+    setIsPageLoading(true);
+    fetchDashboard();
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 650);
+    return () => clearTimeout(timer);
+  }, [activeTab, fetchDashboard]);
 
   // Background polling for auto-verified deposits
   const checkAutoVerifiedDeposits = useCallback(async () => {
@@ -373,6 +373,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             onBack={() => setActiveTab('dashboard')}
             onNavigateToReferrals={() => setActiveTab('team')}
             onNavigate={(tab) => setActiveTab(tab as DashboardTab)}
+            onRefresh={fetchDashboard}
           />
         );
       default:

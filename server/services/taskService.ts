@@ -10,11 +10,23 @@ import { referralRepository } from '../repositories/referralRepository.ts';
 import { userRepository } from '../repositories/userRepository.ts';
 import { transactionRepository } from '../repositories/transactionRepository.ts';
 import { auditRepository } from '../repositories/auditRepository.ts';
+import { incomeService } from './incomeService.ts';
 import { settingsRepository } from '../repositories/settingsRepository.ts';
 
 export const TASK_REWARDS_LAUNCH_DATE = process.env.TASK_REWARDS_LAUNCH_DATE
   ? new Date(process.env.TASK_REWARDS_LAUNCH_DATE)
   : new Date('2026-08-12T00:00:00.000Z');
+
+export interface ReferralChildDetailDTO {
+  childId: string;
+  userId: string;
+  username: string;
+  name?: string | null;
+  registeredAt: string;
+  rewardAmount: number;
+  isClaimed: boolean;
+  claimedAt?: string | null;
+}
 
 export interface UserTaskStatusDTO {
   id: string;
@@ -33,9 +45,21 @@ export interface UserTaskStatusDTO {
   minDepositRequired: number;
   claimedAt?: string | null;
   ruleConfig?: any;
+  referralDetails?: ReferralChildDetailDTO[];
 }
 
 export class TaskService {
+  /**
+   * Helper to robustly resolve user record whether passed as primary id (UUID) or auth uid (usr_...)
+   */
+  private async resolveUser(userIdOrUid: string) {
+    let user = await userRepository.findById(userIdOrUid);
+    if (!user) {
+      user = await userRepository.findByUid(userIdOrUid);
+    }
+    return user;
+  }
+
   /**
    * Get total real approved deposit amount for a user (excluding trial funds)
    * Optionally filtered by sinceDate for launch cutoff
@@ -93,7 +117,7 @@ export class TaskService {
   /**
    * Get list of all tasks for user with calculated progress and status
    */
-  async getUserTasks(userId: string): Promise<{
+  async getUserTasks(userIdOrUid: string): Promise<{
     tasks: UserTaskStatusDTO[];
     summary: {
       totalEarned: number;
@@ -105,9 +129,11 @@ export class TaskService {
       totalRealDeposits: number;
     };
   }> {
+    const user = await this.resolveUser(userIdOrUid);
+    const userId = user ? user.id : userIdOrUid;
+
     const definitions = await taskRepository.findAllActiveTaskDefinitions();
     const claims = await taskRepository.findUserTaskClaims(userId);
-    const user = await userRepository.findById(userId);
     const userSettings = await settingsRepository.findUserSettingsByUserId(userId);
     const wallet = await walletRepository.findByUserId(userId);
 
@@ -131,7 +157,9 @@ export class TaskService {
     let completedCount = 0;
     let inProgressCount = 0;
 
-    const taskDTOs: UserTaskStatusDTO[] = definitions.map((def) => {
+    const taskDTOs: UserTaskStatusDTO[] = [];
+
+    for (const def of definitions) {
       const taskCode = def.taskCode;
       const userClaimsForTask = claimMap.get(taskCode) || [];
       const hasDefaultClaim = userClaimsForTask.some((c) => c.claimKey === 'DEFAULT');
@@ -142,6 +170,7 @@ export class TaskService {
       const minDepRequired = parseFloat(def.minDepositRequired || '0');
       let status: 'LOCKED' | 'IN_PROGRESS' | 'COMPLETED' | 'CLAIMED' = 'IN_PROGRESS';
       let ruleConfigObj: any = {};
+      let referralDetails: ReferralChildDetailDTO[] | undefined = undefined;
 
       try {
         if (def.ruleConfig) ruleConfigObj = JSON.parse(def.ruleConfig);
@@ -177,8 +206,11 @@ export class TaskService {
         status = isClaimed ? 'CLAIMED' : 'LOCKED';
       } else if (taskCode === 'REFERRAL_REGISTRATION_SINGLE') {
         currentProgress = totalDirectCount;
-        const claimedChildIds = new Set(userClaimsForTask.map((c) => c.claimKey));
-        const unclaimedRefs = postLaunchDirectReferrals.filter((r) => !claimedChildIds.has(r.childId));
+        const claimMapByChildId = new Map<string, any>();
+        for (const c of userClaimsForTask) {
+          claimMapByChildId.set(c.claimKey, c);
+        }
+        const unclaimedRefs = postLaunchDirectReferrals.filter((r) => !claimMapByChildId.has(r.childId));
         const unclaimedCount = unclaimedRefs.length;
         const unitReward = parseFloat(def.rewardPerUnit || def.rewardAmount || '0.10');
 
@@ -189,6 +221,23 @@ export class TaskService {
           status = 'CLAIMED';
         } else {
           status = 'IN_PROGRESS';
+        }
+
+        // Hydrate details for each aggregated child referral
+        referralDetails = [];
+        for (const ref of postLaunchDirectReferrals) {
+          const childUser = await userRepository.findById(ref.childId);
+          const claimRecord = claimMapByChildId.get(ref.childId);
+          referralDetails.push({
+            childId: ref.childId,
+            userId: childUser?.userId || 'DS------',
+            username: childUser?.username || childUser?.name || 'Anonymous User',
+            name: childUser?.name || null,
+            registeredAt: ref.createdAt.toISOString(),
+            rewardAmount: unitReward,
+            isClaimed: !!claimRecord,
+            claimedAt: claimRecord?.claimedAt ? new Date(claimRecord.claimedAt).toISOString() : null,
+          });
         }
       } else if (def.category === 'DEPOSIT' || def.triggerType === 'DEPOSIT_TOTAL') {
         currentProgress = Math.min(targetProgress, realTotalDeposits);
@@ -242,7 +291,7 @@ export class TaskService {
         inProgressCount++;
       }
 
-      return {
+      taskDTOs.push({
         id: def.id,
         taskCode: def.taskCode,
         title: def.title,
@@ -259,8 +308,9 @@ export class TaskService {
         minDepositRequired: minDepRequired,
         claimedAt: (hasDefaultClaim || userClaimsForTask.length > 0) ? userClaimsForTask[0]?.claimedAt : (taskCode === 'REGISTRATION_TRIAL_FUND' && wallet?.trialExpiresAt ? wallet.trialExpiresAt : null),
         ruleConfig: ruleConfigObj,
-      };
-    });
+        referralDetails,
+      });
+    }
 
     return {
       tasks: taskDTOs,
@@ -279,7 +329,13 @@ export class TaskService {
   /**
    * Idempotent & Atomic Task Reward Claim Handler
    */
-  async claimTaskReward(userId: string, taskCode: string, claimKey: string = 'DEFAULT') {
+  async claimTaskReward(userIdOrUid: string, taskCode: string, claimKey: string = 'DEFAULT') {
+    const user = await this.resolveUser(userIdOrUid);
+    if (!user) {
+      throw new Error('User record not found.');
+    }
+    const userId = user.id;
+
     const taskDef = await taskRepository.findTaskDefinitionByCode(taskCode);
     if (!taskDef) {
       throw new Error(`Invalid task code: ${taskCode}`);
@@ -315,11 +371,6 @@ export class TaskService {
     const wallet = await walletRepository.findByUserId(userId);
     if (!wallet) {
       throw new Error('Wallet record not found.');
-    }
-
-    const user = await userRepository.findById(userId);
-    if (!user) {
-      throw new Error('User record not found.');
     }
 
     const rewardAmountNum = parseFloat(taskDef.rewardAmount || '0');
@@ -393,9 +444,12 @@ export class TaskService {
       // Atomic Balance Credit for aggregated USDT reward
       const currentAvailable = parseFloat(wallet.availableBalance);
       const updatedAvailable = (currentAvailable + totalPayout).toFixed(8);
+      const currentIncentive = parseFloat(wallet.incentiveIncome || '0');
+      const updatedIncentive = (currentIncentive + totalPayout).toFixed(8);
 
       await walletRepository.updateBalances(wallet.id, {
         availableBalance: updatedAvailable,
+        incentiveIncome: updatedIncentive,
       });
 
       // Single Ledger Transaction Record
@@ -410,6 +464,20 @@ export class TaskService {
         status: 'COMPLETED',
         description: `Task Reward: Successful Referral Registration (${unclaimedRefs.length} referral${unclaimedRefs.length > 1 ? 's' : ''}: +$${totalPayout.toFixed(2)} USDT)`,
       });
+
+      // Record in Income History so it populates Incentive Income and Analytics
+      try {
+        await incomeService.recordIncome({
+          userId,
+          walletId: wallet.id,
+          type: 'INCENTIVE',
+          amount: totalPayout.toFixed(8),
+          description: `Task Reward: Successful Referral Registration (${unclaimedRefs.length} referral${unclaimedRefs.length > 1 ? 's' : ''})`,
+          transactionId: txRecord.id,
+        });
+      } catch (incomeErr) {
+        console.error('Failed to log income history for referral task reward:', incomeErr);
+      }
 
       // Record individual claim records for each childId for eligibility tracking & idempotency
       const claimRecords = [];
@@ -472,9 +540,12 @@ export class TaskService {
     if (rewardType === 'CASH' && rewardAmountNum > 0) {
       const currentAvailable = parseFloat(wallet.availableBalance);
       const updatedAvailable = (currentAvailable + rewardAmountNum).toFixed(8);
+      const currentIncentive = parseFloat(wallet.incentiveIncome || '0');
+      const updatedIncentive = (currentIncentive + rewardAmountNum).toFixed(8);
 
       await walletRepository.updateBalances(wallet.id, {
         availableBalance: updatedAvailable,
+        incentiveIncome: updatedIncentive,
       });
       newBalanceStr = updatedAvailable;
 
@@ -490,6 +561,20 @@ export class TaskService {
         status: 'COMPLETED',
         description: `Task Reward: ${taskDef.title} (+${rewardAmountNum} USDT)`,
       });
+
+      // Record in Income History so it populates Incentive Income and Analytics
+      try {
+        await incomeService.recordIncome({
+          userId,
+          walletId: wallet.id,
+          type: 'INCENTIVE',
+          amount: rewardAmountNum.toFixed(8),
+          description: `Task Reward: ${taskDef.title}`,
+          transactionId: txRecord.id,
+        });
+      } catch (incomeErr) {
+        console.error('Failed to log income history for task reward:', incomeErr);
+      }
     }
 
     // Record idempotent claim
