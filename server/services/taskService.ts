@@ -299,6 +299,19 @@ export class TaskService {
       };
     }
 
+    // Enforce maxClaimsPerUser for standard tasks
+    const maxAllowedClaims = typeof taskDef.maxClaimsPerUser === 'number' ? taskDef.maxClaimsPerUser : 1;
+    if (taskCode !== 'REFERRAL_REGISTRATION_SINGLE') {
+      const existingClaimsCount = await taskRepository.countUserClaimsByTask(userId, taskCode);
+      if (existingClaimsCount >= maxAllowedClaims) {
+        return {
+          alreadyClaimed: true,
+          message: 'You have reached the maximum allowed claims for this task.',
+          claim: null,
+        };
+      }
+    }
+
     const wallet = await walletRepository.findByUserId(userId);
     if (!wallet) {
       throw new Error('Wallet record not found.');

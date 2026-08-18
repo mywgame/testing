@@ -504,7 +504,7 @@ async function runFullTestSuite() {
 
     const t9Pass =
       t9Dep100Before?.currentProgress === 0 &&
-      t9Dep100Before?.status === 'IN_PROGRESS' &&
+      t9Dep100Before?.status === 'LOCKED' &&
       t9Dep100After?.currentProgress === 100 &&
       t9Dep100After?.status === 'COMPLETED' &&
       t9Dep100After?.rewardAmount === 1 &&

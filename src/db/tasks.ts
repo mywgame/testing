@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { pgTable, uuid, integer, text, numeric, boolean, timestamp, index, check } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, integer, text, numeric, boolean, timestamp, index, uniqueIndex, check } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { users } from './users.ts';
 import { transactions } from './transactions.ts';
@@ -62,7 +62,7 @@ export const userTaskClaims = pgTable(
   (table) => [
     index('user_task_claims_user_idx').on(table.userId),
     index('user_task_claims_task_idx').on(table.taskId),
-    index('user_task_claims_unique_claim').on(table.userId, table.taskCode, table.claimKey),
+    uniqueIndex('user_task_claims_user_task_key_uq').on(table.userId, table.taskCode, table.claimKey),
     check('user_task_claims_reward_non_negative', sql`${table.rewardAmount} >= 0`),
   ]
 );

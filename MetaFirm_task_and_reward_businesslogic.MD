@@ -1,4 +1,3 @@
-
 # 18. Metafirm Task and Rewards
 18.1 Core Concept
 

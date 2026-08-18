@@ -27,7 +27,7 @@ export const helmetMiddleware = (req: Request, res: Response, next: NextFunction
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader(
       'Content-Security-Policy',
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: referrer;"
+      "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; img-src * data: blob: android-asset: https: http:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src *;"
     );
   }
   next();

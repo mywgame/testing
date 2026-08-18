@@ -54,7 +54,7 @@ export const DEFAULT_TASK_DEFINITIONS = [
     targetProgress: '1.00000000',
     unit: 'Join',
     minDepositRequired: '0.00000000',
-    ruleConfig: JSON.stringify({}),
+    ruleConfig: JSON.stringify({ actionUrl: 'https://t.me/Metafirmofficial' }),
     maxClaimsPerUser: 1,
     isActive: true,
     displayOrder: 3,
@@ -233,26 +233,20 @@ export const DEFAULT_TASK_DEFINITIONS = [
 
 export class TaskRepository {
   /**
-   * Ensure default tasks exist in DB if table is empty, and sync default text descriptions
+   * Ensure default tasks exist in DB only if the table is genuinely empty.
+   * NEVER overwrite admin-configured changes or descriptions.
    */
   async seedDefaultTasksIfEmpty() {
     try {
-      const existing = await db.select().from(taskDefinitions).limit(1);
+      const existing = await db.select({ id: taskDefinitions.id }).from(taskDefinitions).limit(1);
       if (existing.length === 0) {
         for (const def of DEFAULT_TASK_DEFINITIONS) {
           await db.insert(taskDefinitions).values(def).onConflictDoNothing();
         }
-      } else {
-        // Sync any updated default descriptions (e.g. deposit milestones)
-        for (const def of DEFAULT_TASK_DEFINITIONS) {
-          await db
-            .update(taskDefinitions)
-            .set({ description: def.description, title: def.title })
-            .where(eq(taskDefinitions.taskCode, def.taskCode));
-        }
       }
     } catch (error) {
-      console.warn('Task seed notice (DB may be pending schema migration):', error);
+      console.error('Task seed error (database might be initializing or pending migration):', error);
+      throw new Error('Database unavailable. Failed to check or seed task definitions.');
     }
   }
 
@@ -267,29 +261,11 @@ export class TaskRepository {
         .from(taskDefinitions)
         .where(eq(taskDefinitions.isActive, true))
         .orderBy(asc(taskDefinitions.displayOrder));
-      
-      if (result.length === 0) {
-        return DEFAULT_TASK_DEFINITIONS.map((def, idx) => ({
-          id: `task-def-${idx + 1}`,
-          ...def,
-          startDate: null,
-          endDate: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }));
-      }
 
       return result;
     } catch (error) {
-      console.warn('findAllActiveTaskDefinitions fallback to memory defaults:', error);
-      return DEFAULT_TASK_DEFINITIONS.map((def, idx) => ({
-        id: `task-def-${idx + 1}`,
-        ...def,
-        startDate: null,
-        endDate: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }));
+      console.error('findAllActiveTaskDefinitions error:', error);
+      throw new Error('Database unavailable. Failed to fetch active task definitions.');
     }
   }
 
@@ -302,33 +278,10 @@ export class TaskRepository {
         .select()
         .from(taskDefinitions)
         .where(eq(taskDefinitions.taskCode, taskCode));
-      if (result[0]) return result[0];
-
-      const foundMem = DEFAULT_TASK_DEFINITIONS.find((t) => t.taskCode === taskCode);
-      if (foundMem) {
-        return {
-          id: `task-def-${foundMem.taskCode}`,
-          ...foundMem,
-          startDate: null,
-          endDate: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-      }
-      return null;
+      return result[0] || null;
     } catch (error) {
-      const foundMem = DEFAULT_TASK_DEFINITIONS.find((t) => t.taskCode === taskCode);
-      if (foundMem) {
-        return {
-          id: `task-def-${foundMem.taskCode}`,
-          ...foundMem,
-          startDate: null,
-          endDate: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-      }
-      return null;
+      console.error('findTaskDefinitionByCode error:', error);
+      throw new Error(`Database unavailable. Failed to find task definition for code: ${taskCode}`);
     }
   }
 
@@ -341,22 +294,31 @@ export class TaskRepository {
         .select()
         .from(taskDefinitions)
         .where(eq(taskDefinitions.id, id));
-      if (result[0]) return result[0];
-
-      const foundMem = DEFAULT_TASK_DEFINITIONS.find((t) => id.includes(t.taskCode));
-      if (foundMem) {
-        return {
-          id,
-          ...foundMem,
-          startDate: null,
-          endDate: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-      }
-      return null;
+      return result[0] || null;
     } catch (error) {
-      return null;
+      console.error('findTaskDefinitionById error:', error);
+      throw new Error(`Database unavailable. Failed to find task definition for id: ${id}`);
+    }
+  }
+
+  /**
+   * Count how many claims a user has already made for a specific task code
+   */
+  async countUserClaimsByTask(userId: string, taskCode: string): Promise<number> {
+    try {
+      const result = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(userTaskClaims)
+        .where(
+          and(
+            eq(userTaskClaims.userId, userId),
+            eq(userTaskClaims.taskCode, taskCode)
+          )
+        );
+      return result[0]?.count || 0;
+    } catch (error) {
+      console.error('countUserClaimsByTask error:', error);
+      throw new Error(`Database unavailable. Failed to count task claims for user ${userId}.`);
     }
   }
 
@@ -471,16 +433,7 @@ export class TaskRepository {
       });
     } catch (error) {
       console.error('findAllTaskDefinitionsForAdmin error:', error);
-      return DEFAULT_TASK_DEFINITIONS.map((def, idx) => ({
-        id: `task-def-${idx + 1}`,
-        ...def,
-        startDate: null,
-        endDate: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        claimsCount: 0,
-        totalPaidOut: '0',
-      }));
+      throw new Error('Database unavailable. Failed to fetch task definitions for admin.');
     }
   }
 
