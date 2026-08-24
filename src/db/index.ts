@@ -14,13 +14,20 @@ const { Pool } = pg;
 
 // Function to create a new connection pool using the Object Method.
 export const createPool = () => {
-  if (process.env.DATABASE_URL) {
+  const connectionString = process.env.DATABASE_URL;
+
+  if (connectionString) {
     return new Pool({
-      connectionString: process.env.DATABASE_URL,
+      connectionString,
       connectionTimeoutMillis: 15000,
+      idleTimeoutMillis: 10000, // Terminate idle pool connections after 10s so Neon compute can scale-to-zero
+      max: parseInt(process.env.DB_POOL_MAX || '10', 10),
+      ssl: connectionString.includes('neon.tech') || connectionString.includes('sslmode=require') || connectionString.includes('railway') || connectionString.includes('rlwy.net') || process.env.DATABASE_SSL === 'true'
+        ? { rejectUnauthorized: false }
+        : undefined,
     });
   }
-  
+
   // Fall back to individual SQL credentials only if DATABASE_URL is absent
   return new Pool({
     host: process.env.SQL_HOST,
@@ -28,6 +35,9 @@ export const createPool = () => {
     password: process.env.SQL_PASSWORD,
     database: process.env.SQL_DB_NAME,
     connectionTimeoutMillis: 15000,
+    idleTimeoutMillis: 10000,
+    max: parseInt(process.env.DB_POOL_MAX || '10', 10),
+    ssl: process.env.SQL_HOST?.includes('neon.tech') ? { rejectUnauthorized: false } : undefined,
   });
 };
 

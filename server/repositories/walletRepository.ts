@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { eq, sql } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 import { db } from '../../src/db/index.ts';
 import { wallets } from '../../src/db/schema.ts';
 
@@ -18,6 +18,19 @@ export class WalletRepository {
     } catch (error) {
       console.error('Database query (findByUserId) failed:', error);
       throw new Error('Failed to retrieve wallet from database.');
+    }
+  }
+
+  /**
+   * Find wallets for multiple user IDs in a single batch query (resolves N+1 downline queries)
+   */
+  async findByUserIds(userIds: string[]) {
+    if (!userIds || userIds.length === 0) return [];
+    try {
+      return await db.select().from(wallets).where(inArray(wallets.userId, userIds));
+    } catch (error) {
+      console.error('Database query (findByUserIds) failed:', error);
+      throw new Error('Failed to retrieve wallets batch from database.');
     }
   }
 

@@ -66,10 +66,10 @@ export class SweepQueueProcessor {
   /**
    * Start the background sweep queue worker
    */
-  public start() {
+  public start(intervalMs: number = parseInt(process.env.SWEEP_INTERVAL_MS || '180000', 10)) {
     if (this.intervalId) return;
-    logger.info('[SweepQueueProcessor] Starting background sweep queue processing loop...');
-    this.intervalId = setInterval(() => this.processQueue(), 60000);
+    logger.info(`[SweepQueueProcessor] Starting background sweep queue processing loop (Interval: ${intervalMs}ms)...`);
+    this.intervalId = setInterval(() => this.processQueue(), intervalMs);
   }
 
   /**
@@ -91,30 +91,7 @@ export class SweepQueueProcessor {
     this.isProcessing = true;
 
     try {
-      await treasuryService.ensureAllTreasuryWallets();
-
-      // Confirmation polling must run every tick regardless of MANUAL/AUTOMATIC mode —
-      // a transaction that was already broadcasted must still be checked against the
-      // blockchain so it can be finalized (or correctly failed) even if an admin later
-      // switches the network to MANUAL mode.
-      await sweepExecutionService.pollAndFinalizeAwaitingConfirmationJobs();
-      await treasuryService.pollAndFinalizeHotToColdJobs();
-
-      const treasuryList = await db.select().from(treasuryWallets);
-      const hasAutoOrHybrid = treasuryList.some(
-        (t) => (t.sweepMode || 'AUTOMATIC') !== 'MANUAL' && !t.paused
-      );
-
-      if (!hasAutoOrHybrid) {
-        if (!this.hasLoggedManualMode) {
-          logger.info('[SweepQueueProcessor] All networks are in MANUAL sweep mode. Automatic sweep processing is skipped.');
-          this.hasLoggedManualMode = true;
-        }
-        return;
-      }
-
-      this.hasLoggedManualMode = false;
-
+      // 1. Check if there are any active sweep queue items or awaiting confirmation jobs first
       const activeItems = await db
         .select()
         .from(sweepQueue)
@@ -132,6 +109,32 @@ export class SweepQueueProcessor {
             eq(sweepQueue.status, 'RETRY_PENDING')
           )
         );
+
+      // Confirmation polling must run if transactions were broadcasted
+      await sweepExecutionService.pollAndFinalizeAwaitingConfirmationJobs();
+      await treasuryService.pollAndFinalizeHotToColdJobs();
+
+      if (activeItems.length === 0) {
+        // Nothing in queue to process, exit early to allow DB idle/sleep
+        return;
+      }
+
+      await treasuryService.ensureAllTreasuryWallets();
+
+      const treasuryList = await db.select().from(treasuryWallets);
+      const hasAutoOrHybrid = treasuryList.some(
+        (t) => (t.sweepMode || 'AUTOMATIC') !== 'MANUAL' && !t.paused
+      );
+
+      if (!hasAutoOrHybrid) {
+        if (!this.hasLoggedManualMode) {
+          logger.info('[SweepQueueProcessor] All networks are in MANUAL sweep mode. Automatic sweep processing is skipped.');
+          this.hasLoggedManualMode = true;
+        }
+        return;
+      }
+
+      this.hasLoggedManualMode = false;
 
       for (const item of activeItems) {
         const treasury = await treasuryService.getOrCreateTreasuryWallet(item.network);

@@ -256,6 +256,14 @@ export class TransactionMonitor {
       this.isChecking = false;
     }
   }
+
+  /**
+   * Immediately trigger a check on demand (e.g. when user submits a new deposit or withdrawal)
+   */
+  public triggerImmediateCheck() {
+    this.checkPendingDeposits().catch((err) => logger.error('Error in on-demand deposit check:', err));
+    this.checkProcessingWithdrawals().catch((err) => logger.error('Error in on-demand withdrawal check:', err));
+  }
 }
 
 export const transactionMonitor = new TransactionMonitor();

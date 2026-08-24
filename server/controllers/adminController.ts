@@ -97,7 +97,7 @@ export class AdminController {
       const filter = req.query.filter as string || 'All';
       const sortBy = req.query.sortBy as string || 'Newest';
       const page = parseInt(req.query.page as string || '1', 10);
-      const limit = parseInt(req.query.limit as string || '10', 10);
+      const limit = parseInt(req.query.limit as string || '500', 10);
       const offset = (page - 1) * limit;
 
       const result = await adminService.getAdminUsersPaginated({
@@ -567,6 +567,52 @@ export class AdminController {
       }
 
       return sendSuccess(res, result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST Reclaim/collect native gas from a specific user permanent deposit address
+   */
+  async sweepUserNativeGas(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      if (!req.user) {
+        throw new ApiError(401, 'Authentication credentials required', 'UNAUTHORIZED');
+      }
+
+      const { addressId } = req.body;
+      if (!addressId) {
+        throw new ApiError(400, 'Address ID is required.', 'BAD_REQUEST');
+      }
+
+      const result = await treasuryService.sweepUserNativeGas(addressId, req.user.uid);
+      if (!result.success) {
+        throw new ApiError(500, result.error || 'Failed to execute gas collection operation.', 'INTERNAL_ERROR');
+      }
+
+      return sendSuccess(res, result, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST Reclaim/collect native gas from all eligible deposit addresses on a network
+   */
+  async sweepAllUserNativeGas(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      if (!req.user) {
+        throw new ApiError(401, 'Authentication credentials required', 'UNAUTHORIZED');
+      }
+
+      const { network } = req.body;
+      if (!network) {
+        throw new ApiError(400, 'Network parameter is required.', 'BAD_REQUEST');
+      }
+
+      const results = await treasuryService.sweepAllUserNativeGas(network, req.user.uid);
+      return sendSuccess(res, { results }, 200);
     } catch (error) {
       next(error);
     }

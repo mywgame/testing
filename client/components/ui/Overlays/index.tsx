@@ -14,6 +14,7 @@ interface ModalProps {
   children: React.ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   id?: string;
+  forceLight?: boolean;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -23,6 +24,7 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   size = 'md',
   id,
+  forceLight = false,
 }) => {
   // Prevent scrolling behind open modal
   useEffect(() => {
@@ -46,7 +48,7 @@ export const Modal: React.FC<ModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3.5 sm:p-6" id={id}>
+        <div className={`fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3.5 sm:p-6 ${forceLight ? 'light' : ''}`} id={id}>
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -63,19 +65,27 @@ export const Modal: React.FC<ModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
-            className={`w-full ${sizes[size]} bg-white border border-slate-200 rounded-[24px] sm:rounded-[28px] p-6 sm:p-8 shadow-2xl relative z-10 overflow-hidden text-left text-slate-900`}
+            className={`w-full ${sizes[size]} ${
+              forceLight
+                ? 'bg-white border border-slate-200 text-slate-900'
+                : 'bg-white dark:bg-[#0f112e] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white'
+            } rounded-[24px] sm:rounded-[28px] p-6 sm:p-8 shadow-2xl relative z-10 overflow-hidden text-left`}
             role="dialog"
             aria-modal="true"
           >
             {/* Header row / Close button */}
             {title ? (
-              <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 mb-4 sm:mb-5">
-                <h3 className="text-base sm:text-lg font-display font-bold text-slate-950">
+              <div className={`flex items-center justify-between pb-3.5 border-b ${forceLight ? 'border-slate-100' : 'border-slate-100 dark:border-white/10'} mb-4 sm:mb-5`}>
+                <h3 className={`text-base sm:text-lg font-display font-bold ${forceLight ? 'text-slate-950' : 'text-slate-950 dark:text-white'}`}>
                   {title}
                 </h3>
                 <button
                   onClick={onClose}
-                  className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-200 flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  className={`w-8 h-8 rounded-full ${
+                    forceLight
+                      ? 'bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-200'
+                      : 'bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/20'
+                  } flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer`}
                   aria-label="Close modal"
                 >
                   <X className="w-4 h-4" />
@@ -84,7 +94,11 @@ export const Modal: React.FC<ModalProps> = ({
             ) : (
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 sm:top-5 sm:right-5 z-20 w-8 h-8 rounded-full bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-200 flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                className={`absolute top-4 right-4 sm:top-5 sm:right-5 z-20 w-8 h-8 rounded-full ${
+                  forceLight
+                    ? 'bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-200'
+                    : 'bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/20'
+                } flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer`}
                 aria-label="Close modal"
               >
                 <X className="w-4 h-4" />
@@ -92,7 +106,7 @@ export const Modal: React.FC<ModalProps> = ({
             )}
 
             {/* Main content body */}
-            <div className="max-h-[70vh] overflow-y-auto pr-1">
+            <div className={`max-h-[70vh] overflow-y-auto pr-1 ${forceLight ? 'text-slate-900' : 'text-slate-900 dark:text-white'}`}>
               {children}
             </div>
           </motion.div>
@@ -151,11 +165,11 @@ export const Dialog: React.FC<DialogProps> = ({
         
         <div className="space-y-1.5 max-w-sm">
           {title && (
-            <h4 className="text-base sm:text-lg font-display font-bold text-gray-950">
+            <h4 className="text-base sm:text-lg font-display font-bold text-gray-950 dark:text-white">
               {title}
             </h4>
           )}
-          <p className="text-xs sm:text-sm text-gray-500 leading-relaxed font-sans">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed font-sans">
             {description}
           </p>
         </div>
@@ -164,7 +178,7 @@ export const Dialog: React.FC<DialogProps> = ({
         <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-sm">
           <button
             onClick={onClose}
-            className="w-full sm:w-auto flex-1 inline-flex items-center justify-center px-5 py-2.5 bg-white border border-gray-200 text-gray-700 font-bold rounded-2xl text-xs sm:text-sm transition-all hover:bg-gray-50 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none"
+            className="w-full sm:w-auto flex-1 inline-flex items-center justify-center px-5 py-2.5 bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-200 font-bold rounded-2xl text-xs sm:text-sm transition-all hover:bg-gray-50 dark:hover:bg-white/15 active:scale-95 cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none"
           >
             {cancelLabel}
           </button>

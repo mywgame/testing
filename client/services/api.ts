@@ -35,6 +35,7 @@ class ApiService {
     try {
       const url = getApiUrl(endpoint);
       const response = await fetch(url, {
+        credentials: 'include',
         ...options,
         headers,
       });
@@ -97,6 +98,20 @@ class ApiService {
    */
   async delete<T>(endpoint: string, headers?: Record<string, string>): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { method: 'DELETE', headers });
+  }
+
+  /**
+   * Public: Retrieve current mobile app version requirements & APK download configuration
+   */
+  async getAppVersionConfig(): Promise<ApiResponse<{
+    minRequiredVersion: string;
+    latestVersion: string;
+    downloadUrl: string;
+    releaseNotes: string;
+    forceUpdateEnabled: boolean;
+    checkedAt: string;
+  }>> {
+    return this.get<any>('/system/app-version');
   }
 
   /**
@@ -712,6 +727,20 @@ class ApiService {
    */
   async sweepUserDepositAddress(addressId: string): Promise<ApiResponse<any>> {
     return this.post<any>('/admin/treasury/sweep/address', { addressId });
+  }
+
+  /**
+   * Admin: Reclaim/collect native gas from a specific user deposit address
+   */
+  async sweepUserNativeGas(addressId: string): Promise<ApiResponse<any>> {
+    return this.post<any>('/admin/treasury/sweep/gas/address', { addressId });
+  }
+
+  /**
+   * Admin: Reclaim/collect native gas from all eligible deposit addresses on a network
+   */
+  async sweepAllUserNativeGas(network: string): Promise<ApiResponse<any>> {
+    return this.post<any>('/admin/treasury/sweep/gas/all', { network });
   }
 
   /**

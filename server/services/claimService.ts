@@ -12,6 +12,7 @@ import { incomeRepository } from '../repositories/incomeRepository.ts';
 import { auditRepository } from '../repositories/auditRepository.ts';
 import { referralService } from './referralService.ts';
 import { trialFundService } from './trialFundService.ts';
+import { vipService } from './vipService.ts';
 import { SecurityLogger } from '../utils/securityLogger.ts';
 
 // Business Logic Spec Section 4 — Trial Fund: "Generates DPY using the VIP1 rate."
@@ -122,18 +123,30 @@ export class ClaimService {
       throw new Error(`Wallet not found for user: ${userId}`);
     }
 
+    // 1. Atomically lock and transition claim status to CLAIMED first to prevent double claim race conditions
+    const lockedClaim = await claimRepository.updateClaimStatus(
+      claim.id,
+      'CLAIMED',
+      { claimedAt: now },
+      'PENDING'
+    );
+
+    if (!lockedClaim) {
+      throw new Error('This claim has already been processed or is no longer pending.');
+    }
+
     const rewardAmount = parseFloat(claim.rewardAmount);
     const balanceBefore = parseFloat(wallet.availableBalance);
     const balanceAfter = balanceBefore + rewardAmount;
 
-    // 1. Credit main wallet balances atomically
+    // 2. Credit main wallet balances atomically
     await walletRepository.incrementBalances(wallet.id, {
       availableBalance: claim.rewardAmount,
       dailyYield: claim.rewardAmount,
       totalEarned: claim.rewardAmount,
     });
 
-    // 2. Create immutable transaction ledger entry
+    // 3. Create immutable transaction ledger entry
     const txn = await transactionRepository.createTransaction({
       userId,
       walletId: wallet.id,
@@ -147,7 +160,7 @@ export class ClaimService {
       createdBy: 'SYSTEM',
     });
 
-    // 3. Save inside incomeHistory
+    // 4. Save inside incomeHistory
     await incomeRepository.createIncome({
       userId,
       walletId: wallet.id,
@@ -157,20 +170,19 @@ export class ClaimService {
       transactionId: txn.id,
     });
 
-    // 4. Update status in Claim table
+    // 5. Update transactionId in Claim record
     const updatedClaim = await claimRepository.updateClaimStatus(claim.id, 'CLAIMED', {
-      claimedAt: now,
       transactionId: txn.id,
     });
 
-    // 5. Trigger notifications
+    // 6. Trigger notifications
     await notificationRepository.createNotification({
       userId,
       message: `Successfully claimed daily yield of ${claim.rewardAmount} USDT.`,
       priority: 'MEDIUM',
     });
 
-    // 5b. Audit Log — Business Logic Spec Section 14 requires every Daily DPY Claim to be audited.
+    // 6b. Audit Log — Business Logic Spec Section 14 requires every Daily DPY Claim to be audited.
     await auditRepository.createAuditLog({
       actorUid: userId,
       userId,
@@ -179,12 +191,15 @@ export class ClaimService {
       newValue: JSON.stringify({ rewardAmount: claim.rewardAmount, vipTier: claim.vipTier, vipRate: claim.vipRate }),
     });
 
-    // 6. Team Commission distribution (Level A-D uplines) — owned EXCLUSIVELY by
+    // 7. Team Commission distribution (Level A-D uplines) — owned EXCLUSIVELY by
     // ReferralService (Section 17 — Service Ownership Matrix). ClaimService never
     // calculates or distributes Team Commission itself.
     await referralService.distributeTeamCommission(userId, rewardAmount, claim.id);
 
-    return updatedClaim;
+    // 8. Recalculate VIP tier for user and uplines (Business Logic Spec Section 6: VIP recalculates after Wallet Balance Change)
+    await vipService.recalculateUserAndUplines(userId);
+
+    return updatedClaim || lockedClaim;
   }
 
   /**

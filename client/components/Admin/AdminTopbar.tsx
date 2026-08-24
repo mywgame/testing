@@ -33,17 +33,21 @@ export const AdminTopbar: React.FC<AdminTopbarProps> = ({
 }) => {
   const { user } = useAuth();
   const { t, isDark } = useTheme();
-  const [currentTime, setCurrentTime] = useState<string>('');
+  const [utcTime, setUtcTime] = useState<string>('');
+  const [localTime, setLocalTime] = useState<string>('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      setCurrentTime(
-        now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + 
+      setUtcTime(
+        now.toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', day: 'numeric' }) + 
         ' ' + 
-        now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }) +
+        now.toLocaleTimeString('en-US', { timeZone: 'UTC', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }) +
         ' UTC'
+      );
+      setLocalTime(
+        now.toLocaleTimeString(undefined, { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' })
       );
     };
     updateTime();
@@ -120,11 +124,18 @@ export const AdminTopbar: React.FC<AdminTopbarProps> = ({
       <div className="flex items-center space-x-4">
         
         {/* Live synchronized Business Time */}
-        <div className={`hidden sm:flex items-center space-x-2 border px-3 py-1.5 rounded-xl font-mono text-[10px] font-semibold ${
-          isDark ? 'bg-white/5 border-white/10 text-gray-300' : 'bg-gray-50 border-gray-100 text-gray-500'
-        }`}>
-          <Clock className="w-3.5 h-3.5 text-blue-500" />
-          <span>{currentTime}</span>
+        <div 
+          className={`hidden sm:flex items-center space-x-2 border px-3 py-1.5 rounded-xl font-mono text-[10px] font-semibold cursor-default ${
+            isDark ? 'bg-white/5 border-white/10 text-gray-300' : 'bg-gray-50 border-gray-100 text-gray-600'
+          }`}
+          title={`UTC System Time (for audit closing) & Your Local Device Time`}
+        >
+          <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+          <div className="flex items-center gap-2">
+            <span>{utcTime}</span>
+            <span className="text-gray-400">|</span>
+            <span className="text-blue-500 font-bold">Local: {localTime}</span>
+          </div>
         </div>
 
         {/* System Health State indicator */}

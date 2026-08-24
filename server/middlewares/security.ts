@@ -42,8 +42,11 @@ export const corsMiddleware = (req: Request, res: Response, next: NextFunction) 
 
   const allowedOrigins = [
     'https://metafirm.app',
+    'http://metafirm.app',
     'https://www.metafirm.app',
+    'http://www.metafirm.app',
     'https://api.metafirm.app',
+    'http://api.metafirm.app',
     'capacitor://localhost',
     'http://localhost',
     'https://localhost',
@@ -55,8 +58,16 @@ export const corsMiddleware = (req: Request, res: Response, next: NextFunction) 
     allowedOrigins.push(process.env.FRONTEND_URL.replace(/\/$/, ''));
   }
 
+  const isMetafirmDomain = origin
+    ? origin.includes('metafirm.app') ||
+      origin.endsWith('.metafirm.app') ||
+      origin.startsWith('https://metafirm.app') ||
+      origin.startsWith('http://metafirm.app')
+    : false;
+
   const isAllowed =
     !origin ||
+    isMetafirmDomain ||
     allowedOrigins.includes(origin) ||
     origin.startsWith('capacitor://') ||
     origin.endsWith('.vercel.app') ||
@@ -64,18 +75,26 @@ export const corsMiddleware = (req: Request, res: Response, next: NextFunction) 
     origin.endsWith('.onrender.com') ||
     process.env.NODE_ENV !== 'production';
 
+  // Always set Vary: Origin to prevent CDN / Cloudflare caching of cross-origin headers
+  res.setHeader('Vary', 'Origin, Access-Control-Request-Headers, Access-Control-Request-Method');
+
   if (origin && isAllowed) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   } else if (!origin) {
     res.setHeader('Access-Control-Allow-Origin', '*');
   }
 
+  const requestedHeaders = req.headers['access-control-request-headers'] as string;
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    requestedHeaders || 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Cache-Control, Pragma, X-Client-Version'
+  );
   res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Max-Age', '86400');
 
   if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
+    return res.status(204).end();
   }
 
   next();

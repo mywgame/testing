@@ -59,7 +59,7 @@ export const blockchainConfig = {
   apiKey: apiKey,
   isConfigured: !!apiKey,
   isTestnet: isTestnet,
-  monitoringIntervalMs: parseInt(process.env.MONITORING_INTERVAL_MS || (isTestnet ? '30000' : '120000'), 10),
+  monitoringIntervalMs: parseInt(process.env.MONITORING_INTERVAL_MS || (isTestnet ? '120000' : '300000'), 10),
   blockChunkSize: parseInt(process.env.BLOCK_CHUNK_SIZE || (isTestnet ? '5' : '50'), 10),
   initialReplayBlocks: parseInt(process.env.INITIAL_REPLAY_BLOCKS || '10', 10),
 

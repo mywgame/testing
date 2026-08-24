@@ -122,6 +122,8 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
   const [bulkSweeping, setBulkSweeping] = useState(false);
   const [coldSweeping, setColdSweeping] = useState(false);
   const [sweepingAddressId, setSweepingAddressId] = useState<string | null>(null);
+  const [collectingGasAddressId, setCollectingGasAddressId] = useState<string | null>(null);
+  const [collectingAllGas, setCollectingAllGas] = useState<boolean>(false);
   const [retryingJobId, setRetryingJobId] = useState<string | null>(null);
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
@@ -264,6 +266,45 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
       showFeedback(null, err.message);
     } finally {
       setSweepingAddressId(null);
+    }
+  };
+
+  // 3b. Manual Single User Native Gas Collection
+  const handleCollectGas = async (addressId: string) => {
+    try {
+      setCollectingGasAddressId(addressId);
+      const res = await api.sweepUserNativeGas(addressId);
+
+      if (!res.success) throw new Error(res.error?.message || 'Gas collection failed.');
+
+      showFeedback(`Gas collection broadcasted to blockchain (${res.data?.amount} ${res.data?.gasSymbol || 'GAS'}) — awaiting on-chain confirmation. TxHash: ${res.data?.txHash || 'Submitted'}`, null);
+      refreshAll();
+    } catch (err: any) {
+      showFeedback(null, err.message);
+    } finally {
+      setCollectingGasAddressId(null);
+    }
+  };
+
+  // 3c. Reclaim/Collect All Native Gas on Selected Network
+  const handleCollectAllGas = async () => {
+    const netName = selectedNetwork.replace('USDT_', '');
+    if (!window.confirm(`Are you sure you want to reclaim all unused native gas across deposit addresses on ${netName} back to the Hot Wallet?`)) {
+      return;
+    }
+    try {
+      setCollectingAllGas(true);
+      const res = await api.sweepAllUserNativeGas(selectedNetwork);
+
+      if (!res.success) throw new Error(res.error?.message || 'Bulk gas collection failed.');
+
+      const runCount = res.data?.results?.length || 0;
+      showFeedback(`Bulk gas collection initiated for ${runCount} address(es) — awaiting on-chain confirmation.`, null);
+      refreshAll();
+    } catch (err: any) {
+      showFeedback(null, err.message);
+    } finally {
+      setCollectingAllGas(false);
     }
   };
 
@@ -442,7 +483,7 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
             <Vault className="w-5 h-5 text-amber-500" />
             Treasury Sweep Management
           </h2>
-          <p className={`text-xs mt-1 ${t.textSub}`}>
+          <p className={`text-xs mt-1 font-medium ${t.textSub}`}>
             Secure Hot/Cold wallet balances, customizable delays, manual overrides, and real-time gas status queues.
           </p>
         </div>
@@ -451,7 +492,7 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
             <button
               onClick={() => handlePauseToggle(false)}
               disabled={savingConfig}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 disabled:opacity-55"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs disabled:opacity-55"
             >
               <Play className="w-3.5 h-3.5" />
               Resume Auto Sweeping
@@ -460,7 +501,7 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
             <button
               onClick={() => handlePauseToggle(true)}
               disabled={savingConfig}
-              className="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 disabled:opacity-55"
+              className="bg-rose-600 hover:bg-rose-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs disabled:opacity-55"
             >
               <Pause className="w-3.5 h-3.5" />
               Pause Sweeps
@@ -468,8 +509,8 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
           )}
           <button
             onClick={refreshAll}
-            className={`px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 transition-colors ${
-              isDark ? 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-800' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+            className={`px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs ${
+              isDark ? 'bg-slate-800/80 border-slate-700 text-slate-200 hover:bg-slate-800' : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50'
             }`}
             disabled={loading}
           >
@@ -485,10 +526,10 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
           <button
             key={net}
             onClick={() => setSelectedNetwork(net)}
-            className={`px-4 py-2 text-xs font-semibold tracking-wide border-b-2 transition-all ${
+            className={`px-4 py-2.5 text-xs font-bold tracking-wide border-b-2 transition-all ${
               selectedNetwork === net
-                ? 'border-blue-500 text-blue-500 font-bold'
-                : 'border-transparent text-gray-400 hover:text-gray-200'
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400 font-bold'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
             }`}
           >
             {net.replace('USDT_', '')} Network
@@ -498,14 +539,14 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
 
       {/* Operation Feedback Toast */}
       {actionSuccess && (
-        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3 rounded-lg text-xs flex items-center gap-2">
-          <Check className="w-4 h-4 shrink-0" />
+        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 p-3.5 rounded-xl text-xs font-semibold flex items-center gap-2">
+          <Check className="w-4 h-4 shrink-0 text-emerald-500" />
           <span>{actionSuccess}</span>
         </div>
       )}
       {actionError && (
-        <div className="bg-rose-500/10 border border-rose-500/30 text-rose-400 p-3 rounded-lg text-xs flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 shrink-0" />
+        <div className="bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 p-3.5 rounded-xl text-xs font-semibold flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500" />
           <span>{actionError}</span>
         </div>
       )}
@@ -513,12 +554,12 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
       {loading && !config ? (
         <div className="text-center py-12">
           <RefreshCw className="w-8 h-8 animate-spin text-blue-500 mx-auto mb-3" />
-          <p className="text-xs text-gray-400">Querying on-chain balances and loading treasury logs...</p>
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Querying on-chain balances and loading treasury logs...</p>
         </div>
       ) : error ? (
-        <div className="bg-rose-500/10 border border-rose-500/30 text-rose-400 p-4 rounded-lg text-xs">
-          <p className="font-semibold">Failed to fetch Treasury data for {selectedNetwork}:</p>
-          <p className="mt-1">{error}</p>
+        <div className="bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 p-4 rounded-xl text-xs">
+          <p className="font-bold">Failed to fetch Treasury data for {selectedNetwork}:</p>
+          <p className="mt-1 font-medium">{error}</p>
         </div>
       ) : (
         <>
@@ -539,25 +580,29 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
           {/* Operational & Controls Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left: Configuration Panel */}
-            <Card className="p-5 flex flex-col justify-between border-slate-800">
+            <Card className={`p-5 flex flex-col justify-between transition-all ${
+              isDark ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-gray-200/90 shadow-xs'
+            }`}>
               <div>
-                <h3 className="text-xs font-bold font-mono tracking-widest text-blue-400 uppercase flex items-center gap-1.5">
-                  <Sliders className="w-3.5 h-3.5" />
+                <h3 className="text-xs font-bold font-mono tracking-wider text-blue-600 dark:text-blue-400 uppercase flex items-center gap-1.5">
+                  <Sliders className="w-4 h-4" />
                   Sweep Rules & Configuration
                 </h3>
-                <p className="text-[11px] text-gray-400 mt-1">
+                <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mt-1">
                   Adjust target configurations for on-chain sweeping, gas handling, and execution delays.
                 </p>
 
                 <div className="mt-5 space-y-4">
                   {/* Sweep Mode */}
                   <div>
-                    <label className="text-xs font-semibold block mb-1">Sweep Mode</label>
+                    <label className="text-xs font-bold text-gray-800 dark:text-gray-200 block mb-1.5">
+                      Sweep Mode
+                    </label>
                     <select
                       value={sweepMode}
                       onChange={(e: any) => setSweepMode(e.target.value)}
-                      className={`px-3 py-1.5 rounded text-xs w-full border ${
-                        isDark ? 'bg-slate-950 border-slate-800 text-slate-100' : 'bg-gray-50 border-gray-200 text-gray-900'
+                      className={`px-3.5 py-2 rounded-xl text-xs font-medium w-full border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                        isDark ? 'bg-[#101426] border-white/15 text-white' : 'bg-white border-gray-300 text-gray-900'
                       }`}
                     >
                       <option value="AUTOMATIC">Automatic (Autonomous sweeping and gas funding)</option>
@@ -570,12 +615,14 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
                   {sweepMode !== 'MANUAL' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs font-semibold block mb-1">Delay Setting</label>
+                        <label className="text-xs font-bold text-gray-800 dark:text-gray-200 block mb-1.5">
+                          Delay Setting
+                        </label>
                         <select
                           value={sweepDelay}
                           onChange={(e) => setSweepDelay(e.target.value)}
-                          className={`px-3 py-1.5 rounded text-xs w-full border ${
-                            isDark ? 'bg-slate-950 border-slate-800 text-slate-100' : 'bg-gray-50 border-gray-200 text-gray-900'
+                          className={`px-3.5 py-2 rounded-xl text-xs font-medium w-full border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                            isDark ? 'bg-[#101426] border-white/15 text-white' : 'bg-white border-gray-300 text-gray-900'
                           }`}
                         >
                           <option value="IMMEDIATE">Immediate</option>
@@ -591,14 +638,16 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
 
                       {sweepDelay === 'CUSTOM' && (
                         <div>
-                          <label className="text-xs font-semibold block mb-1">Minutes</label>
+                          <label className="text-xs font-bold text-gray-800 dark:text-gray-200 block mb-1.5">
+                            Minutes
+                          </label>
                           <input
                             type="number"
                             min="1"
                             value={customDelayMinutes}
                             onChange={(e) => setCustomDelayMinutes(Number(e.target.value))}
-                            className={`px-3 py-1.5 rounded text-xs font-mono w-full border ${
-                              isDark ? 'bg-slate-950 border-slate-800 text-slate-100' : 'bg-gray-50 border-gray-200 text-gray-900'
+                            className={`px-3.5 py-2 rounded-xl text-xs font-mono font-medium w-full border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                              isDark ? 'bg-[#101426] border-white/15 text-white' : 'bg-white border-gray-300 text-gray-900'
                             }`}
                           />
                         </div>
@@ -608,7 +657,7 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
 
                   {/* Threshold & Save */}
                   <div>
-                    <label className="text-xs font-semibold block mb-1">
+                    <label className="text-xs font-bold text-gray-800 dark:text-gray-200 block mb-1.5">
                       Minimum Sweep Threshold (USDT)
                     </label>
                     <div className="flex gap-2">
@@ -617,61 +666,67 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
                         step="0.1"
                         value={autoSweepThreshold}
                         onChange={(e) => setAutoSweepThreshold(e.target.value)}
-                        className={`px-3 py-1.5 rounded text-xs font-mono w-full border ${
-                          isDark ? 'bg-slate-950 border-slate-800 text-slate-100' : 'bg-gray-50 border-gray-200 text-gray-900'
+                        className={`px-3.5 py-2 rounded-xl text-xs font-mono font-medium w-full border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                          isDark ? 'bg-[#101426] border-white/15 text-white' : 'bg-white border-gray-300 text-gray-900'
                         }`}
                         placeholder="e.g. 1.00"
                       />
                       <button
                         onClick={handleSaveConfig}
                         disabled={savingConfig}
-                        className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-xs font-semibold shrink-0 disabled:opacity-50"
+                        className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold shrink-0 disabled:opacity-50 shadow-xs transition-colors"
                       >
                         {savingConfig ? 'Saving...' : 'Save Config'}
                       </button>
                     </div>
-                    <span className="text-[9px] text-gray-500 mt-1 block">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 block font-medium">
                       Requires at least 0.00000001 precision. Deposits below this are logged but never auto-funded or swept.
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="border-t border-gray-200/10 pt-4 mt-5">
-                <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
-                  <Info className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+              <div className="border-t border-gray-200/10 dark:border-white/10 pt-4 mt-5">
+                <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300 font-medium">
+                  <Info className="w-4 h-4 text-blue-500 shrink-0" />
                   <span>
-                    Current blockchain: <strong className="text-white">{selectedNetwork.replace('USDT_', '')}</strong>. Rules execute in-memory inside SweepQueueProcessor.
+                    Current blockchain: <strong className="font-bold text-gray-900 dark:text-white">{selectedNetwork.replace('USDT_', '')}</strong>. Rules execute in-memory inside SweepQueueProcessor.
                   </span>
                 </div>
               </div>
             </Card>
 
             {/* Right: Sweeps & Transfers Trigger Panel */}
-            <Card className="p-5 flex flex-col justify-between border-slate-800">
+            <Card className={`p-5 flex flex-col justify-between transition-all ${
+              isDark ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-gray-200/90 shadow-xs'
+            }`}>
               <div>
-                <h3 className="text-xs font-bold font-mono tracking-widest text-amber-500 uppercase flex items-center gap-1.5">
-                  <Activity className="w-3.5 h-3.5" />
+                <h3 className="text-xs font-bold font-mono tracking-wider text-amber-600 dark:text-amber-400 uppercase flex items-center gap-1.5">
+                  <Activity className="w-4 h-4" />
                   Manual Operations Console
                 </h3>
-                <p className="text-[11px] text-gray-400 mt-1">
+                <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mt-1">
                   Trigger manual overrides, bulk sweeps, or safely offload hot wallet liquidity to your cold storage.
                 </p>
 
-                <div className="mt-5 space-y-5">
+                <div className="mt-5 space-y-4">
                   {/* Bulk User Sweep Action */}
-                  <div className="border border-slate-800 p-3 rounded bg-slate-900/40">
+                  <div className={`p-4 rounded-xl border transition-all ${
+                    isDark ? 'bg-slate-950/60 border-slate-800' : 'bg-gray-50/90 border-gray-200'
+                  }`}>
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <span className="text-xs font-semibold block text-slate-200">Force Sweep All Addresses</span>
-                        <span className="text-[10px] text-gray-400 mt-0.5 block">
+                        <span className="text-xs font-bold block text-gray-900 dark:text-white">
+                          Force Sweep All Addresses
+                        </span>
+                        <span className="text-xs text-gray-600 dark:text-gray-300 mt-1 block font-medium">
                           Triggers manual sweep operations for all registered addresses that currently hold a positive balance.
                         </span>
                       </div>
                       <button
                         onClick={handleBulkSweep}
                         disabled={bulkSweeping || parseFloat(totalPendingSweep) <= 0}
-                        className="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded text-xs font-semibold shrink-0 disabled:opacity-40"
+                        className="bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold shrink-0 disabled:opacity-40 shadow-xs transition-colors"
                       >
                         {bulkSweeping ? 'Sweeping...' : 'Sweep All Now'}
                       </button>
@@ -679,9 +734,13 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
                   </div>
 
                   {/* Sweep Hot to Cold form */}
-                  <form onSubmit={handleSweepHotToCold} className="border border-slate-800 p-3 rounded bg-slate-900/40">
-                    <span className="text-xs font-semibold block text-slate-200">Vault Transfer (Hot → Cold)</span>
-                    <span className="text-[10px] text-gray-400 mt-0.5 block mb-2">
+                  <form onSubmit={handleSweepHotToCold} className={`p-4 rounded-xl border transition-all ${
+                    isDark ? 'bg-slate-950/60 border-slate-800' : 'bg-gray-50/90 border-gray-200'
+                  }`}>
+                    <span className="text-xs font-bold block text-gray-900 dark:text-white">
+                      Vault Transfer (Hot → Cold)
+                    </span>
+                    <span className="text-xs text-gray-600 dark:text-gray-300 mt-1 block mb-3 font-medium">
                       Transfer excess liquidity from Hot Wallet to cold storage securely.
                     </span>
                     <div className="flex gap-2">
@@ -690,8 +749,8 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
                         step="0.0001"
                         value={sweepToColdAmount}
                         onChange={(e) => setSweepToColdAmount(e.target.value)}
-                        className={`px-3 py-1.5 rounded text-xs font-mono w-full border ${
-                          isDark ? 'bg-slate-950 border-slate-800 text-slate-100' : 'bg-gray-50 border-gray-200 text-gray-900'
+                        className={`px-3.5 py-2 rounded-xl text-xs font-mono font-medium w-full border focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                          isDark ? 'bg-[#101426] border-white/15 text-white' : 'bg-white border-gray-300 text-gray-900'
                         }`}
                         placeholder="Amount in USDT"
                         required
@@ -699,7 +758,7 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
                       <button
                         type="submit"
                         disabled={coldSweeping || parseFloat(liveHotBalance) <= 0}
-                        className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-xs font-semibold shrink-0 disabled:opacity-40 flex items-center gap-1"
+                        className="bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold shrink-0 disabled:opacity-40 shadow-xs flex items-center gap-1.5 transition-colors"
                       >
                         {coldSweeping ? 'Transferring...' : 'Transfer to Cold'}
                         <ArrowRight className="w-3.5 h-3.5" />
@@ -709,8 +768,8 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
                 </div>
               </div>
 
-              <div className="border-t border-gray-200/10 pt-4 mt-5">
-                <span className="text-[9px] text-gray-500 font-mono block text-center uppercase tracking-wider">
+              <div className="border-t border-gray-200/10 dark:border-white/10 pt-4 mt-5">
+                <span className="text-xs font-mono font-semibold text-gray-500 dark:text-gray-400 block text-center uppercase tracking-wider">
                   SECURE CRYPTOGRAPHIC PROTOCOLS • IDEMPOTENT BLOCKCHAIN SWEEPS
                 </span>
               </div>
@@ -747,6 +806,12 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
             depositAddresses={depositAddresses}
             handleSweepAddress={handleSweepAddress}
             sweepingAddressId={sweepingAddressId}
+            handleCollectGas={handleCollectGas}
+            collectingGasAddressId={collectingGasAddressId}
+            handleCollectAllGas={handleCollectAllGas}
+            collectingAllGas={collectingAllGas}
+            selectedNetwork={selectedNetwork}
+            totalUserGas={totalUserGas}
           />
 
           {/* Sweep History & Job Logs */}

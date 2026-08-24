@@ -233,12 +233,25 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
     checkAutoVerifiedDeposits();
     checkWelcomeTrialFund();
 
-    // Poll every 8 seconds for automatic deposit verification
+    // Check for auto-verified deposits only when the tab is visible (reduced frequency to 45s to avoid Neon compute burn)
     const pollInterval = setInterval(() => {
-      checkAutoVerifiedDeposits();
-    }, 8000);
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        checkAutoVerifiedDeposits();
+      }
+    }, 45000);
 
-    return () => clearInterval(pollInterval);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkAutoVerifiedDeposits();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(pollInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [fetchDashboard, checkAutoVerifiedDeposits, checkWelcomeTrialFund]);
 
   const handleLogout = () => {

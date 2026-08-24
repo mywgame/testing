@@ -13,6 +13,7 @@ import QRCode from 'qrcode';
 
 import { api } from '../../../services/api.ts';
 import { getApiUrl } from '../../../services/apiConfig.ts';
+import { formatDateTime } from '../../../utils/dateFormatter.ts';
 
 interface DepositViewProps {
   dashboardData: DashboardData | null;
@@ -352,7 +353,7 @@ export const DepositView: React.FC<DepositViewProps> = ({
             ) : (
               depositHistory.map((item) => {
                 const txHashVal = item.txHash || '';
-                const dateStr = item.createdAt ? new Date(item.createdAt).toLocaleString() : '';
+                const formattedTime = formatDateTime(item.createdAt);
                 return (
                   <div key={item.id} className="p-3.5 rounded-2xl bg-white/5 border border-white/5 space-y-2 text-[11px]">
                     <div className="flex justify-between items-center">
@@ -360,7 +361,9 @@ export const DepositView: React.FC<DepositViewProps> = ({
                       <span className="font-mono text-cyan-400 font-bold">{item.amount} USDT</span>
                     </div>
                     <div className="flex justify-between text-gray-400 text-[10px]">
-                      <span>{dateStr}</span>
+                      <span title={`System Time: ${formattedTime.utcFull} (${formattedTime.timeZoneAbbr})`}>
+                        {formattedTime.localDate}
+                      </span>
                       <span className={`px-1.5 py-0.5 rounded font-bold text-[9px] ${
                         item.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-400' :
                         item.status === 'FAILED' ? 'bg-rose-500/10 text-rose-400' : 'bg-amber-500/10 text-amber-400'

@@ -7,8 +7,10 @@ import React, { useState, useEffect } from 'react';
 import { Download, Check, ExternalLink, ShieldCheck, Info } from 'lucide-react';
 import { Modal } from '../ui/index.ts';
 import { useTheme } from '../../hooks/useTheme.ts';
+import { api } from '../../services/api.ts';
 
-const APK_URL = 'https://pub-9c62303890854a49a9eda8efb728c7ff.r2.dev/android/metafirm-v1.0.0.apk';
+const DEFAULT_APK_URL = 'https://pub-9c62303890854a49a9eda8efb728c7ff.r2.dev/android/metafirm-v2.0.1.apk';
+const DEFAULT_APK_VERSION = 'v2.0.1';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -43,8 +45,30 @@ export const DownloadAppsSection: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState<boolean>(false);
   const [showInstallGuide, setShowInstallGuide] = useState<boolean>(false);
+  const [apkUrl, setApkUrl] = useState<string>(DEFAULT_APK_URL);
+  const [apkVersion, setApkVersion] = useState<string>(DEFAULT_APK_VERSION);
 
   useEffect(() => {
+    // Fetch dynamic APK configuration from admin settings
+    const loadApkConfig = async () => {
+      try {
+        const res = await api.getAppVersionConfig();
+        if (res.success && res.data) {
+          if (res.data.downloadUrl) {
+            setApkUrl(res.data.downloadUrl);
+          }
+          if (res.data.latestVersion) {
+            const rawVer = res.data.latestVersion.trim();
+            const formattedVer = rawVer.startsWith('v') || rawVer.startsWith('V') ? rawVer : `v${rawVer}`;
+            setApkVersion(formattedVer);
+          }
+        }
+      } catch (err) {
+        // Fallback to default v2.0.1
+      }
+    };
+    loadApkConfig();
+
     const checkInstalled = () => {
       const isStandalone =
         window.matchMedia('(display-mode: standalone)').matches ||
@@ -77,8 +101,8 @@ export const DownloadAppsSection: React.FC = () => {
   }, []);
 
   const handleDownloadApk = () => {
-    window.open(APK_URL, '_blank', 'noopener,noreferrer');
-    setDownloadMsg('Downloading MetaFirm Android APK...');
+    window.open(apkUrl, '_blank', 'noopener,noreferrer');
+    setDownloadMsg(`Downloading MetaFirm Android APK (${apkVersion})...`);
     setTimeout(() => setDownloadMsg(null), 4000);
   };
 
@@ -109,16 +133,11 @@ export const DownloadAppsSection: React.FC = () => {
     <>
       <div className={`w-full backdrop-blur-lg rounded-2xl p-4 sm:p-5 border transition-all duration-300 ${t.card}`} id="download-apps-section">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-          {/* Left: Clean Label without Android logo */}
-          <div className="shrink-0 space-y-1">
-            <div className="flex items-center gap-2">
-              <h4 className={`text-sm sm:text-base font-bold font-sans tracking-tight ${t.text}`}>
-                Get MetaFirm App
-              </h4>
-              <span className="inline-flex px-2 py-0.5 text-[9px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full">
-                v1.0 Official
-              </span>
-            </div>
+          {/* Left: Clean Label slightly pulled to the right */}
+          <div className="shrink-0 space-y-1 pl-1.5 sm:pl-2">
+            <h4 className={`text-sm sm:text-base font-bold font-sans tracking-tight ${t.text}`}>
+              Get MetaFirm App
+            </h4>
             <p className={`text-xs ${t.textSub} flex items-center gap-1.5`}>
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 inline shrink-0" />
               <span>Available for Android, iOS & Chrome Web</span>
@@ -126,28 +145,35 @@ export const DownloadAppsSection: React.FC = () => {
           </div>
 
           {/* Right: 3 Compact App Buttons with Official Brand Icons */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 w-full lg:w-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto pt-1 sm:pt-0">
             {/* Android Button */}
-            <button
-              onClick={handleDownloadApk}
-              className={`flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl border text-xs font-medium transition-all group cursor-pointer ${
-                t.isDark
-                  ? 'bg-white/4 hover:bg-emerald-500/10 text-white border-white/10 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5'
-                  : 'bg-white hover:bg-emerald-50/70 text-gray-900 border-gray-200 hover:border-emerald-500/40 hover:shadow-sm'
-              }`}
-              title="Download Android APK"
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-500 flex items-center justify-center transition-colors">
-                  <AndroidIcon className="w-4 h-4 fill-current" />
+            <div>
+              <button
+                onClick={handleDownloadApk}
+                className={`w-full flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl border text-xs font-medium transition-all group cursor-pointer ${
+                  t.isDark
+                    ? 'bg-white/4 hover:bg-emerald-500/10 text-white border-white/10 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5'
+                    : 'bg-white hover:bg-emerald-50/70 text-gray-900 border-gray-200 hover:border-emerald-500/40 hover:shadow-sm'
+                }`}
+                title={`Download Android APK (${apkVersion})`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-500 flex items-center justify-center transition-colors shrink-0">
+                    <AndroidIcon className="w-4 h-4 fill-current" />
+                  </div>
+                  <div className="text-left leading-tight">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`text-xs font-bold ${t.text}`}>Android APK</span>
+                      <span className="px-1.5 py-0.2 text-[9px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 rounded">
+                        {apkVersion}
+                      </span>
+                    </div>
+                    <div className={`text-[10px] ${t.textMuted} mt-0.5`}>Direct Download</div>
+                  </div>
                 </div>
-                <div className="text-left leading-tight">
-                  <div className={`text-xs font-bold ${t.text}`}>Android APK</div>
-                  <div className={`text-[10px] ${t.textMuted}`}>Direct Download</div>
-                </div>
-              </div>
-              <Download className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform shrink-0" />
-            </button>
+                <Download className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform shrink-0" />
+              </button>
+            </div>
 
             {/* iOS Button (Disabled / Coming Soon) */}
             <button

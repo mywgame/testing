@@ -12,6 +12,7 @@ import { TransactionTable } from './TransactionTable.tsx';
 import { ReceiptModal } from './ReceiptModal.tsx';
 import { motion, AnimatePresence } from 'motion/react';
 import { api } from '../../../services/api.ts';
+import { formatDateTime } from '../../../utils/dateFormatter.ts';
 
 export const TransactionsView: React.FC = () => {
   const { t } = useTheme();
@@ -34,14 +35,31 @@ export const TransactionsView: React.FC = () => {
           const mapped: Transaction[] = res.data.map((dbTx: any) => {
             let mappedType: TransactionType = 'Deposit';
             const rawType = (dbTx.type || '').toUpperCase();
-            if (rawType.includes('WITHDRAW')) mappedType = 'Withdrawal';
-            else if (rawType.includes('CLAIM') || rawType.includes('YIELD')) mappedType = 'Yield Claim';
-            else if (rawType.includes('REWARD')) mappedType = 'Reward';
-            else if (rawType.includes('TEAM')) mappedType = 'Team Income';
-            else if (rawType.includes('REFERRAL')) mappedType = 'Referral Income';
-            else if (rawType.includes('SALARY')) mappedType = 'Salary';
-            else if (rawType.includes('BONUS')) mappedType = 'Bonus';
-            else mappedType = 'Deposit';
+            const rawDesc = (dbTx.description || '').toUpperCase();
+
+            if (rawType.includes('WITHDRAW')) {
+              mappedType = 'Withdrawal';
+            } else if (rawType.includes('TRIAL') && (rawType.includes('EXPIR') || rawType.includes('REVOK') || rawType.includes('DEDUCT'))) {
+              mappedType = 'Trial Expiry';
+            } else if (rawType.includes('ADJUST') || rawType.includes('REVERSAL') || rawDesc.includes('REVERSAL') || rawDesc.includes('ADJUSTMENT')) {
+              mappedType = 'System Adjustment';
+            } else if (rawType.includes('CLAIM') || rawType.includes('YIELD')) {
+              mappedType = 'Yield Claim';
+            } else if (rawType.includes('REWARD')) {
+              mappedType = 'Reward';
+            } else if (rawType.includes('TEAM')) {
+              mappedType = 'Team Income';
+            } else if (rawType.includes('REFERRAL')) {
+              mappedType = 'Referral Income';
+            } else if (rawType.includes('SALARY')) {
+              mappedType = 'Salary';
+            } else if (rawType.includes('BONUS')) {
+              mappedType = 'Bonus';
+            } else if (rawType.includes('DEPOSIT')) {
+              mappedType = 'Deposit';
+            } else {
+              mappedType = parseFloat(dbTx.amount || '0') < 0 ? 'System Adjustment' : 'Deposit';
+            }
 
             let mappedStatus: any = 'Completed';
             const rawStatus = (dbTx.status || '').toUpperCase();
@@ -51,10 +69,10 @@ export const TransactionsView: React.FC = () => {
             else mappedStatus = 'Completed';
 
             const numericAmount = parseFloat(dbTx.amount || '0');
-            const isNegative = numericAmount < 0 || mappedType === 'Withdrawal';
+            const isNegative = numericAmount < 0 || mappedType === 'Withdrawal' || mappedType === 'Trial Expiry' || (mappedType === 'System Adjustment' && numericAmount <= 0);
             const formattedAmount = `${isNegative ? '-' : '+'}$${Math.abs(numericAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-            const dateStr = dbTx.createdAt ? new Date(dbTx.createdAt).toLocaleString() : 'N/A';
+            const formattedTime = formatDateTime(dbTx.createdAt);
 
             return {
               id: dbTx.id,
@@ -62,7 +80,7 @@ export const TransactionsView: React.FC = () => {
               amount: formattedAmount,
               status: mappedStatus,
               method: dbTx.description || 'USDT',
-              date: dateStr,
+              date: formattedTime.localDate,
             };
           });
           setTransactions(mapped);

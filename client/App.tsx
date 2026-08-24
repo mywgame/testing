@@ -38,6 +38,7 @@ import { LocalizationProvider } from './contexts/LocalizationContext.tsx';
 import { EnterpriseAdminDashboard } from './components/Admin/index.tsx';
 import { Button } from './components/ui/Buttons/index.tsx';
 import { LoadingScreen } from './components/LoadingScreen.tsx';
+import { AppVersionGuard } from './components/AppVersionGuard.tsx';
 
 
 /**
@@ -499,7 +500,9 @@ export default function App() {
     <AuthProvider>
       <ThemeProvider>
         <LocalizationProvider>
-          <MainAppContent />
+          <AppVersionGuard>
+            <MainAppContent />
+          </AppVersionGuard>
         </LocalizationProvider>
       </ThemeProvider>
     </AuthProvider>

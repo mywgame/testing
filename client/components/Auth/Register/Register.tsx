@@ -193,39 +193,48 @@ export const Register: React.FC<RegisterProps> = ({
     >
       <form onSubmit={handleLocalSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4 min-w-0 w-full">
-          <div className="min-w-0">
-            <Input
-              label="Full Name"
+          <div className="space-y-1 min-w-0">
+            <label htmlFor="auth-name-input" className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
+              Full Name
+            </label>
+            <input
               type="text"
               value={fullName}
               onChange={(e) => updateField('reg_fullName', e.target.value, setFullName)}
               placeholder="John Doe"
               id="auth-name-input"
               required
+              className="w-full px-4 py-2.5 sm:py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
             />
           </div>
 
-          <div className="min-w-0">
-            <Input
-              label="Username"
+          <div className="space-y-1 min-w-0">
+            <label htmlFor="auth-username-input" className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
+              Username
+            </label>
+            <input
               type="text"
               value={username}
               onChange={(e) => updateField('reg_username', e.target.value, setUsername)}
               placeholder="johndoe"
               id="auth-username-input"
               required
+              className="w-full px-4 py-2.5 sm:py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
             />
           </div>
 
-          <div className="min-w-0">
-            <Input
-              label="Email Address"
+          <div className="space-y-1 min-w-0">
+            <label htmlFor="auth-email-input" className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
+              Email Address
+            </label>
+            <input
               type="email"
               value={email}
               onChange={(e) => updateField('reg_email', e.target.value, setEmail)}
               placeholder="investor@metafirm.io"
               id="auth-email-input"
               required
+              className="w-full px-4 py-2.5 sm:py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
             />
           </div>
 
@@ -325,14 +334,17 @@ export const Register: React.FC<RegisterProps> = ({
             </div>
           </div>
 
-          <div className="md:col-span-2 min-w-0">
-            <Input
-              label="Referral Code (Optional)"
+          <div className="space-y-1 md:col-span-2 min-w-0">
+            <label htmlFor="auth-referral-input" className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
+              Referral Code (Optional)
+            </label>
+            <input
               type="text"
               value={referralCode}
               onChange={(e) => updateField('reg_referralCode', e.target.value, setReferralCode)}
               placeholder="e.g. PARTNER88"
               id="auth-referral-input"
+              className="w-full px-4 py-2.5 sm:py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none uppercase"
             />
           </div>
         </div>

@@ -73,17 +73,22 @@ export const ForgotPassword: React.FC<ForgotPasswordProps> = ({
       exit={{ opacity: 0, y: -10 }}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          label="Registered Email Address"
-          type="email"
-          value={resetEmail}
-          onChange={(e) => handleEmailChange(e.target.value)}
-          placeholder="investor@metafirm.io"
-          id="auth-forgot-email-input"
-          required
-          autoFocus
-          disabled={busy}
-        />
+        <div className="space-y-1.5">
+          <label htmlFor="auth-forgot-email-input" className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
+            Registered Email Address
+          </label>
+          <input
+            type="email"
+            value={resetEmail}
+            onChange={(e) => handleEmailChange(e.target.value)}
+            placeholder="investor@metafirm.io"
+            id="auth-forgot-email-input"
+            required
+            autoFocus
+            disabled={busy}
+            className="w-full px-4 py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
+          />
+        </div>
 
         <Button
           type="submit"

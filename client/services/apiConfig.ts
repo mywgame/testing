@@ -4,6 +4,19 @@
  */
 
 /**
+ * Detect if executing inside a Capacitor Android or iOS native app container
+ */
+export const isCapacitor = (): boolean => {
+  return (
+    typeof window !== 'undefined' &&
+    (Boolean((window as any).Capacitor?.isNativePlatform?.()) ||
+      window.location.protocol === 'capacitor:' ||
+      window.location.protocol === 'file:' ||
+      (window.location.hostname === 'localhost' && !window.location.port))
+  );
+};
+
+/**
  * Dynamically resolves the API Base URL based on environment:
  * - On Web (browser): uses relative path `/api/v1` to prevent CORS issues and preserve same-origin requests.
  * - On Capacitor Native (Android/iOS APK): uses the production absolute URL `https://metafirm.app/api/v1` (or VITE_API_BASE_URL)
@@ -18,21 +31,14 @@ export const getApiBaseUrl = (): string => {
   }
 
   // 2. Detect if executing inside a Capacitor Android or iOS native app container
-  const isCapacitorNative =
-    typeof window !== 'undefined' &&
-    ((window as any).Capacitor?.isNativePlatform?.() ||
-      window.location.protocol === 'capacitor:' ||
-      window.location.protocol === 'file:' ||
-      (window.location.hostname === 'localhost' && !window.location.port));
-
-  if (isCapacitorNative) {
+  if (isCapacitor()) {
     // Default fallback remote backend for Capacitor APK
-    return 'https://figma-m477.onrender.com/api/v1';
+    return 'https://api.metafirm.app/api/v1';
   }
 
   // 3. Web app default when hosted on Vercel frontend (metafirm.app or *.vercel.app)
   if (typeof window !== 'undefined' && (window.location.hostname.includes('metafirm.app') || window.location.hostname.endsWith('.vercel.app'))) {
-    return 'https://figma-m477.onrender.com/api/v1';
+    return 'https://api.metafirm.app/api/v1';
   }
 
   // 4. Web app default for same-origin dev proxy

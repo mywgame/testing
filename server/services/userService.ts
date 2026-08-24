@@ -115,13 +115,13 @@ export class UserService {
 
   /**
    * Fetch authenticated user details by UID
+   * Note: Resources (wallet, vip) are established on registration and lazily handled on dashboard
    */
   async getUserProfile(uid: string) {
     const user = await userRepository.findByUid(uid);
     if (!user) {
       throw new Error(`Profile not found for user ${uid}`);
     }
-    await this.ensureUserResources(user.id);
     return user;
   }
 

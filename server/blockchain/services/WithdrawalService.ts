@@ -257,8 +257,8 @@ export class WithdrawalService {
       priority: 'HIGH',
     });
 
-    // 5. Recalculate VIP tier
-    await vipService.recalculateVip(userId);
+    // 5. Recalculate VIP tier for user and affected uplines (Business Logic Spec Section 6: VIP recalculates after Approved Withdrawal)
+    await vipService.recalculateUserAndUplines(userId);
 
     return updatedWithdrawal;
   }

@@ -11,7 +11,9 @@ export type TransactionType =
   | 'Team Income'
   | 'Referral Income'
   | 'Salary'
-  | 'Bonus';
+  | 'Bonus'
+  | 'Trial Expiry'
+  | 'System Adjustment';
 
 export type TransactionStatus =
   | 'Completed'

@@ -295,6 +295,28 @@ router.post(
 );
 
 /**
+ * @route POST /api/v1/admin/treasury/sweep/gas/address
+ * @desc Reclaim/collect native gas from a specific user deposit address
+ */
+router.post(
+  '/treasury/sweep/gas/address',
+  requireAuth,
+  requireRole([UserRole.ADMIN, UserRole.SUPERADMIN]),
+  adminController.sweepUserNativeGas
+);
+
+/**
+ * @route POST /api/v1/admin/treasury/sweep/gas/all
+ * @desc Reclaim/collect native gas from all eligible deposit addresses on a network
+ */
+router.post(
+  '/treasury/sweep/gas/all',
+  requireAuth,
+  requireRole([UserRole.ADMIN, UserRole.SUPERADMIN]),
+  adminController.sweepAllUserNativeGas
+);
+
+/**
  * @route POST /api/v1/admin/treasury/sweep/all
  * @desc Sweep all eligible deposit addresses on a network
  */

@@ -73,26 +73,21 @@ export class DashboardService {
     let levelAValidCount = 0;
     let levelBcdValidCount = 0;
 
-    // Resolve descendant wallets to check valid user count
-    const descendantWallets = await Promise.all(
-      descendants.map(async (d) => {
-        const dWallet = await walletRepository.findByUserId(d.childId);
-        return {
-          referralLevel: d.referralLevel,
-          wallet: dWallet,
-        };
-      })
-    );
+    // Resolve descendant wallets in a single batched query to eliminate N+1 database hits
+    const childIds = descendants.map((d) => d.childId).filter(Boolean);
+    const walletsBatch = childIds.length > 0 ? await walletRepository.findByUserIds(childIds) : [];
+    const walletMap = new Map<string, any>(walletsBatch.map((w) => [w.userId, w]));
 
-    for (const dw of descendantWallets) {
-      const level = dw.referralLevel;
+    for (const d of descendants) {
+      const level = d.referralLevel;
       if (level === 1) levelACount++;
       else if (level === 2) levelBCount++;
       else if (level === 3) levelCCount++;
       else if (level === 4) levelDCount++;
 
-      if (dw.wallet) {
-        const dBalance = parseFloat(dw.wallet.availableBalance) + parseFloat(dw.wallet.lockedBalance);
+      const dWallet = walletMap.get(d.childId);
+      if (dWallet) {
+        const dBalance = parseFloat(dWallet.availableBalance) + parseFloat(dWallet.lockedBalance);
         if (dBalance >= 50.0) {
           if (level === 1) {
             levelAValidCount++;
@@ -105,41 +100,28 @@ export class DashboardService {
 
     // 5. Fetch recent transactions ledger (Limit 5)
     const rawRecentTransactions = await transactionRepository.findByUserId(userId, { limit: 5 });
-    const recentTransactions = await Promise.all(
-      rawRecentTransactions.map(async (tx) => {
-        let refId = tx.referenceId;
-        if (tx.type === 'DEPOSIT' && refId && !refId.startsWith('DEP')) {
-          const dep = await depositRepository.findById(refId);
-          if (dep?.referenceNumber) {
-            refId = dep.referenceNumber;
-          }
-        } else if (tx.type === 'WITHDRAWAL' && refId && !refId.startsWith('WTH')) {
-          const wth = await withdrawalRepository.findById(refId);
-          if (wth?.reference) {
-            refId = wth.reference;
-          }
-        }
-        return {
-          ...tx,
-          referenceId: refId,
-        };
-      })
-    );
+    const recentTransactions = rawRecentTransactions.map((tx) => {
+      let refId = tx.referenceId;
+      return {
+        ...tx,
+        referenceId: refId,
+      };
+    });
 
     // 6. Fetch recent activity security logs (Limit 5)
     const recentActivities = await activityRepository.findByUserId(userId, { limit: 5 });
 
     // 7. Check if there's any active DPY yield claim open today, lazy-generating if none exists
     const now = new Date();
-    let activeClaims = await claimRepository.findActiveClaimsInWindow(userId, now);
-    if (activeClaims.length === 0) {
-      const generated = await claimService.generateClaimForUser(userId, now);
-      if (generated) {
-        activeClaims = [generated];
-      }
+    const existingClaimsToday = await claimRepository.findAnyClaimInWindow(userId, now);
+    let todayClaim = existingClaimsToday.length > 0 ? existingClaimsToday[0] : null;
+
+    if (!todayClaim) {
+      todayClaim = await claimService.generateClaimForUser(userId, now);
     }
-    const dailyClaimAvailable = activeClaims.length > 0;
-    const pendingClaim = dailyClaimAvailable ? activeClaims[0] : null;
+
+    const dailyClaimAvailable = todayClaim !== null && todayClaim.claimStatus === 'PENDING';
+    const pendingClaim = todayClaim;
 
     // 8. Load settings for debug trial fund representation
     const trialAmountSetting = await settingsRepository.findSystemSettingByKey('TRIAL_FUND_AMOUNT');

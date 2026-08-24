@@ -58,7 +58,7 @@ export class ClaimRepository {
   }
 
   /**
-   * Create a new claimable reward record
+   * Create a new claimable reward record. Uses onConflictDoNothing to guarantee idempotency.
    */
   async createClaim(data: {
     userId: string;
@@ -85,8 +85,9 @@ export class ClaimRepository {
           claimWindowOpenTime: data.claimWindowOpenTime,
           claimWindowCloseTime: data.claimWindowCloseTime,
         })
+        .onConflictDoNothing()
         .returning();
-      return result[0];
+      return result[0] || null;
     } catch (error) {
       console.error('Database insertion (createClaim) failed:', error);
       throw new Error('Failed to initialize new claimable yield entry.');
@@ -94,7 +95,8 @@ export class ClaimRepository {
   }
 
   /**
-   * Mark a claim as CLAIMED, EXPIRED, or FORFEITED, linking any associated transaction
+   * Mark a claim as CLAIMED, EXPIRED, or FORFEITED, linking any associated transaction.
+   * If expectedCurrentStatus is provided, only updates if current status matches (concurrency guard).
    */
   async updateClaimStatus(
     id: string,
@@ -103,16 +105,22 @@ export class ClaimRepository {
       claimedAt: Date;
       transactionId: string;
       expired: boolean;
-    }>
+    }>,
+    expectedCurrentStatus?: string
   ) {
     try {
+      const conditions = [eq(claims.id, id)];
+      if (expectedCurrentStatus) {
+        conditions.push(eq(claims.claimStatus, expectedCurrentStatus));
+      }
+
       const result = await db
         .update(claims)
         .set({
           claimStatus: status,
           ...updates,
         })
-        .where(eq(claims.id, id))
+        .where(and(...conditions))
         .returning();
       return result[0] || null;
     } catch (error) {
@@ -143,14 +151,17 @@ export class ClaimRepository {
    */
   async findAnyClaimInWindow(userId: string, date: Date) {
     try {
+      const openTime = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0, 0));
+      const closeTime = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 23, 59, 59, 999));
+
       const result = await db
         .select()
         .from(claims)
         .where(
           and(
             eq(claims.userId, userId),
-            lte(claims.claimWindowOpenTime, date),
-            gte(claims.claimWindowCloseTime, date)
+            gte(claims.claimWindowOpenTime, openTime),
+            lte(claims.claimWindowOpenTime, closeTime)
           )
         );
       return result;
@@ -165,6 +176,9 @@ export class ClaimRepository {
    */
   async findActiveClaimsInWindow(userId: string, date: Date) {
     try {
+      const openTime = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 0, 0, 0, 0));
+      const closeTime = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 23, 59, 59, 999));
+
       const result = await db
         .select()
         .from(claims)
@@ -172,8 +186,8 @@ export class ClaimRepository {
           and(
             eq(claims.userId, userId),
             eq(claims.claimStatus, 'PENDING'),
-            lte(claims.claimWindowOpenTime, date),
-            gte(claims.claimWindowCloseTime, date)
+            gte(claims.claimWindowOpenTime, openTime),
+            lte(claims.claimWindowOpenTime, closeTime)
           )
         );
       return result;

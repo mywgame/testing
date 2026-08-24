@@ -24,8 +24,8 @@ import { salaryService } from './salaryService.ts';
 import { addressService } from '../blockchain/services/AddressService.ts';
 import { SecurityLogger } from '../utils/securityLogger.ts';
 import { db } from '../../src/db/index.ts';
-import { users, wallets, deposits, withdrawals, supportTickets, activityLogs, vipStatus, sessions } from '../../src/db/schema.ts';
-import { eq, like, or, and, desc, asc, sql } from 'drizzle-orm';
+import { users, wallets, deposits, withdrawals, supportTickets, activityLogs, vipStatus, sessions, referralRelationships } from '../../src/db/schema.ts';
+import { eq, like, ilike, or, and, desc, asc, sql } from 'drizzle-orm';
 
 /**
  * BUSINESS RULE — Single Source of Truth:
@@ -48,15 +48,18 @@ export class AdminService {
   }) {
     const conditions = [];
 
-    if (options.search) {
-      const pattern = `%${options.search}%`;
+    if (options.search && options.search.trim()) {
+      const searchClean = options.search.trim();
+      const pattern = `%${searchClean}%`;
       conditions.push(
         or(
-          like(users.name, pattern),
-          like(users.email, pattern),
-          like(users.phone, pattern),
-          like(users.userId, pattern),
-          like(users.uid, pattern)
+          ilike(users.name, pattern),
+          ilike(users.username, pattern),
+          ilike(users.email, pattern),
+          ilike(users.phone, pattern),
+          ilike(users.userId, pattern),
+          ilike(users.uid, pattern),
+          ilike(users.referralCode, pattern)
         )
       );
     }
@@ -73,6 +76,20 @@ export class AdminService {
 
     let orderByClause;
     switch (options.sortBy) {
+      case 'TopDepositor':
+      case 'top_depositor':
+        // Sum of all deposits for this user (High to Low)
+        orderByClause = desc(
+          sql<number>`COALESCE((SELECT SUM(${deposits.amount}) FROM ${deposits} WHERE ${deposits.userId} = ${users.id} AND ${deposits.status} = 'COMPLETED'), (SELECT SUM(${deposits.amount}) FROM ${deposits} WHERE ${deposits.userId} = ${users.id}), 0)`
+        );
+        break;
+      case 'TopPerformer':
+      case 'top_performer':
+        // Total referrals referred by this user (High to Low)
+        orderByClause = desc(
+          sql<number>`COALESCE((SELECT COUNT(*) FROM ${referralRelationships} WHERE ${referralRelationships.parentId} = ${users.id}), 0)`
+        );
+        break;
       case 'HighestBalance':
         orderByClause = desc(wallets.availableBalance);
         break;
@@ -80,10 +97,14 @@ export class AdminService {
         orderByClause = asc(wallets.availableBalance);
         break;
       case 'HighestReferrals':
-        orderByClause = desc(vipStatus.levelAValidCount);
+        orderByClause = desc(
+          sql<number>`COALESCE((SELECT COUNT(*) FROM ${referralRelationships} WHERE ${referralRelationships.parentId} = ${users.id} AND ${referralRelationships.referralLevel} = 1), 0)`
+        );
         break;
       case 'HighestTeamSize':
-        orderByClause = desc(vipStatus.teamTotalCount);
+        orderByClause = desc(
+          sql<number>`COALESCE((SELECT COUNT(*) FROM ${referralRelationships} WHERE ${referralRelationships.parentId} = ${users.id}), 0)`
+        );
         break;
       case 'Newest':
         orderByClause = desc(users.createdAt);
@@ -132,19 +153,46 @@ export class AdminService {
       const levelB = descendants.filter(d => d.referralLevel === 2).length;
       const levelC = descendants.filter(d => d.referralLevel === 3).length;
       const levelD = descendants.filter(d => d.referralLevel === 4).length;
+      const teamSize = descendants.length;
+
+      const totalDepRes = await db
+        .select({ total: sql<string>`COALESCE(SUM(${deposits.amount}), 0)` })
+        .from(deposits)
+        .where(eq(deposits.userId, u.id));
+      const totalDeposits = parseFloat(totalDepRes[0]?.total || '0').toFixed(2);
+
+      const totalEarningsVal = wallet
+        ? parseFloat(wallet.totalEarned || '0') ||
+          (parseFloat(wallet.dailyYield || '0') +
+           parseFloat(wallet.referralIncome || '0') +
+           parseFloat(wallet.teamIncome || '0') +
+           parseFloat(wallet.incentiveIncome || '0'))
+        : 0;
 
       mappedUsers.push({
         id: u.uid, // mapped to uid so frontend actions target uid
         userId: u.userId,
-        name: u.name || '',
+        username: u.username || '',
+        name: u.name || u.username || u.userId,
         email: u.email,
         mobile: u.phone || '',
         rank: vip?.tier || 'VIP1',
         balance: wallet ? `$${parseFloat(wallet.availableBalance).toFixed(2)}` : '$0.00',
+        totalDeposits: `$${totalDeposits}`,
+        totalEarnings: `$${totalEarningsVal.toFixed(2)}`,
+        referralCode: u.referralCode,
         levelA,
         levelB,
         levelC,
         levelD,
+        teamSize,
+        teamCounts: {
+          levelA,
+          levelB,
+          levelC,
+          levelD,
+          total: teamSize,
+        },
         status: u.status === 'ACTIVE' ? 'Active' : 'Suspended',
         joined: new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         adminNotes: u.name ? `Administrative profile for ${u.name}.` : 'No administrative notes.',
@@ -413,9 +461,16 @@ export class AdminService {
     return withs.map(w => ({
       id: w.id,
       amount: `$${parseFloat(w.amount).toFixed(2)}`,
+      network: w.network || 'USDT_BEP20',
       wallet: w.walletAddress,
+      txHash: w.txHash || (w.adminNotes?.match(/0x[a-fA-F0-9]{64}/)?.[0]) || null,
       date: new Date(w.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      status: w.status === 'COMPLETED' ? 'Approved' : w.status === 'PENDING' ? 'Pending' : 'Rejected',
+      status: (w.status === 'COMPLETED' || w.status === 'PROCESSING' || w.adminApprovalStatus === 'APPROVED')
+        ? 'Approved'
+        : w.status === 'PENDING'
+        ? 'Pending'
+        : 'Rejected',
+      rawStatus: w.status,
     }));
   }
 
@@ -534,8 +589,8 @@ export class AdminService {
     });
 
     // Recalculate VIP tier — VipService is the single source of truth for VIP logic.
-    // Business Logic Spec Section 6: VIP recalculates after Wallet Balance Change.
-    await vipService.recalculateVip(userId);
+    // Business Logic Spec Section 6: VIP recalculates after Wallet Balance Change for both user and uplines.
+    await vipService.recalculateUserAndUplines(userId);
 
     return updatedWallet;
   }
@@ -591,7 +646,8 @@ export class AdminService {
         amount: `$${parseFloat(d.amount).toFixed(2)}`,
         method: d.network || 'USDT',
         txHash: d.txHash || 'N/A',
-        date: new Date(d.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        date: new Date(d.createdAt).toISOString(),
+        rawTimestamp: d.createdAt,
         status: d.status === 'COMPLETED' ? 'Completed' : d.status === 'PENDING' ? 'Pending' : 'Rejected',
       });
     }
@@ -658,9 +714,17 @@ export class AdminService {
         id: w.id,
         user: userName,
         amount: `$${parseFloat(w.amount).toFixed(2)}`,
+        network: w.network || 'USDT_BEP20',
         wallet: w.walletAddress,
-        date: new Date(w.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-        status: w.status === 'COMPLETED' ? 'Approved' : w.status === 'PENDING' ? 'Pending' : 'Rejected',
+        txHash: w.txHash || (w.adminNotes?.match(/0x[a-fA-F0-9]{64}/)?.[0]) || null,
+        date: new Date(w.createdAt).toISOString(),
+        rawTimestamp: w.createdAt,
+        status: (w.status === 'COMPLETED' || w.status === 'PROCESSING' || w.adminApprovalStatus === 'APPROVED')
+          ? 'Approved'
+          : w.status === 'PENDING'
+          ? 'Pending'
+          : 'Rejected',
+        rawStatus: w.status,
       });
     }
     return result;
@@ -705,7 +769,7 @@ export class AdminService {
   }
 
   /**
-   * Retrieve platform system wide audit logs
+   * Retrieve platform system wide audit logs with enriched user and resource details
    */
   async getSystemAuditLogs(options?: { limit?: number; offset?: number; action?: string }) {
     const logs = await auditRepository.findAll(options);
@@ -713,21 +777,73 @@ export class AdminService {
     for (const a of logs) {
       let adminLabel = 'System';
       if (a.actorUid && a.actorUid !== 'SYSTEM') {
-        const u = await userRepository.findByUid(a.actorUid);
-        adminLabel = u ? (u.name || u.email || a.actorUid) : a.actorUid;
+        // Try finding actor by auth uid or database id
+        let actorUser = await userRepository.findByUid(a.actorUid);
+        if (!actorUser) {
+          actorUser = await userRepository.findById(a.actorUid);
+        }
+
+        if (actorUser) {
+          if (actorUser.role === 'ADMIN') {
+            adminLabel = actorUser.name ? `${actorUser.name} (Super Admin)` : 'Super Admin';
+          } else {
+            // Standard User action (e.g., Daily DPY Claim, Tasks, Self operations)
+            adminLabel = actorUser.userId
+              ? `${actorUser.name || actorUser.username || 'Member'} (${actorUser.userId})`
+              : (actorUser.name || actorUser.email || 'User');
+          }
+        } else if (a.userId && a.actorUid === a.userId) {
+          // Actor is the target user
+          const target = await userRepository.findById(a.userId);
+          if (target) {
+            adminLabel = target.userId
+              ? `${target.name || target.username || 'Member'} (${target.userId})`
+              : (target.name || target.email || 'User');
+          } else {
+            adminLabel = 'User';
+          }
+        } else if (a.actorUid.toLowerCase().includes('admin')) {
+          adminLabel = 'Super Admin';
+        } else {
+          adminLabel = 'System';
+        }
+      }
+
+      let targetUserName: string | null = null;
+      let targetUserDsId: string | null = null;
+      let targetUserLabel: string | null = null;
+      if (a.userId) {
+        const target = await userRepository.findById(a.userId);
+        if (target) {
+          targetUserName = target.name || target.username || target.email || 'Member';
+          targetUserDsId = target.userId || null;
+          targetUserLabel = target.userId ? `${targetUserName} (${target.userId})` : targetUserName;
+        }
       }
 
       let module = 'Settings';
       if (a.resource?.includes('user')) module = 'Users';
       else if (a.resource?.includes('deposit')) module = 'Deposits';
       else if (a.resource?.includes('withdrawal')) module = 'Withdrawals';
+      else if (a.resource?.includes('claim') || a.resource?.includes('yield')) module = 'Yield & Rewards';
+      else if (a.resource?.includes('wallet')) module = 'Wallets';
 
       result.push({
         id: a.id,
         action: a.action,
         admin: adminLabel,
+        actorUid: a.actorUid,
+        targetUser: targetUserLabel,
+        targetUserName,
+        targetUserDsId,
+        userId: a.userId,
+        resource: a.resource,
+        oldValue: a.oldValue,
+        newValue: a.newValue,
         ip: a.ipAddress || '127.0.0.1',
+        device: a.device || 'Web Console',
         time: new Date(a.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        rawTimestamp: a.createdAt,
         module,
       });
     }

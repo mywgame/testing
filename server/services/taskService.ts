@@ -417,7 +417,7 @@ export class TaskService {
     }
 
     if (taskCode === 'JOIN_TELEGRAM') {
-      throw new Error('Official Telegram verification is currently pending. This task is currently locked.');
+      throw new Error('This task is currently temporarily suspended for maintenance.');
     }
 
     if (taskCode === 'AUTHENTICATOR_SETUP') {

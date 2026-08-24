@@ -26,20 +26,20 @@ export const Input: React.FC<InputProps> = ({
   return (
     <div className="space-y-1.5 text-left w-full">
       {label && (
-        <label htmlFor={id} className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
+        <label htmlFor={id} className="block text-xs font-semibold text-gray-800 dark:text-gray-200 tracking-wide mb-1">
           {label}
         </label>
       )}
       <input
         id={id}
         type={type}
-        className={`w-full px-4 py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 placeholder:text-gray-400 transition-all duration-150 ${
+        className={`w-full px-4 py-3 text-sm font-medium border border-gray-300 dark:border-white/10 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white dark:bg-white/5 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all duration-150 ${
           error ? 'border-red-500 focus-visible:ring-red-500' : 'focus-visible:ring-blue-600'
         } ${className}`}
         {...props}
       />
       {error && <p className="text-[10px] font-semibold text-red-600 font-sans">{error}</p>}
-      {!error && helperText && <p className="text-[10px] text-gray-500 font-sans font-medium">{helperText}</p>}
+      {!error && helperText && <p className="text-[10px] text-gray-500 dark:text-gray-400 font-sans font-medium">{helperText}</p>}
     </div>
   );
 };
@@ -57,7 +57,7 @@ export const PasswordInput: React.FC<InputProps> = ({
   return (
     <div className="space-y-1.5 text-left w-full">
       {label && (
-        <label htmlFor={id} className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
+        <label htmlFor={id} className="block text-xs font-semibold text-gray-800 dark:text-gray-200 tracking-wide mb-1">
           {label}
         </label>
       )}
@@ -65,7 +65,7 @@ export const PasswordInput: React.FC<InputProps> = ({
         <input
           id={id}
           type={showPassword ? 'text' : 'password'}
-          className={`w-full pl-4 pr-11 py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 placeholder:text-gray-400 transition-all duration-150 ${
+          className={`w-full pl-4 pr-11 py-3 text-sm font-medium border border-gray-300 dark:border-white/10 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white dark:bg-white/5 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all duration-150 ${
             error ? 'border-red-500 focus-visible:ring-red-500' : 'focus-visible:ring-blue-600'
           } ${className}`}
           {...props}
@@ -73,13 +73,13 @@ export const PasswordInput: React.FC<InputProps> = ({
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600 rounded p-1"
+          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600 rounded p-1"
         >
           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
         </button>
       </div>
       {error && <p className="text-[10px] font-semibold text-red-600 font-sans">{error}</p>}
-      {!error && helperText && <p className="text-[10px] text-gray-500 font-sans font-medium">{helperText}</p>}
+      {!error && helperText && <p className="text-[10px] text-gray-500 dark:text-gray-400 font-sans font-medium">{helperText}</p>}
     </div>
   );
 };
@@ -116,19 +116,19 @@ export const Textarea: React.FC<TextareaProps> = ({
   return (
     <div className="space-y-1.5 text-left w-full">
       {label && (
-        <label htmlFor={id} className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
+        <label htmlFor={id} className="block text-xs font-semibold text-gray-800 dark:text-gray-200 tracking-wide mb-1">
           {label}
         </label>
       )}
       <textarea
         id={id}
-        className={`w-full px-4 py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 placeholder:text-gray-400 resize-none transition-all duration-150 ${
+        className={`w-full px-4 py-3 text-sm font-medium border border-gray-300 dark:border-white/10 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white dark:bg-white/5 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none transition-all duration-150 ${
           error ? 'border-red-500 focus-visible:ring-red-500' : 'focus-visible:ring-blue-600'
         } ${className}`}
         {...props}
       />
       {error && <p className="text-[10px] font-semibold text-red-600 font-sans">{error}</p>}
-      {!error && helperText && <p className="text-[10px] text-gray-500 font-sans font-medium">{helperText}</p>}
+      {!error && helperText && <p className="text-[10px] text-gray-500 dark:text-gray-400 font-sans font-medium">{helperText}</p>}
     </div>
   );
 };
@@ -148,10 +148,10 @@ export const Checkbox: React.FC<CheckboxProps> = ({
       <input
         type="checkbox"
         id={id}
-        className={`mt-0.5 w-4 h-4 rounded text-blue-600 border-gray-300 focus:ring-blue-500 bg-gray-50 ${className}`}
+        className={`mt-0.5 w-4 h-4 rounded text-blue-600 border-gray-300 dark:border-white/20 focus:ring-blue-500 bg-gray-50 dark:bg-white/10 ${className}`}
         {...props}
       />
-      <label htmlFor={id} className="text-xs font-semibold text-gray-800 cursor-pointer select-none">
+      <label htmlFor={id} className="text-xs font-semibold text-gray-800 dark:text-gray-200 cursor-pointer select-none">
         {label}
       </label>
     </div>
@@ -173,10 +173,10 @@ export const Radio: React.FC<RadioProps> = ({
       <input
         type="radio"
         id={id}
-        className={`w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 bg-gray-50 ${className}`}
+        className={`w-4 h-4 text-blue-600 border-gray-300 dark:border-white/20 focus:ring-blue-500 bg-gray-50 dark:bg-white/10 ${className}`}
         {...props}
       />
-      <label htmlFor={id} className="text-xs font-semibold text-gray-800 cursor-pointer select-none">
+      <label htmlFor={id} className="text-xs font-semibold text-gray-800 dark:text-gray-200 cursor-pointer select-none">
         {label}
       </label>
     </div>
@@ -205,7 +205,7 @@ export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
         aria-checked={checked}
         onClick={(e) => onChange && onChange(e as any)}
         className={`relative inline-flex h-5.5 w-10.5 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 ${
-          checked ? 'bg-blue-600' : 'bg-gray-300'
+          checked ? 'bg-blue-600' : 'bg-gray-300 dark:bg-white/20'
         } ${className}`}
         {...props}
       >
@@ -217,7 +217,7 @@ export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
         />
       </button>
       {label && (
-        <span className="text-xs font-semibold text-gray-800 select-none">
+        <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 select-none">
           {label}
         </span>
       )}
@@ -241,20 +241,20 @@ export const Select: React.FC<SelectProps> = ({
   return (
     <div className="space-y-1.5 text-left w-full relative">
       {label && (
-        <label htmlFor={id} className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
+        <label htmlFor={id} className="block text-xs font-semibold text-gray-800 dark:text-gray-200 tracking-wide mb-1">
           {label}
         </label>
       )}
       <div className="relative">
         <select
           id={id}
-          className={`w-full pl-4 pr-10 py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 appearance-none transition-all duration-150 ${
+          className={`w-full pl-4 pr-10 py-3 text-sm font-medium border border-gray-300 dark:border-white/10 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white dark:bg-[#101426] text-gray-900 dark:text-white appearance-none transition-all duration-150 ${
             error ? 'border-red-500 focus-visible:ring-red-500' : 'focus-visible:ring-blue-600'
           } ${className}`}
           {...props}
         >
           {options.map((opt) => (
-            <option key={opt.value} value={opt.value} className="bg-white text-gray-900 font-medium">
+            <option key={opt.value} value={opt.value} className="bg-white dark:bg-[#101426] text-gray-900 dark:text-white font-medium">
               {opt.label}
             </option>
           ))}
@@ -264,7 +264,7 @@ export const Select: React.FC<SelectProps> = ({
         </div>
       </div>
       {error && <p className="text-[10px] font-semibold text-red-600 font-sans">{error}</p>}
-      {!error && helperText && <p className="text-[10px] text-gray-500 font-sans font-medium">{helperText}</p>}
+      {!error && helperText && <p className="text-[10px] text-gray-500 dark:text-gray-400 font-sans font-medium">{helperText}</p>}
     </div>
   );
 };
@@ -291,7 +291,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
           <div
             className={`absolute ${
               align === 'right' ? 'right-0' : 'left-0'
-            } mt-2 w-56 rounded-2xl bg-white border border-gray-100 shadow-[0_12px_36px_rgba(0,0,0,0.08)] ring-1 ring-black/5 focus:outline-none z-50`}
+            } mt-2 w-56 rounded-2xl bg-white dark:bg-[#0c0d24] border border-gray-100 dark:border-white/10 shadow-[0_12px_36px_rgba(0,0,0,0.08)] ring-1 ring-black/5 dark:ring-white/10 focus:outline-none z-50 text-gray-900 dark:text-white`}
             role="menu"
           >
             <div className="py-1" onClick={() => setIsOpen(false)}>

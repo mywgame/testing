@@ -54,9 +54,9 @@ export const DEFAULT_TASK_DEFINITIONS = [
     targetProgress: '1.00000000',
     unit: 'Join',
     minDepositRequired: '0.00000000',
-    ruleConfig: JSON.stringify({ actionUrl: 'https://t.me/Metafirmofficial' }),
+    ruleConfig: JSON.stringify({ actionUrl: '' }),
     maxClaimsPerUser: 1,
-    isActive: true,
+    isActive: false,
     displayOrder: 3,
   },
   {
@@ -243,6 +243,12 @@ export class TaskRepository {
         for (const def of DEFAULT_TASK_DEFINITIONS) {
           await db.insert(taskDefinitions).values(def).onConflictDoNothing();
         }
+      } else {
+        // Explicitly ensure suspended tasks (like JOIN_TELEGRAM) are set inactive in existing deployments
+        await db
+          .update(taskDefinitions)
+          .set({ isActive: false })
+          .where(eq(taskDefinitions.taskCode, 'JOIN_TELEGRAM'));
       }
     } catch (error) {
       console.error('Task seed error (database might be initializing or pending migration):', error);

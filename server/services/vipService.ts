@@ -121,15 +121,44 @@ export class VipService {
         oldValue: previousTier,
         newValue: calculatedTier,
       });
-
-      // Propagate recalculation up to direct parent
-      const parentRel = await referralRepository.findRelationshipByChildId(userId);
-      if (parentRel && parentRel.referralLevel === 1) {
-        await this.recalculateVip(parentRel.parentId);
-      }
     }
 
     return updatedVip;
+  }
+
+  /**
+   * Recalculates VIP tiers for all upline ancestors of a user (up to 4 levels: A, B, C, D).
+   * This is called whenever a user's wallet balance changes (e.g. deposit, withdrawal, balance adjustment)
+   * so that all affected upline valid-user counts and VIP qualifications are updated immediately,
+   * regardless of whether the child's own VIP tier changed.
+   */
+  async recalculateUplines(userId: string, maxLevels = 4): Promise<void> {
+    try {
+      let currentChildId = userId;
+      for (let level = 1; level <= maxLevels; level++) {
+        const rel = await referralRepository.findRelationshipByChildId(currentChildId);
+        if (!rel) break;
+
+        const parentId = rel.parentId;
+        if (!parentId) break;
+
+        // Recalculate this upline parent
+        await this.recalculateVip(parentId);
+
+        // Climb up to the next upline level
+        currentChildId = parentId;
+      }
+    } catch (err) {
+      console.error(`Failed to recalculate uplines for user ${userId}:`, err);
+    }
+  }
+
+  /**
+   * Recalculates a user's own VIP tier and all affected uplines (Levels A, B, C, D).
+   */
+  async recalculateUserAndUplines(userId: string): Promise<void> {
+    await this.recalculateVip(userId);
+    await this.recalculateUplines(userId);
   }
 
   private determineEligibleVip(walletBalance: number, levelA: number, levelBCD: number): string {

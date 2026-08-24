@@ -12,6 +12,7 @@ import { Input } from '../../ui/Inputs/index.tsx';
 import { Button } from '../../ui/Buttons/index.tsx';
 import { WithdrawalSuccessModal } from './WithdrawalSuccessModal.tsx';
 import { getApiUrl } from '../../../services/apiConfig.ts';
+import { formatDateTime } from '../../../utils/dateFormatter.ts';
 
 interface WithdrawalViewProps {
   showToast: (msg: string) => void;
@@ -317,14 +318,18 @@ export const WithdrawalView: React.FC<WithdrawalViewProps> = ({
           </div>
           <div className="space-y-3">
             {withdrawalsHistory.length > 0 ? (
-              withdrawalsHistory.map((item) => (
+              withdrawalsHistory.map((item) => {
+                const formattedTime = formatDateTime(item.createdAt);
+                return (
                 <div key={item.id} className="p-3.5 rounded-2xl bg-white/5 border border-white/5 space-y-2 text-[11px]">
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-white">{item.network.replace('_', ' ')}</span>
                     <span className="font-mono text-amber-400 font-bold">{parseFloat(item.amount).toFixed(2)} USDT</span>
                   </div>
                   <div className="flex justify-between text-gray-400 text-[10px]">
-                    <span>{new Date(item.createdAt).toLocaleString()}</span>
+                    <span title={`System Time: ${formattedTime.utcFull} (${formattedTime.timeZoneAbbr})`}>
+                      {formattedTime.localDate}
+                    </span>
                     <span className={`px-1.5 py-0.5 rounded font-bold text-[9px] ${
                       item.status === 'PENDING'
                         ? 'bg-amber-500/10 text-amber-400'
@@ -362,7 +367,7 @@ export const WithdrawalView: React.FC<WithdrawalViewProps> = ({
                     )}
                   </div>
                 </div>
-              ))
+              );})
             ) : (
               <div className="p-6 text-center rounded-2xl bg-white/5 border border-white/5 space-y-1">
                 <span className="text-xs text-gray-400 block font-semibold">No withdrawals logged yet</span>

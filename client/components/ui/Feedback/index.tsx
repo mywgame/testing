@@ -132,6 +132,7 @@ interface AvatarProps {
   name: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  fallbackText?: string;
 }
 
 export const Avatar: React.FC<AvatarProps> = ({
@@ -139,6 +140,7 @@ export const Avatar: React.FC<AvatarProps> = ({
   name,
   size = 'md',
   className = '',
+  fallbackText,
 }) => {
   const sizeClasses = {
     sm: 'w-8 h-8 text-xs',
@@ -146,22 +148,32 @@ export const Avatar: React.FC<AvatarProps> = ({
     lg: 'w-12 h-12 text-base',
   };
 
-  // Generate clean initials
-  const initials = name
-    .split(' ')
-    .map((word) => word[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
+  // Generate clean initials if fallbackText is not explicitly provided
+  const displayText = fallbackText !== undefined
+    ? fallbackText
+    : name
+        .split(' ')
+        .map((word) => word[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase();
+
+  const hasBg = className.includes('bg-');
+  const hasText = className.includes('text-');
+  const hasBorder = className.includes('border-');
 
   return (
     <div
-      className={`flex-shrink-0 relative rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center font-bold text-gray-700 font-display ${sizeClasses[size]} ${className}`}
+      className={`flex-shrink-0 relative rounded-full overflow-hidden flex items-center justify-center font-bold font-display ${
+        hasBg ? '' : 'bg-gray-100'
+      } ${hasBorder ? '' : 'border border-gray-200'} ${
+        hasText ? '' : 'text-gray-700'
+      } ${sizeClasses[size]} ${className}`}
     >
       {src ? (
         <img src={src} alt={name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
       ) : (
-        <span>{initials}</span>
+        <span>{displayText}</span>
       )}
     </div>
   );

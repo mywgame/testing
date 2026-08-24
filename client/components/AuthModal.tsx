@@ -71,11 +71,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       onClose={onClose}
       id="auth-modal-portal"
       size="md"
+      forceLight={true}
     >
       {/* Top Decorative gradient strip */}
       <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-600 via-amber-400 to-emerald-500 w-full" />
 
-      <div className="pt-1">
+      <div className="pt-1 text-slate-900 bg-white">
         {/* Logo */}
         <div className="mb-3 sm:mb-4 flex justify-start pr-10">
           <img

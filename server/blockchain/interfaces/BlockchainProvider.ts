@@ -18,6 +18,7 @@ export interface BlockchainProvider {
   getNativeBalance(network: string, address: string): Promise<string>;
   fundGas(network: string, toAddress: string, amount: string): Promise<string>;
   broadcastTransaction(network: string, toAddress: string, amount: string, fromPrivateKey?: string): Promise<string>;
+  broadcastNativeTransaction?(network: string, toAddress: string, amount: string, fromPrivateKey?: string): Promise<string>;
   validateAddress(network: string, address: string): Promise<boolean>;
   getTransaction(network: string, txHash: string): Promise<BlockchainTransaction | null>;
   subscribeAddress?(network: string, address: string, webhookUrl: string): Promise<boolean>;

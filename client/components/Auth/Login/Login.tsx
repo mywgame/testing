@@ -93,17 +93,22 @@ export const Login: React.FC<LoginProps> = ({
     >
       <form onSubmit={handleLocalSubmit} className="space-y-4">
         <div className="space-y-4">
-          <Input
-            label="Username or Email Address"
-            type="text"
-            value={email}
-            onChange={(e) => handleEmailChange(e.target.value)}
-            placeholder="Username or email address"
-            id="auth-email-input-login"
-            autoComplete="username"
-            required
-            autoFocus
-          />
+          <div className="space-y-1.5">
+            <label htmlFor="auth-email-input-login" className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
+              Username or Email Address
+            </label>
+            <input
+              type="text"
+              value={email}
+              onChange={(e) => handleEmailChange(e.target.value)}
+              placeholder="Username or email address"
+              id="auth-email-input-login"
+              autoComplete="username"
+              required
+              autoFocus
+              className="w-full px-4 py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
+            />
+          </div>
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">

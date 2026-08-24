@@ -133,8 +133,9 @@ export class DepositService {
     // 6. Handle Referral Rewards: Generated ONLY ONCE on their First Successful REAL Deposit
     await this.processReferralReward(userId, deposit.amount, deposit.id, adminUid || 'SYSTEM');
 
-    // 7. Recalculate VIP tier
-    await vipService.recalculateVip(userId);
+    // 7. Recalculate VIP tier for depositor and all affected uplines (Levels A-D)
+    // Business Logic Spec Section 6: VIP recalculates immediately after any Successful Deposit
+    await vipService.recalculateUserAndUplines(userId);
 
     // 8. Update on-chain balance of the associated permanent deposit address & check auto-sweep
     try {
@@ -282,9 +283,6 @@ export class DepositService {
         resource: `wallets/${parentWallet.id}`,
         newValue: JSON.stringify({ sourceUserId: childId, depositId, level: relationship.referralLevel, amount: rewardAmountStr }),
       });
-
-      // Recalculate VIP for parent too
-      await vipService.recalculateVip(parentId);
     } catch (err) {
       console.error(`Failed to process referral rewards for child ${childId}:`, err);
     }

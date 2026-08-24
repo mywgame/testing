@@ -8,6 +8,10 @@ import { db } from '../../src/db/index.ts';
 import { systemSettings, userSettings } from '../../src/db/schema.ts';
 
 export class SettingsRepository {
+  private settingsCache = new Map<string, { value: any; expiresAt: number }>();
+  private allSettingsCache: { value: any[]; expiresAt: number } | null = null;
+  private readonly CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes cache TTL
+
   /* =========================================================================
    * SYSTEM SETTINGS (GLOBAL PLATFORM BUSINESS RULES)
    * ========================================================================= */
@@ -16,12 +20,19 @@ export class SettingsRepository {
    * Find a specific system configuration setting by its string key identifier
    */
   async findSystemSettingByKey(key: string) {
+    const cached = this.settingsCache.get(key);
+    if (cached && Date.now() < cached.expiresAt) {
+      return cached.value;
+    }
+
     try {
       const result = await db
         .select()
         .from(systemSettings)
         .where(eq(systemSettings.key, key));
-      return result[0] || null;
+      const val = result[0] || null;
+      this.settingsCache.set(key, { value: val, expiresAt: Date.now() + this.CACHE_TTL_MS });
+      return val;
     } catch (error) {
       console.error('Database query (findSystemSettingByKey) failed:', error);
       throw new Error('Failed to retrieve system setting.');
@@ -32,8 +43,13 @@ export class SettingsRepository {
    * Get all platform system settings
    */
   async findAllSystemSettings() {
+    if (this.allSettingsCache && Date.now() < this.allSettingsCache.expiresAt) {
+      return this.allSettingsCache.value;
+    }
+
     try {
       const result = await db.select().from(systemSettings);
+      this.allSettingsCache = { value: result, expiresAt: Date.now() + this.CACHE_TTL_MS };
       return result;
     } catch (error) {
       console.error('Database query (findAllSystemSettings) failed:', error);
@@ -51,6 +67,10 @@ export class SettingsRepository {
     description?: string;
     updatedBy?: string;
   }) {
+    // Invalidate local in-memory cache on update
+    this.settingsCache.delete(data.key);
+    this.allSettingsCache = null;
+
     try {
       const existing = await db
         .select()

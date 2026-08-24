@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
-import { Menu, X, User, Lock, Fingerprint, Wallet, Settings, HelpCircle, LogOut } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Menu, X, User, Lock, Fingerprint, Wallet, Settings, HelpCircle, LogOut, Clock } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme.ts';
 import { useLocalization } from '../../contexts/LocalizationContext.tsx';
 import { useAvatar } from '../../hooks/useAvatar.ts';
@@ -12,7 +12,6 @@ import { ThemeSwitch } from '../ui/ThemeSwitch.tsx';
 import { NotificationBell } from './NotificationBell.tsx';
 import { AvatarPicker } from '../ui/AvatarPicker.tsx';
 import logoImg from '../../../assets/images/branding/logo.png';
-import logoMarkImg from '../../../assets/images/branding/logo-mark.png';
 import type { MockIdentity } from '../../types/index.ts';
 import { DashboardTab } from './Sidebar.tsx';
 
@@ -33,31 +32,55 @@ export const TopNav: React.FC<TopNavProps> = ({ identity, activeTab, onNavigate,
   const { avatarUrl } = useAvatar();
   const [isOpen, setIsOpen] = useState(false);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [utcTime, setUtcTime] = useState<string>('');
+  const [localTime, setLocalTime] = useState<string>('');
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setUtcTime(
+        now.toLocaleTimeString('en-US', { timeZone: 'UTC', hour12: false, hour: '2-digit', minute: '2-digit' }) + ' UTC'
+      );
+      setLocalTime(
+        now.toLocaleTimeString(undefined, { hour12: true, hour: '2-digit', minute: '2-digit' })
+      );
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <header className="flex justify-between items-center gap-4 py-2 px-4 sm:px-6 md:px-8 border-b border-transparent relative z-40" id="dashboard-header">
-      {/* Logo: mobile shows the full wordmark, tablet/desktop keep mark + wordmark */}
+      {/* Logo */}
       <button
         type="button"
         onClick={() => onNavigate('dashboard')}
-        className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-0 p-0 text-left focus:outline-none"
+        className="flex items-center cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-0 p-0 text-left focus:outline-none"
         title="Go to Home Dashboard"
       >
         <img
           src={logoImg}
           alt="MetaFirm"
-          className={`h-7 object-contain sm:hidden ${t.isDark ? 'brightness-0 invert' : ''}`}
-        />
-        <img src={logoMarkImg} alt="MetaFirm mark" className="hidden sm:block w-9 h-9 object-contain" />
-        <img
-          src={logoImg}
-          alt="MetaFirm"
-          className={`h-7 object-contain hidden sm:block ${t.isDark ? 'brightness-0 invert' : ''}`}
+          className={`h-7 sm:h-8 object-contain ${t.isDark ? 'brightness-0 invert' : ''}`}
         />
       </button>
 
       {/* Right: theme switch + hamburger menu */}
-      <div className="flex items-center gap-3 relative">
+      <div className="flex items-center gap-2.5 sm:gap-3 relative">
+        {/* Subtle Live Clock Pill */}
+        <div 
+          className={`hidden md:flex items-center gap-2 px-2.5 py-1.5 rounded-xl border text-[10px] font-mono font-semibold cursor-default transition-all ${
+            t.isDark ? 'bg-white/5 border-white/10 text-gray-300' : 'bg-gray-50 border-gray-200/70 text-gray-600'
+          }`}
+          title="MetaFirm System Time (UTC) & Local Device Time"
+        >
+          <Clock className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+          <span className="text-cyan-400 font-bold">{utcTime}</span>
+          <span className="text-gray-400">|</span>
+          <span>{localTime}</span>
+        </div>
+
         <ThemeSwitch />
         <NotificationBell />
 

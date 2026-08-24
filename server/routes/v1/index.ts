@@ -9,8 +9,12 @@ import authRoutes from './authRoutes.ts';
 import adminRoutes from './adminRoutes.ts';
 import webhookRoutes from './webhookRoutes.ts';
 import taskRoutes from './taskRoutes.ts';
+import systemRoutes from './systemRoutes.ts';
 
 const router = Router();
+
+// Mount public system configuration routes (app versioning, force update policies)
+router.use('/system', systemRoutes);
 
 // Mount auth routes
 router.use('/auth', authRoutes);

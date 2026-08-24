@@ -74,6 +74,16 @@ const getTypeMeta = (type: string) => {
         icon: Award,
         bg: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
       };
+    case 'Trial Expiry':
+      return {
+        icon: ArrowUpRight,
+        bg: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+      };
+    case 'System Adjustment':
+      return {
+        icon: Layers,
+        bg: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+      };
     default:
       return {
         icon: Layers,

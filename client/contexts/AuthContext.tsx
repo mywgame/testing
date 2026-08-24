@@ -63,6 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await fetch(getApiUrl('/users/profile'), {
         method: 'GET',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -109,6 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Step A: Register the user with referral code and additional fields
         const registerResponse = await fetch(getApiUrl('/auth/register'), {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -132,6 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Step B: Authenticate the user to retrieve real JWT
       let loginResponse = await fetch(getApiUrl('/auth/login'), {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -146,6 +149,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('Sync login failed. Attempting automatic user registration (upsert)...');
         const registerResponse = await fetch(getApiUrl('/auth/register'), {
           method: 'POST',
+          credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -163,6 +167,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Retry login
           loginResponse = await fetch(getApiUrl('/auth/login'), {
             method: 'POST',
+            credentials: 'include',
             headers: {
               'Content-Type': 'application/json',
             },
@@ -218,6 +223,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await fetch(getApiUrl('/auth/admin/verify-mfa'), {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mfaToken, emailOtp, totpCode }),
       });
@@ -254,6 +260,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const resendAdminMfaOtp = async (mfaToken: string) => {
     const response = await fetch(getApiUrl('/auth/admin/resend-mfa-otp'), {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mfaToken }),
     });
@@ -271,6 +278,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     setError(null);
     try {
+      await fetch(getApiUrl('/auth/logout'), {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+      }).catch(() => {});
+
       localStorage.removeItem('metafirm_token');
       localStorage.removeItem('metafirm_user');
       setToken(null);
@@ -291,6 +307,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await fetch(getApiUrl('/auth/verify-otp'), {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },

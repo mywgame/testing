@@ -12,12 +12,14 @@ import {
   Check,
   ArrowUpCircle,
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  ExternalLink
 } from 'lucide-react';
 import { Card, Badge, Button } from '../ui/index.ts';
 import { ThemeTokens } from '../ui/themeTokens.ts';
 import { AdminWithdrawal } from './types.ts';
 import { api } from '../../services/api.ts';
+import { formatDateTime } from '../../utils/dateFormatter.ts';
 
 interface WithdrawalsViewProps {
   t: ThemeTokens;
@@ -29,6 +31,7 @@ export const WithdrawalsView: React.FC<WithdrawalsViewProps> = ({ t, isDark }) =
   const [filter, setFilter] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All');
   const [search, setSearch] = useState('');
   const [copiedWallet, setCopiedWallet] = useState<string | null>(null);
+  const [copiedTxHash, setCopiedTxHash] = useState<string | null>(null);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -94,6 +97,25 @@ export const WithdrawalsView: React.FC<WithdrawalsViewProps> = ({ t, isDark }) =
     navigator.clipboard.writeText(address);
     setCopiedWallet(address);
     setTimeout(() => setCopiedWallet(null), 2000);
+  };
+
+  // Copy TXN Hash to Clipboard
+  const copyTxHash = (hash: string) => {
+    navigator.clipboard.writeText(hash);
+    setCopiedTxHash(hash);
+    setTimeout(() => setCopiedTxHash(null), 2000);
+  };
+
+  // Get blockchain explorer URL based on network
+  const getExplorerUrl = (hash: string, network?: string) => {
+    const net = (network || '').toUpperCase();
+    if (net.includes('TRON') || net.includes('TRC')) {
+      return `https://tronscan.org/#/transaction/${hash}`;
+    }
+    if (net.includes('POLYGON') || net.includes('POL') || net.includes('MATIC')) {
+      return `https://polygonscan.com/tx/${hash}`;
+    }
+    return `https://bscscan.com/tx/${hash}`;
   };
 
   // Filter & Search logic
@@ -195,7 +217,7 @@ export const WithdrawalsView: React.FC<WithdrawalsViewProps> = ({ t, isDark }) =
           <table className="w-full text-left text-xs">
             <thead>
               <tr className={`border-b ${t.sep} ${isDark ? 'bg-white/2' : 'bg-gray-50'}`}>
-                {['Withdrawal ID', 'User Address', 'Debit Amount', 'Destination Wallet Address', 'Timestamp', 'Review State', 'Audit Action'].map((header) => (
+                {['Withdrawal ID', 'User Address', 'Debit Amount', 'Destination Wallet Address', 'Timestamp', 'Review State', 'TXN Hash'].map((header) => (
                   <th key={header} className={`px-5 py-3.5 font-bold uppercase tracking-wider ${t.textMuted}`}>
                     {header}
                   </th>
@@ -234,7 +256,17 @@ export const WithdrawalsView: React.FC<WithdrawalsViewProps> = ({ t, isDark }) =
                         </button>
                       </div>
                     </td>
-                    <td className={`px-5 py-4 font-medium ${t.textMuted}`}>{wd.date}</td>
+                    <td className={`px-5 py-4 font-medium ${t.textMuted}`}>
+                      {(() => {
+                        const formatted = formatDateTime(wd.date);
+                        return (
+                          <div className="flex flex-col" title={`System Time: ${formatted.utcFull} (${formatted.timeZoneAbbr})`}>
+                            <span className="font-semibold text-gray-900 dark:text-white">{formatted.localDate}</span>
+                            <span className="text-[10px] text-gray-400 font-mono">{formatted.utcFull}</span>
+                          </div>
+                        );
+                      })()}
+                    </td>
                     <td className="px-5 py-4">
                       <Badge
                         variant={
@@ -272,10 +304,36 @@ export const WithdrawalsView: React.FC<WithdrawalsViewProps> = ({ t, isDark }) =
                             <span>Reject</span>
                           </button>
                         </div>
-                      ) : (
-                        <div className="inline-flex items-center gap-1 text-[10px] font-mono font-bold uppercase tracking-widest text-gray-500/80 bg-gray-500/5 px-2.5 py-1 rounded-md border border-gray-500/10">
-                          <span>Audit Settled</span>
+                      ) : wd.txHash ? (
+                        <div className="flex items-center gap-1.5 font-mono text-[11px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-md border border-emerald-500/20 max-w-fit">
+                          <a
+                            href={getExplorerUrl(wd.txHash, wd.network)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline flex items-center gap-1 font-semibold"
+                            title={`View on Explorer: ${wd.txHash}`}
+                          >
+                            <span>
+                              {wd.txHash.length > 18
+                                ? `${wd.txHash.slice(0, 5)}...${wd.txHash.slice(-8)}`
+                                : wd.txHash}
+                            </span>
+                            <ExternalLink className="w-3 h-3 opacity-70" />
+                          </a>
+                          <button
+                            onClick={() => copyTxHash(wd.txHash!)}
+                            className="p-0.5 rounded hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 transition-colors cursor-pointer"
+                            title="Copy TXN Hash"
+                          >
+                            {copiedTxHash === wd.txHash ? (
+                              <Check className="w-3 h-3 text-emerald-500" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                          </button>
                         </div>
+                      ) : (
+                        <span className="text-gray-400 font-mono text-[11px]">-</span>
                       )}
                     </td>
                   </tr>

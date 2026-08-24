@@ -21,6 +21,7 @@ interface TreasuryOverviewCardProps extends TreasuryComponentProps {
 
 export const TreasuryOverviewCard: React.FC<TreasuryOverviewCardProps> = ({
   t,
+  isDark,
   liveHotBalance,
   liveColdBalance,
   totalPendingSweep,
@@ -89,27 +90,43 @@ export const TreasuryOverviewCard: React.FC<TreasuryOverviewCardProps> = ({
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
       {metrics.map((metric) => (
-        <Card key={metric.title} className="p-3.5 flex flex-col justify-between min-h-[110px] relative border-slate-800">
+        <Card
+          key={metric.title}
+          className={`p-4 flex flex-col justify-between min-h-[120px] relative transition-all ${
+            isDark ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-gray-200/90 shadow-xs'
+          }`}
+        >
           <div>
-            <span className={`text-[9px] font-mono font-bold tracking-wider ${t.textMuted} uppercase`}>
+            <span className="text-xs font-mono font-bold tracking-wider text-gray-500 dark:text-gray-400 uppercase block">
               {metric.title}
             </span>
-            <div className="text-base font-extrabold font-display leading-tight mt-1">
+            <div className="text-base font-extrabold font-mono text-gray-900 dark:text-white leading-tight mt-1.5">
               {metric.value}
             </div>
           </div>
-          <div className="mt-2 text-[10px] text-gray-400 font-medium">
+          <div className="mt-2.5 text-xs text-gray-600 dark:text-gray-300 font-medium leading-relaxed">
             {metric.desc}
             {metric.address && (
-              <div className="flex items-center gap-1 mt-1 font-mono text-[9px] text-gray-500 bg-slate-900/50 p-1 rounded border border-slate-800">
-                <span className="truncate max-w-[100px]">{metric.address}</span>
+              <div
+                className={`flex items-center gap-1.5 mt-2 font-mono text-xs p-1.5 rounded-lg border ${
+                  isDark
+                    ? 'bg-slate-950/80 border-slate-800 text-slate-200'
+                    : 'bg-gray-100/90 border-gray-200 text-gray-800'
+                }`}
+              >
+                <span className="truncate max-w-[100px] font-semibold">{metric.address}</span>
                 <button
                   onClick={() => handleCopy(metric.address, metric.label)}
-                  className="text-blue-400 hover:text-blue-300 ml-auto shrink-0"
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-500 ml-auto shrink-0 font-bold p-0.5"
+                  title="Copy address"
                 >
-                  {copiedText === metric.label ? 'Copied' : <Copy className="w-3 h-3" />}
+                  {copiedText === metric.label ? (
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400">Copied</span>
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
                 </button>
               </div>
             )}

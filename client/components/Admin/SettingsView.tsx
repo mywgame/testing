@@ -13,7 +13,9 @@ import {
   Save,
   Info,
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  Smartphone,
+  Sparkles
 } from 'lucide-react';
 import { Card, Button, Input } from '../ui/index.ts';
 import { ThemeTokens } from '../ui/themeTokens.ts';
@@ -32,6 +34,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ t, isDark }) => {
   const [minWithdrawal, setMinWithdrawal] = useState('50');
   const [withdrawalFee, setWithdrawalFee] = useState('2.5');
   const [baseRefBonus, setBaseRefBonus] = useState('5.0');
+
+  // Mobile APK Force Update State
+  const [minApkVersion, setMinApkVersion] = useState('2.0.1');
+  const [latestApkVersion, setLatestApkVersion] = useState('2.0.1');
+  const [apkDownloadUrl, setApkDownloadUrl] = useState('https://pub-9c62303890854a49a9eda8efb728c7ff.r2.dev/android/metafirm-v2.0.1.apk');
+  const [apkReleaseNotes, setApkReleaseNotes] = useState('MetaFirm v2.0.1: Security updates, performance enhancements, and improved trading node connectivity.');
+  const [forceUpdateEnabled, setForceUpdateEnabled] = useState(true);
   
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
@@ -53,6 +62,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ t, isDark }) => {
         if (settingsMap.has('MIN_WITHDRAWAL_THRESHOLD')) setMinWithdrawal(settingsMap.get('MIN_WITHDRAWAL_THRESHOLD').value);
         if (settingsMap.has('WITHDRAWAL_PROCESSING_FEE')) setWithdrawalFee(settingsMap.get('WITHDRAWAL_PROCESSING_FEE').value);
         if (settingsMap.has('BASE_REFERRAL_BONUS')) setBaseRefBonus(settingsMap.get('BASE_REFERRAL_BONUS').value);
+
+        // APK Versioning
+        if (settingsMap.has('MIN_REQUIRED_APK_VERSION')) setMinApkVersion(settingsMap.get('MIN_REQUIRED_APK_VERSION').value);
+        if (settingsMap.has('LATEST_APK_VERSION')) setLatestApkVersion(settingsMap.get('LATEST_APK_VERSION').value);
+        if (settingsMap.has('APK_DOWNLOAD_URL')) setApkDownloadUrl(settingsMap.get('APK_DOWNLOAD_URL').value);
+        if (settingsMap.has('APK_UPDATE_RELEASE_NOTES')) setApkReleaseNotes(settingsMap.get('APK_UPDATE_RELEASE_NOTES').value);
+        if (settingsMap.has('FORCE_UPDATE_ENABLED')) setForceUpdateEnabled(settingsMap.get('FORCE_UPDATE_ENABLED').value === 'true');
       } else {
         setError(res.error?.message || 'Failed to fetch platform configurations.');
       }
@@ -80,6 +96,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ t, isDark }) => {
         api.updateAdminSetting('MIN_WITHDRAWAL_THRESHOLD', minWithdrawal),
         api.updateAdminSetting('WITHDRAWAL_PROCESSING_FEE', withdrawalFee),
         api.updateAdminSetting('BASE_REFERRAL_BONUS', baseRefBonus),
+        api.updateAdminSetting('MIN_REQUIRED_APK_VERSION', minApkVersion),
+        api.updateAdminSetting('LATEST_APK_VERSION', latestApkVersion),
+        api.updateAdminSetting('APK_DOWNLOAD_URL', apkDownloadUrl),
+        api.updateAdminSetting('APK_UPDATE_RELEASE_NOTES', apkReleaseNotes),
+        api.updateAdminSetting('FORCE_UPDATE_ENABLED', forceUpdateEnabled ? 'true' : 'false'),
       ]);
 
       setIsToastOpen(true);
@@ -196,6 +217,68 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ t, isDark }) => {
                     step="0.01"
                     value={baseRefBonus}
                     onChange={e => setBaseRefBonus(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Subsection 4: Mobile APK & Force Update Policies */}
+              <div className="space-y-4">
+                <div className="border-b pb-2 flex items-center justify-between">
+                  <h3 className="font-display font-bold text-sm flex items-center gap-2">
+                    <Smartphone className="w-4 h-4 text-amber-500" />
+                    <span>Android APK Versioning & Force Update Control</span>
+                  </h3>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold">
+                    <input
+                      type="checkbox"
+                      checked={forceUpdateEnabled}
+                      onChange={e => setForceUpdateEnabled(e.target.checked)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                    />
+                    <span className={forceUpdateEnabled ? 'text-amber-500 font-bold' : 'text-gray-400'}>
+                      {forceUpdateEnabled ? 'Force Update Active' : 'Force Update Disabled'}
+                    </span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    label="Minimum Required APK Version (e.g. 1.1.0)"
+                    value={minApkVersion}
+                    onChange={e => setMinApkVersion(e.target.value)}
+                    placeholder="1.1.0"
+                    required
+                  />
+                  <Input
+                    label="Latest Available APK Version"
+                    value={latestApkVersion}
+                    onChange={e => setLatestApkVersion(e.target.value)}
+                    placeholder="1.1.0"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Input
+                    label="Direct APK Package Download URL"
+                    value={apkDownloadUrl}
+                    onChange={e => setApkDownloadUrl(e.target.value)}
+                    placeholder="https://metafirm.app/download/metafirm-latest.apk"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5 text-left">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300">
+                    Release Highlights / Changelog (Shown in App Modal)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={apkReleaseNotes}
+                    onChange={e => setApkReleaseNotes(e.target.value)}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    placeholder="Describe key improvements, security patches, or backend connection updates..."
                     required
                   />
                 </div>

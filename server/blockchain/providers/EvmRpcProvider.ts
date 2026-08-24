@@ -141,6 +141,63 @@ export class EvmRpcProvider implements BlockchainProvider {
   }
 
   /**
+   * Broadcast native coin transfer (e.g. BNB or POL/MATIC) signed with a given private key
+   */
+  async broadcastNativeTransaction(
+    network: string,
+    toAddress: string,
+    amount: string,
+    fromPrivateKey?: string
+  ): Promise<string> {
+    const netConfig = blockchainConfig.networks[network];
+    const signerKey = fromPrivateKey || netConfig?.hotPrivateKey;
+    const normalizedTo = normalizeEvmAddress(toAddress);
+
+    if (!signerKey) {
+      throw new Error(
+        `Signer private key is required for native transfer on network '${network}'.`
+      );
+    }
+
+    try {
+      return await rpcManager.executeRpc(network, async (rpcUrl) => {
+        const provider = rpcManager.getProvider(network, rpcUrl);
+        const wallet = new ethers.Wallet(signerKey, provider);
+
+        const balance = await provider.getBalance(wallet.address);
+        const feeData = await provider.getFeeData();
+        const gasPrice = feeData.gasPrice ?? ethers.parseUnits('3', 'gwei');
+        const gasLimit = 21000n;
+        const txCost = gasLimit * gasPrice;
+
+        let sendValue = ethers.parseEther(amount);
+
+        // When sweeping native coin (e.g. BNB/POL), total cost = sendValue + txCost.
+        // If sendValue + txCost exceeds current balance, auto-deduct the minimal tx fee
+        if (sendValue + txCost > balance) {
+          if (balance <= txCost) {
+            throw new Error(
+              `Address native balance (${ethers.formatEther(balance)}) is lower than network transaction fee (${ethers.formatEther(txCost)}).`
+            );
+          }
+          sendValue = balance - txCost;
+        }
+
+        const tx = await wallet.sendTransaction({
+          to: normalizedTo,
+          value: sendValue,
+          gasLimit,
+          gasPrice,
+        });
+        return tx.hash;
+      });
+    } catch (err: any) {
+      console.error(`[EvmRpcProvider] Broadcast native transaction failed on ${network}:`, err.message);
+      throw new Error(`Failed to broadcast native transaction on ${network}: ${err.message}`);
+    }
+  }
+
+  /**
    * Validate EVM address
    */
   async validateAddress(_network: string, address: string): Promise<boolean> {
