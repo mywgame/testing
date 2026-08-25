@@ -191,63 +191,57 @@ export const Register: React.FC<RegisterProps> = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
     >
-      <form onSubmit={handleLocalSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4 min-w-0 w-full">
-          <div className="space-y-1 min-w-0">
-            <label htmlFor="auth-name-input" className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
-              Full Name
-            </label>
-            <input
+      <form onSubmit={handleLocalSubmit} className="space-y-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 min-w-0 w-full">
+          <div className="min-w-0">
+            <Input
+              label="Full Name"
               type="text"
               value={fullName}
               onChange={(e) => updateField('reg_fullName', e.target.value, setFullName)}
               placeholder="John Doe"
               id="auth-name-input"
+              className="!rounded-2xl !border-slate-300/80 !bg-white/70 !backdrop-blur-sm !shadow-sm !py-2.5 sm:!py-3 focus-visible:!ring-blue-500 focus-visible:!border-blue-400"
               required
-              className="w-full px-4 py-2.5 sm:py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
             />
           </div>
 
-          <div className="space-y-1 min-w-0">
-            <label htmlFor="auth-username-input" className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
-              Username
-            </label>
-            <input
+          <div className="min-w-0">
+            <Input
+              label="Username"
               type="text"
               value={username}
               onChange={(e) => updateField('reg_username', e.target.value, setUsername)}
               placeholder="johndoe"
               id="auth-username-input"
+              className="!rounded-2xl !border-slate-300/80 !bg-white/70 !backdrop-blur-sm !shadow-sm !py-2.5 sm:!py-3 focus-visible:!ring-blue-500 focus-visible:!border-blue-400"
               required
-              className="w-full px-4 py-2.5 sm:py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
             />
           </div>
 
-          <div className="space-y-1 min-w-0">
-            <label htmlFor="auth-email-input" className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
-              Email Address
-            </label>
-            <input
+          <div className="min-w-0">
+            <Input
+              label="Email Address"
               type="email"
               value={email}
               onChange={(e) => updateField('reg_email', e.target.value, setEmail)}
               placeholder="investor@metafirm.io"
               id="auth-email-input"
+              className="!rounded-2xl !border-slate-300/80 !bg-white/70 !backdrop-blur-sm !shadow-sm !py-2.5 sm:!py-3 focus-visible:!ring-blue-500 focus-visible:!border-blue-400"
               required
-              className="w-full px-4 py-2.5 sm:py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
             />
           </div>
 
           {/* Country Selector */}
           <div className="space-y-1 min-w-0">
-            <label htmlFor="auth-country-select" className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
+            <label htmlFor="auth-country-select" className="block text-xs font-semibold text-slate-800 tracking-wide mb-1.5">
               Country
             </label>
             <select
               id="auth-country-select"
               value={country}
               onChange={(e) => handleCountryChange(e.target.value)}
-              className="w-full max-w-full min-w-0 px-3.5 py-2.5 sm:py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 transition-all duration-150 focus-visible:outline-none cursor-pointer"
+              className="w-full max-w-full min-w-0 px-3.5 py-2.5 sm:py-3 text-sm font-medium border border-slate-300/80 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-400 shadow-sm bg-white/70 backdrop-blur-sm text-slate-900 transition-all duration-150 focus-visible:outline-none cursor-pointer"
             >
               {COUNTRIES.map((c) => {
                 return (
@@ -261,7 +255,7 @@ export const Register: React.FC<RegisterProps> = ({
 
           {/* Country Code + Mobile Number */}
           <div className="space-y-1 md:col-span-2 min-w-0">
-            <label htmlFor="auth-mobile-input" className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
+            <label htmlFor="auth-mobile-input" className="block text-xs font-semibold text-slate-800 tracking-wide mb-1.5">
               Mobile Number
             </label>
             <div className="flex space-x-2 min-w-0">
@@ -271,7 +265,7 @@ export const Register: React.FC<RegisterProps> = ({
                 value={countryCode}
                 readOnly
                 placeholder="+1"
-                className="w-20 flex-shrink-0 px-3 py-2.5 sm:py-3 text-sm border border-gray-300 rounded-xl focus:outline-none bg-gray-100 text-gray-700 text-center transition-all duration-150 focus-visible:outline-none cursor-not-allowed font-bold"
+                className="w-20 flex-shrink-0 px-3 py-2.5 sm:py-3 text-sm border border-slate-300/80 rounded-xl focus:outline-none bg-slate-100/80 backdrop-blur-sm text-slate-700 text-center transition-all duration-150 focus-visible:outline-none cursor-not-allowed font-bold"
                 required
               />
               <input
@@ -280,14 +274,14 @@ export const Register: React.FC<RegisterProps> = ({
                 value={mobileNumber}
                 onChange={(e) => updateField('reg_mobile', e.target.value, setMobileNumber)}
                 placeholder="555-0199"
-                className="flex-1 min-w-0 px-4 py-2.5 sm:py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
+                className="flex-1 min-w-0 px-4 py-2.5 sm:py-3 text-sm font-medium border border-slate-300/80 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-400 shadow-sm bg-white/70 backdrop-blur-sm text-slate-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-1 min-w-0 relative">
-            <label htmlFor="auth-password-input-reg" className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
+            <label htmlFor="auth-password-input-reg" className="block text-xs font-semibold text-slate-800 tracking-wide mb-1.5">
               Password
             </label>
             <div className="relative">
@@ -297,7 +291,7 @@ export const Register: React.FC<RegisterProps> = ({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-4 pr-10 py-2.5 sm:py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
+                className="w-full pl-4 pr-10 py-2.5 sm:py-3 text-sm font-medium border border-slate-300/80 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-400 shadow-sm bg-white/70 backdrop-blur-sm text-slate-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
                 required
               />
               <button
@@ -311,7 +305,7 @@ export const Register: React.FC<RegisterProps> = ({
           </div>
 
           <div className="space-y-1 min-w-0 relative">
-            <label htmlFor="auth-confirm-password-input" className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
+            <label htmlFor="auth-confirm-password-input" className="block text-xs font-semibold text-slate-800 tracking-wide mb-1.5">
               Confirm Password
             </label>
             <div className="relative">
@@ -321,7 +315,7 @@ export const Register: React.FC<RegisterProps> = ({
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-4 pr-10 py-2.5 sm:py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
+                className="w-full pl-4 pr-10 py-2.5 sm:py-3 text-sm font-medium border border-slate-300/80 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-400 shadow-sm bg-white/70 backdrop-blur-sm text-slate-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
                 required
               />
               <button
@@ -334,17 +328,15 @@ export const Register: React.FC<RegisterProps> = ({
             </div>
           </div>
 
-          <div className="space-y-1 md:col-span-2 min-w-0">
-            <label htmlFor="auth-referral-input" className="block text-xs font-semibold text-gray-800 tracking-wide mb-1">
-              Referral Code (Optional)
-            </label>
-            <input
+          <div className="md:col-span-2 min-w-0">
+            <Input
+              label="Referral Code (Optional)"
               type="text"
               value={referralCode}
               onChange={(e) => updateField('reg_referralCode', e.target.value, setReferralCode)}
               placeholder="e.g. PARTNER88"
               id="auth-referral-input"
-              className="w-full px-4 py-2.5 sm:py-3 text-sm font-medium border border-gray-300 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 bg-white text-gray-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none uppercase"
+              className="!rounded-2xl !border-slate-300/80 !bg-white/70 !backdrop-blur-sm !shadow-sm !py-2.5 sm:!py-3 focus-visible:!ring-blue-500 focus-visible:!border-blue-400"
             />
           </div>
         </div>
@@ -352,7 +344,7 @@ export const Register: React.FC<RegisterProps> = ({
         <Button
           type="submit"
           isLoading={busy}
-          className="w-full mt-1.5"
+          className="w-full mt-2 !py-3.5 !bg-[image:var(--background-image-brand-gradient)] hover:!opacity-90 !shadow-lg !shadow-blue-500/25 !text-white !border-none"
           variant="primary"
           size="lg"
           id="auth-submit-btn"

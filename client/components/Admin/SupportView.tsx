@@ -211,7 +211,14 @@ export const SupportView: React.FC<SupportViewProps> = ({ t, isDark }) => {
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-[10px] font-bold text-blue-500">{tk.ticketNumber}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-[10px] font-bold text-blue-500">{tk.ticketNumber}</span>
+                        {(!tk.userId || tk.guestSessionId) && (
+                          <span className="px-1.5 py-0.5 text-[9px] font-extrabold uppercase rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                            Guest / Pre-Login
+                          </span>
+                        )}
+                      </div>
                       <span className={`text-[10px] font-medium ${t.textMuted}`}>{dateString}</span>
                     </div>
 
@@ -220,7 +227,9 @@ export const SupportView: React.FC<SupportViewProps> = ({ t, isDark }) => {
                     <div className="flex items-center justify-between mt-3">
                       <div className="flex items-center gap-1 min-w-0 mr-2">
                         <User className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                        <span className={`text-[10px] font-semibold truncate ${t.textSub}`}>{tk.userName || tk.userEmail || 'Member'}</span>
+                        <span className={`text-[10px] font-semibold truncate ${t.textSub}`}>
+                          {tk.guestName ? `${tk.guestName} (Guest)` : (tk.userName || tk.userEmail || 'Member')}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <Badge variant={tk.priority === 'HIGH' || tk.priority === 'URGENT' ? 'rose' : tk.priority === 'MEDIUM' ? 'amber' : 'neutral'}>
@@ -251,11 +260,24 @@ export const SupportView: React.FC<SupportViewProps> = ({ t, isDark }) => {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-mono font-bold text-xs text-blue-500">{activeTicket.ticketNumber}</span>
+                    {(!activeTicket.userId || activeTicket.guestSessionId) && (
+                      <span className="px-1.5 py-0.5 text-[9px] font-extrabold uppercase rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                        Guest / Pre-Login
+                      </span>
+                    )}
                     <Badge variant={activeTicket.priority === 'HIGH' || activeTicket.priority === 'URGENT' ? 'rose' : activeTicket.priority === 'MEDIUM' ? 'amber' : 'neutral'}>
                       {activeTicket.priority} Priority
                     </Badge>
                   </div>
                   <h4 className="font-display font-bold text-xs tracking-tight truncate mt-1">{activeTicket.subject}</h4>
+                  {(!activeTicket.userId || activeTicket.guestSessionId) && (
+                    <div className="flex items-center gap-3 text-[10px] text-gray-400 mt-1">
+                      <span><strong>Contact Name:</strong> {activeTicket.guestName || 'Anonymous Guest'}</span>
+                      {activeTicket.guestEmail && <span><strong>Email:</strong> {activeTicket.guestEmail}</span>}
+                      {activeTicket.guestPhone && <span><strong>Phone:</strong> {activeTicket.guestPhone}</span>}
+                      <span><strong>Category:</strong> {activeTicket.category}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-1.5 shrink-0">
@@ -351,7 +373,7 @@ export const SupportView: React.FC<SupportViewProps> = ({ t, isDark }) => {
                           }`}>
                             <div className="flex items-center justify-between gap-4 mb-1 border-b border-white/10 pb-0.5">
                               <span className="font-mono text-[9px] uppercase tracking-wider font-extrabold opacity-75">
-                                {isAdmin ? 'System Auditor (Admin)' : (activeTicket.userName || activeTicket.userEmail || 'Member')}
+                                {isAdmin ? 'System Auditor (Admin)' : (msg.senderName || (msg.senderType === 'GUEST' ? 'Guest Visitor' : (activeTicket.userName || activeTicket.userEmail || 'Member')))}
                               </span>
                               <span className="text-[8px] opacity-60 font-mono font-medium">
                                 {new Date(msg.createdAt).toLocaleString()}

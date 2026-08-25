@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   ScrollText,
   Search,
@@ -21,7 +21,11 @@ import {
   Calendar,
   Globe,
   Monitor,
-  Download
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-react';
 import { Card, Badge, Button } from '../ui/index.ts';
 import { ThemeTokens } from '../ui/themeTokens.ts';
@@ -86,6 +90,9 @@ export const AuditLogsView: React.FC<AuditLogsViewProps> = ({ t, isDark }) => {
   const [error, setError] = useState<string | null>(null);
   const [selectedLog, setSelectedLog] = useState<AdminAuditLog | null>(null);
 
+  const [pageSize, setPageSize] = useState<number>(100);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
   const fetchLogs = async () => {
     try {
       setLoading(true);
@@ -108,19 +115,36 @@ export const AuditLogsView: React.FC<AuditLogsViewProps> = ({ t, isDark }) => {
   }, []);
 
   // Filter logs
-  const filteredLogs = logs.filter(log => {
-    const term = search.toLowerCase();
-    const matchesSearch =
-      log.action.toLowerCase().includes(term) ||
-      log.admin.toLowerCase().includes(term) ||
-      (log.targetUser && log.targetUser.toLowerCase().includes(term)) ||
-      (log.resource && log.resource.toLowerCase().includes(term)) ||
-      log.ip.toLowerCase().includes(term);
+  const filteredLogs = useMemo(() => {
+    return logs.filter(log => {
+      const term = search.toLowerCase();
+      const matchesSearch =
+        log.action.toLowerCase().includes(term) ||
+        log.admin.toLowerCase().includes(term) ||
+        (log.targetUser && log.targetUser.toLowerCase().includes(term)) ||
+        (log.resource && log.resource.toLowerCase().includes(term)) ||
+        log.ip.toLowerCase().includes(term);
 
-    if (!matchesSearch) return false;
-    if (moduleFilter === 'All') return true;
-    return log.module === moduleFilter;
-  });
+      if (!matchesSearch) return false;
+      if (moduleFilter === 'All') return true;
+      return log.module === moduleFilter;
+    });
+  }, [logs, search, moduleFilter]);
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, moduleFilter, pageSize]);
+
+  // Pagination calculation
+  const totalEntries = filteredLogs.length;
+  const totalPages = Math.max(1, Math.ceil(totalEntries / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalEntries);
+  const paginatedLogs = useMemo(() => {
+    return filteredLogs.slice(startIndex, endIndex);
+  }, [filteredLogs, startIndex, endIndex]);
 
   const exportLogsAsCSV = () => {
     if (filteredLogs.length === 0) return;
@@ -241,11 +265,11 @@ export const AuditLogsView: React.FC<AuditLogsViewProps> = ({ t, isDark }) => {
           </div>
         )}
 
-        {/* Trail Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className={`border-b ${t.sep} ${isDark ? 'bg-white/2' : 'bg-gray-50'}`}>
+        {/* Dedicated Scrollable Table Container */}
+        <div className="relative overflow-x-auto max-h-[620px] overflow-y-auto overscroll-contain divide-y divide-gray-100/10 [scrollbar-width:thin] [scrollbar-color:rgba(156,163,175,0.4)_transparent]">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className={`sticky top-0 z-20 backdrop-blur-md ${isDark ? 'bg-gray-900/95' : 'bg-gray-50/95'} border-b ${t.sep} shadow-xs`}>
+              <tr>
                 {['Action', 'Target User', 'Performed By', 'Module', 'Timestamp'].map((header) => (
                   <th key={header} className={`px-5 py-3.5 font-bold uppercase tracking-wider text-[11px] ${t.textMuted}`}>
                     {header}
@@ -256,15 +280,15 @@ export const AuditLogsView: React.FC<AuditLogsViewProps> = ({ t, isDark }) => {
             <tbody className="divide-y divide-gray-100/10">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-5 py-12 text-center">
+                  <td colSpan={5} className="px-5 py-16 text-center">
                     <div className="flex flex-col items-center justify-center gap-2 text-gray-400">
-                      <RefreshCw className="w-5 h-5 animate-spin text-blue-500" />
+                      <RefreshCw className="w-6 h-6 animate-spin text-blue-500" />
                       <span className="text-xs font-medium">Fetching real-time audit ledger...</span>
                     </div>
                   </td>
                 </tr>
-              ) : filteredLogs.length > 0 ? (
-                filteredLogs.map((log, idx) => {
+              ) : paginatedLogs.length > 0 ? (
+                paginatedLogs.map((log, idx) => {
                   // Resolve Target User primary and secondary representation
                   const targetName = log.targetUserName || (log.targetUser ? log.targetUser.replace(/\s*\([^)]*\)/, '') : null);
                   const targetDsId = log.targetUserDsId || (log.targetUser && log.targetUser.includes('(') ? log.targetUser.match(/\(([^)]+)\)/)?.[1] : null);
@@ -339,13 +363,103 @@ export const AuditLogsView: React.FC<AuditLogsViewProps> = ({ t, isDark }) => {
                 })
               ) : (
                 <tr>
-                  <td colSpan={5} className={`px-5 py-10 text-center font-medium ${t.textMuted}`}>
+                  <td colSpan={5} className={`px-5 py-12 text-center font-medium ${t.textMuted}`}>
                     No audit records found matching your filters.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Dedicated Pagination & Range Control Footer */}
+        <div className={`p-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4 text-xs ${t.sep} ${isDark ? 'bg-gray-900/60' : 'bg-gray-50/60'}`}>
+          <div className="flex items-center gap-3">
+            <span className={t.textMuted}>
+              Showing <span className="font-bold text-gray-900 dark:text-white">{totalEntries === 0 ? 0 : startIndex + 1}</span> to{' '}
+              <span className="font-bold text-gray-900 dark:text-white">{endIndex}</span> of{' '}
+              <span className="font-bold text-gray-900 dark:text-white">{totalEntries}</span> logs
+            </span>
+            <div className="flex items-center gap-1.5 pl-3 border-l border-gray-200 dark:border-gray-800">
+              <span className={`text-[11px] ${t.textMuted}`}>Per Page:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                className={`px-2 py-1 rounded-lg text-xs font-semibold border ${t.input} focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer`}
+              >
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value={200}>200</option>
+                <option value={500}>500</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage(1)}
+              disabled={safePage <= 1 || loading}
+              className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                safePage <= 1 || loading
+                  ? 'opacity-30 cursor-not-allowed border-transparent'
+                  : isDark
+                  ? 'hover:bg-white/10 border-gray-800 text-gray-200'
+                  : 'hover:bg-gray-100 border-gray-200 text-gray-700'
+              }`}
+              title="First Page"
+            >
+              <ChevronsLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={safePage <= 1 || loading}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
+                safePage <= 1 || loading
+                  ? 'opacity-30 cursor-not-allowed border-transparent'
+                  : isDark
+                  ? 'hover:bg-white/10 border-gray-800 text-gray-200'
+                  : 'hover:bg-gray-100 border-gray-200 text-gray-700'
+              }`}
+              title="Previous Page"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>Prev</span>
+            </button>
+
+            <span className={`px-3 py-1 text-xs font-bold rounded-lg ${isDark ? 'bg-white/5 text-gray-300' : 'bg-gray-200 text-gray-800'}`}>
+              Page {safePage} of {totalPages}
+            </span>
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={safePage >= totalPages || loading}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
+                safePage >= totalPages || loading
+                  ? 'opacity-30 cursor-not-allowed border-transparent'
+                  : isDark
+                  ? 'hover:bg-white/10 border-gray-800 text-gray-200'
+                  : 'hover:bg-gray-100 border-gray-200 text-gray-700'
+              }`}
+              title="Next Page"
+            >
+              <span>Next</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={safePage >= totalPages || loading}
+              className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                safePage >= totalPages || loading
+                  ? 'opacity-30 cursor-not-allowed border-transparent'
+                  : isDark
+                  ? 'hover:bg-white/10 border-gray-800 text-gray-200'
+                  : 'hover:bg-gray-100 border-gray-200 text-gray-700'
+              }`}
+              title="Last Page"
+            >
+              <ChevronsRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </Card>
 

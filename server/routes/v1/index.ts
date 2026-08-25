@@ -10,11 +10,15 @@ import adminRoutes from './adminRoutes.ts';
 import webhookRoutes from './webhookRoutes.ts';
 import taskRoutes from './taskRoutes.ts';
 import systemRoutes from './systemRoutes.ts';
+import publicSupportRoutes from './publicSupportRoutes.ts';
 
 const router = Router();
 
 // Mount public system configuration routes (app versioning, force update policies)
 router.use('/system', systemRoutes);
+
+// Mount public support routes (for guests, visitors, pre-login support)
+router.use('/support', publicSupportRoutes);
 
 // Mount auth routes
 router.use('/auth', authRoutes);

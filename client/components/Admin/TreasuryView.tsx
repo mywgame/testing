@@ -122,8 +122,6 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
   const [bulkSweeping, setBulkSweeping] = useState(false);
   const [coldSweeping, setColdSweeping] = useState(false);
   const [sweepingAddressId, setSweepingAddressId] = useState<string | null>(null);
-  const [collectingGasAddressId, setCollectingGasAddressId] = useState<string | null>(null);
-  const [collectingAllGas, setCollectingAllGas] = useState<boolean>(false);
   const [retryingJobId, setRetryingJobId] = useState<string | null>(null);
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
@@ -266,45 +264,6 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
       showFeedback(null, err.message);
     } finally {
       setSweepingAddressId(null);
-    }
-  };
-
-  // 3b. Manual Single User Native Gas Collection
-  const handleCollectGas = async (addressId: string) => {
-    try {
-      setCollectingGasAddressId(addressId);
-      const res = await api.sweepUserNativeGas(addressId);
-
-      if (!res.success) throw new Error(res.error?.message || 'Gas collection failed.');
-
-      showFeedback(`Gas collection broadcasted to blockchain (${res.data?.amount} ${res.data?.gasSymbol || 'GAS'}) — awaiting on-chain confirmation. TxHash: ${res.data?.txHash || 'Submitted'}`, null);
-      refreshAll();
-    } catch (err: any) {
-      showFeedback(null, err.message);
-    } finally {
-      setCollectingGasAddressId(null);
-    }
-  };
-
-  // 3c. Reclaim/Collect All Native Gas on Selected Network
-  const handleCollectAllGas = async () => {
-    const netName = selectedNetwork.replace('USDT_', '');
-    if (!window.confirm(`Are you sure you want to reclaim all unused native gas across deposit addresses on ${netName} back to the Hot Wallet?`)) {
-      return;
-    }
-    try {
-      setCollectingAllGas(true);
-      const res = await api.sweepAllUserNativeGas(selectedNetwork);
-
-      if (!res.success) throw new Error(res.error?.message || 'Bulk gas collection failed.');
-
-      const runCount = res.data?.results?.length || 0;
-      showFeedback(`Bulk gas collection initiated for ${runCount} address(es) — awaiting on-chain confirmation.`, null);
-      refreshAll();
-    } catch (err: any) {
-      showFeedback(null, err.message);
-    } finally {
-      setCollectingAllGas(false);
     }
   };
 
@@ -806,12 +765,6 @@ export const TreasuryView: React.FC<TreasuryViewProps> = ({ t, isDark }) => {
             depositAddresses={depositAddresses}
             handleSweepAddress={handleSweepAddress}
             sweepingAddressId={sweepingAddressId}
-            handleCollectGas={handleCollectGas}
-            collectingGasAddressId={collectingGasAddressId}
-            handleCollectAllGas={handleCollectAllGas}
-            collectingAllGas={collectingAllGas}
-            selectedNetwork={selectedNetwork}
-            totalUserGas={totalUserGas}
           />
 
           {/* Sweep History & Job Logs */}

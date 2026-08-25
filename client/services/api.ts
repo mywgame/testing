@@ -365,6 +365,52 @@ class ApiService {
     return this.post<any>(`/users/support/tickets/${ticketId}/close`, {});
   }
 
+  /* =========================================================================
+   * GUEST & PRE-LOGIN SUPPORT ENDPOINTS
+   * ========================================================================= */
+
+  /**
+   * Guest / Visitor: Initiate or submit a pre-login support inquiry ticket
+   */
+  async createGuestSupportInquiry(payload: {
+    guestSessionId: string;
+    guestName?: string;
+    guestEmail?: string;
+    guestPhone?: string;
+    category: string;
+    subject?: string;
+    description: string;
+  }): Promise<ApiResponse<any>> {
+    return this.post<any>('/support/guest/inquiry', payload);
+  }
+
+  /**
+   * Guest / Visitor: Fetch list of tickets created in this guest session
+   */
+  async getGuestTickets(guestSessionId: string): Promise<ApiResponse<any>> {
+    return this.get<any>(`/support/guest/tickets/${encodeURIComponent(guestSessionId)}`);
+  }
+
+  /**
+   * Guest / Visitor: Fetch complete message thread for a guest ticket
+   */
+  async getGuestTicketMessages(ticketId: string, guestSessionId: string): Promise<ApiResponse<any>> {
+    return this.get<any>(`/support/guest/tickets/${ticketId}/messages?guestSessionId=${encodeURIComponent(guestSessionId)}`, {
+      'x-guest-session-id': guestSessionId,
+    });
+  }
+
+  /**
+   * Guest / Visitor: Reply to an existing guest support ticket
+   */
+  async replyToGuestTicket(ticketId: string, payload: {
+    guestSessionId: string;
+    senderName?: string;
+    message: string;
+  }): Promise<ApiResponse<any>> {
+    return this.post<any>(`/support/guest/tickets/${ticketId}/reply`, payload);
+  }
+
   /**
    * Admin: Retrieve all support tickets with pagination, search, and category filters
    */
@@ -727,20 +773,6 @@ class ApiService {
    */
   async sweepUserDepositAddress(addressId: string): Promise<ApiResponse<any>> {
     return this.post<any>('/admin/treasury/sweep/address', { addressId });
-  }
-
-  /**
-   * Admin: Reclaim/collect native gas from a specific user deposit address
-   */
-  async sweepUserNativeGas(addressId: string): Promise<ApiResponse<any>> {
-    return this.post<any>('/admin/treasury/sweep/gas/address', { addressId });
-  }
-
-  /**
-   * Admin: Reclaim/collect native gas from all eligible deposit addresses on a network
-   */
-  async sweepAllUserNativeGas(network: string): Promise<ApiResponse<any>> {
-    return this.post<any>('/admin/treasury/sweep/gas/all', { network });
   }
 
   /**

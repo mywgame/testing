@@ -1,25 +1,47 @@
 import React, { useState } from 'react';
 import { Mail, Clock, MapPin, Phone, Send, ShieldCheck } from 'lucide-react';
 import { contactDetails } from '../utils/landingData.ts';
+import { api } from '../services/api.ts';
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 export const Contact: React.FC = () => {
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (name.trim() && email.trim() && message.trim()) {
-      setFormSubmitted(true);
-      setTimeout(() => {
-        setFormSubmitted(false);
-        setName('');
-        setEmail('');
-        setMessage('');
-      }, 3500);
+    if (name.trim() && email.trim() && message.trim() && !isSubmitting) {
+      setIsSubmitting(true);
+      try {
+        let guestSessionId = localStorage.getItem('metafirm_guest_session_id');
+        if (!guestSessionId) {
+          guestSessionId = 'guest_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+          localStorage.setItem('metafirm_guest_session_id', guestSessionId);
+        }
+        await api.createGuestSupportInquiry({
+          guestSessionId,
+          guestName: name.trim(),
+          guestEmail: email.trim(),
+          category: 'GENERAL',
+          subject: `Corporate / Platform Inquiry from ${name.trim()}`,
+          description: message.trim(),
+        });
+      } catch (err) {
+        console.error('Failed to submit contact inquiry:', err);
+      } finally {
+        setIsSubmitting(false);
+        setFormSubmitted(true);
+        setTimeout(() => {
+          setFormSubmitted(false);
+          setName('');
+          setEmail('');
+          setMessage('');
+        }, 4000);
+      }
     }
   };
 

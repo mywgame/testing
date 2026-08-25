@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Zap, Link as LinkIcon, Users, Award, ChevronUp, ChevronDown, ChevronRight } from 'lucide-react';
+import { Zap, Link as LinkIcon, Users, Award, ChevronUp, ChevronDown } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme.ts';
 import { useLocalization } from '../../contexts/LocalizationContext.tsx';
 
@@ -27,7 +27,6 @@ interface IncomeOverviewProps {
     today: number;
     total: number;
   };
-  onRowClick?: (type: 'daily' | 'referral' | 'team' | 'incentive') => void;
 }
 
 export const IncomeOverview: React.FC<IncomeOverviewProps> = ({
@@ -36,7 +35,6 @@ export const IncomeOverview: React.FC<IncomeOverviewProps> = ({
   referralIncome,
   teamIncome,
   incentiveIncome,
-  onRowClick,
 }) => {
   const { isDark, t: themeTokens } = useTheme();
   const { formatCurrency, t } = useLocalization();
@@ -170,8 +168,7 @@ export const IncomeOverview: React.FC<IncomeOverviewProps> = ({
                   <div
                     key={row.id}
                     id={`income-row-${row.id}`}
-                    onClick={() => onRowClick?.(row.id as any)}
-                    className={`group relative rounded-xl sm:rounded-2xl p-3 sm:p-3.5 border transition-all duration-200 cursor-pointer ${
+                    className={`group relative rounded-xl sm:rounded-2xl p-3 sm:p-3.5 border transition-all duration-200 select-none ${
                       isDark
                         ? 'bg-[#121538]/60 hover:bg-[#181c47]/80 border-white/[0.06] hover:border-white/[0.12]'
                         : 'bg-slate-50/90 hover:bg-slate-100/90 border-slate-200/70 hover:border-slate-300 shadow-xs'
@@ -207,8 +204,8 @@ export const IncomeOverview: React.FC<IncomeOverviewProps> = ({
                         </div>
                       </div>
 
-                      {/* Right: Total Amount + Progress Indicator + Chevron */}
-                      <div className="flex items-center gap-2 sm:gap-3 shrink-0 text-right">
+                      {/* Right: Total Amount + Progress Indicator */}
+                      <div className="flex items-center shrink-0 text-right">
                         <div className="flex flex-col items-end">
                           <span
                             className={`font-semibold text-base sm:text-lg md:text-xl tracking-tight leading-none ${
@@ -230,12 +227,6 @@ export const IncomeOverview: React.FC<IncomeOverviewProps> = ({
                             />
                           </div>
                         </div>
-
-                        <ChevronRight
-                          className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:translate-x-0.5 ${
-                            isDark ? 'text-slate-500 group-hover:text-slate-300' : 'text-slate-400 group-hover:text-slate-600'
-                          }`}
-                        />
                       </div>
                     </div>
                   </div>
@@ -250,4 +241,3 @@ export const IncomeOverview: React.FC<IncomeOverviewProps> = ({
 };
 
 export default IncomeOverview;
-

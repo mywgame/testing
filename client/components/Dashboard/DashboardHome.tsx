@@ -58,10 +58,10 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
     ? parseFloat(dashboardData.trialFundInfo.activeTrialBalance || '0')
     : 0;
   const totalBalance = parseFloat(dashboardData.wallet.availableBalance) + activeTrialBalance;
-  const totalEarned = parseFloat(dashboardData.earnings.dailyYield) +
-                      parseFloat(dashboardData.earnings.referralIncome) +
-                      parseFloat(dashboardData.earnings.teamIncome) +
-                      parseFloat(dashboardData.earnings.incentiveIncome);
+  const totalEarned = parseFloat(dashboardData.earnings?.dailyYield || '0') +
+                      parseFloat(dashboardData.earnings?.referralIncome || '0') +
+                      parseFloat(dashboardData.earnings?.teamIncome || '0') +
+                      parseFloat(dashboardData.earnings?.incentiveIncome || '0');
   const totalWithdrawn = parseFloat(dashboardData.wallet.totalWithdrawn);
 
     const vipTier = dashboardData?.vip?.tier || user?.vipTier || 'VIP1';
@@ -218,26 +218,20 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
         <IncomeOverview
           totalEarned={totalEarned}
           dailyYield={{
-            today: parseFloat(dashboardData.earnings.todayDailyYield || '0'),
-            total: parseFloat(dashboardData.earnings.dailyYield || '0'),
+            today: parseFloat(dashboardData.earnings?.todayDailyYield || '0'),
+            total: parseFloat(dashboardData.earnings?.dailyYield || '0'),
           }}
           referralIncome={{
-            today: parseFloat(dashboardData.earnings.todayReferralIncome || '0'),
-            total: parseFloat(dashboardData.earnings.referralIncome || '0'),
+            today: parseFloat(dashboardData.earnings?.todayReferralIncome || '0'),
+            total: parseFloat(dashboardData.earnings?.referralIncome || '0'),
           }}
           teamIncome={{
-            today: parseFloat(dashboardData.earnings.todayTeamIncome || '0'),
-            total: parseFloat(dashboardData.earnings.teamIncome || '0'),
+            today: parseFloat(dashboardData.earnings?.todayTeamIncome || '0'),
+            total: parseFloat(dashboardData.earnings?.teamIncome || '0'),
           }}
           incentiveIncome={{
-            today: parseFloat(dashboardData.earnings.todayIncentiveIncome || '0'),
-            total: parseFloat(dashboardData.earnings.incentiveIncome || '0'),
-          }}
-          onRowClick={(type) => {
-            if (type === 'daily') onQuickAction?.('claim');
-            else if (type === 'referral') onQuickAction?.('invite');
-            else if (type === 'team') onQuickAction?.('team');
-            else if (type === 'incentive') onQuickAction?.('transactions');
+            today: parseFloat(dashboardData.earnings?.todayIncentiveIncome || '0'),
+            total: parseFloat(dashboardData.earnings?.incentiveIncome || '0'),
           }}
         />
 

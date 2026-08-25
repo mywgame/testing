@@ -45,6 +45,52 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 1.5rem;
   }
+
+  /* ===================================================================
+     Auth pages (Login / Register / Forgot & Reset Password / Verify Email)
+     premium glassmorphism. Scoped to these utility classes only — never
+     alters the shared Modal component's default look for the rest of
+     the app.
+     =================================================================== */
+
+  /* Frosted-glass card with the MetaFirm brand gradient as a thin border
+     ring. Deliberately light (not a heavy dark panel) for high legibility. */
+  .auth-glass-card {
+    position: relative;
+    isolation: isolate;
+    background: rgba(255, 255, 255, 0.86);
+    backdrop-filter: blur(28px) saturate(160%);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+  }
+  .auth-glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1.5px;
+    border-radius: inherit;
+    background: var(--background-image-brand-gradient);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Soft, light backdrop behind the auth card — a gentle brand-tinted
+     wash instead of a heavy black scrim, so the page never feels dark. */
+  .auth-glass-backdrop {
+    background: linear-gradient(135deg, rgba(233,30,140,0.10) 0%, rgba(21,101,240,0.12) 55%, rgba(41,171,226,0.12) 100%),
+      rgba(248, 250, 252, 0.55);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  /* Inner "glass chip" used for the security badge / input focus rings. */
+  .auth-glass-chip {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
 }
 
 html {

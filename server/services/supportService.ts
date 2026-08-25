@@ -62,6 +62,114 @@ export class SupportService {
   }
 
   /**
+   * Pre-login guest visitor creates a guest support inquiry/session
+   */
+  async createGuestSupportInquiry(data: {
+    guestSessionId: string;
+    guestName?: string;
+    guestEmail?: string;
+    guestPhone?: string;
+    category: string;
+    subject: string;
+    description: string;
+    attachmentName?: string;
+    attachmentData?: string;
+  }) {
+    const ticketNumber = this.generateTicketNumber();
+    const ticket = await supportRepository.createTicket({
+      guestSessionId: data.guestSessionId,
+      guestName: data.guestName || 'Guest User',
+      guestEmail: data.guestEmail || '',
+      guestPhone: data.guestPhone || '',
+      ticketNumber,
+      category: data.category || 'LOGIN_ISSUE',
+      subject: data.subject || 'Guest Support Inquiry',
+      description: data.description,
+      priority: 'HIGH',
+      attachmentName: data.attachmentName,
+      attachmentData: data.attachmentData,
+    });
+
+    // Append initial guest message
+    await supportRepository.createMessage({
+      ticketId: ticket.id,
+      senderName: data.guestName || 'Guest User',
+      senderType: 'GUEST',
+      message: data.description,
+    });
+
+    // Notify Admins
+    await notificationService.notifyAdmins({
+      title: 'New Guest / Pre-Login Support Chat',
+      description: `Guest [${data.guestName || 'Visitor'}] opened inquiry ${ticket.ticketNumber}: "${data.subject}"`,
+      icon: 'MessageSquare',
+      type: 'support',
+      priority: 'HIGH',
+    });
+
+    return ticket;
+  }
+
+  /**
+   * Guest adds reply to existing guest ticket
+   */
+  async addGuestTicketReply(data: {
+    ticketId: string;
+    guestSessionId: string;
+    senderName?: string;
+    message: string;
+  }) {
+    const ticket = await supportRepository.findById(data.ticketId);
+    if (!ticket) {
+      throw new Error(`Support ticket not found for ID: ${data.ticketId}`);
+    }
+
+    if (ticket.guestSessionId !== data.guestSessionId) {
+      throw new Error('Unauthorized guest session for this ticket.');
+    }
+
+    const messageRecord = await supportRepository.createMessage({
+      ticketId: data.ticketId,
+      senderName: data.senderName || ticket.guestName || 'Guest User',
+      senderType: 'GUEST',
+      message: data.message,
+    });
+
+    await supportRepository.updateTicket(ticket.id, { status: 'OPEN' });
+
+    await notificationService.notifyAdmins({
+      title: 'New Guest Support Reply',
+      description: `Guest replied to ticket ${ticket.ticketNumber}: "${data.message.substring(0, 60)}..."`,
+      icon: 'MessageSquare',
+      type: 'support',
+      priority: 'HIGH',
+    });
+
+    return messageRecord;
+  }
+
+  /**
+   * Fetch tickets for a guest session
+   */
+  async getGuestTickets(guestSessionId: string) {
+    return supportRepository.findByGuestSessionId(guestSessionId);
+  }
+
+  /**
+   * Fetch conversation for a guest session
+   */
+  async getGuestTicketMessages(ticketId: string, guestSessionId: string) {
+    const ticket = await supportRepository.findById(ticketId);
+    if (!ticket) {
+      throw new Error(`Support ticket not found for ID: ${ticketId}`);
+    }
+    if (ticket.guestSessionId !== guestSessionId) {
+      throw new Error('Unauthorized guest session for this ticket.');
+    }
+    return supportRepository.findMessagesByTicketId(ticketId);
+  }
+
+  /**
    * Add a response/reply message under a support ticket thread with authorization mapping
    */
   async addTicketReply(data: {

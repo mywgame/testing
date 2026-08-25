@@ -39,6 +39,7 @@ import { EnterpriseAdminDashboard } from './components/Admin/index.tsx';
 import { Button } from './components/ui/Buttons/index.tsx';
 import { LoadingScreen } from './components/LoadingScreen.tsx';
 import { AppVersionGuard } from './components/AppVersionGuard.tsx';
+import { FloatingSupportWidget } from './components/support/FloatingSupportWidget.tsx';
 
 
 /**
@@ -491,6 +492,9 @@ function MainAppContent() {
       />
 
     </motion.div>
+
+    {/* 5. 24/7 Floating Support Desk on Landing Page for Guests & Visitors */}
+    {!isAuthModalOpen && <FloatingSupportWidget />}
   </>
   );
 }
