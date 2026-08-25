@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Eye, EyeOff, ArrowRight } from 'lucide-react';
-import { Input, Button } from '../../ui/index.ts';
+import { Button } from '../../ui/index.ts';
 import { COUNTRIES, COUNTRY_DATA } from '../Shared/countries.ts';
 import { getApiUrl } from '../../../services/apiConfig.ts';
 
@@ -191,43 +191,59 @@ export const Register: React.FC<RegisterProps> = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
     >
-      <form onSubmit={handleLocalSubmit} className="space-y-5">
+      <form onSubmit={handleLocalSubmit} method="POST" action="#" name="registerForm" autoComplete="on" className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 min-w-0 w-full">
-          <div className="min-w-0">
-            <Input
-              label="Full Name"
+          <div className="min-w-0 space-y-1">
+            <label htmlFor="auth-name-input" className="block text-xs font-semibold text-slate-800 tracking-wide mb-1.5">
+              Full Name
+            </label>
+            <input
               type="text"
+              id="auth-name-input"
+              name="name"
+              autoComplete="name"
               value={fullName}
               onChange={(e) => updateField('reg_fullName', e.target.value, setFullName)}
+              onInput={(e) => updateField('reg_fullName', (e.target as HTMLInputElement).value, setFullName)}
               placeholder="John Doe"
-              id="auth-name-input"
-              className="!rounded-2xl !border-slate-300/80 !bg-white/70 !backdrop-blur-sm !shadow-sm !py-2.5 sm:!py-3 focus-visible:!ring-blue-500 focus-visible:!border-blue-400"
+              className="w-full px-4 py-2.5 sm:py-3 text-sm font-medium border border-slate-300/80 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-400 shadow-sm bg-white/70 backdrop-blur-sm text-slate-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
               required
             />
           </div>
 
-          <div className="min-w-0">
-            <Input
-              label="Username"
+          <div className="min-w-0 space-y-1">
+            <label htmlFor="auth-username-input" className="block text-xs font-semibold text-slate-800 tracking-wide mb-1.5">
+              Username
+            </label>
+            <input
               type="text"
+              id="auth-username-input"
+              name="username"
+              autoComplete="username"
               value={username}
               onChange={(e) => updateField('reg_username', e.target.value, setUsername)}
+              onInput={(e) => updateField('reg_username', (e.target as HTMLInputElement).value, setUsername)}
               placeholder="johndoe"
-              id="auth-username-input"
-              className="!rounded-2xl !border-slate-300/80 !bg-white/70 !backdrop-blur-sm !shadow-sm !py-2.5 sm:!py-3 focus-visible:!ring-blue-500 focus-visible:!border-blue-400"
+              className="w-full px-4 py-2.5 sm:py-3 text-sm font-medium border border-slate-300/80 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-400 shadow-sm bg-white/70 backdrop-blur-sm text-slate-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
               required
             />
           </div>
 
-          <div className="min-w-0">
-            <Input
-              label="Email Address"
+          <div className="min-w-0 space-y-1">
+            <label htmlFor="auth-email-input" className="block text-xs font-semibold text-slate-800 tracking-wide mb-1.5">
+              Email Address
+            </label>
+            <input
               type="email"
+              id="auth-email-input"
+              name="email"
+              inputMode="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => updateField('reg_email', e.target.value, setEmail)}
+              onInput={(e) => updateField('reg_email', (e.target as HTMLInputElement).value, setEmail)}
               placeholder="investor@metafirm.io"
-              id="auth-email-input"
-              className="!rounded-2xl !border-slate-300/80 !bg-white/70 !backdrop-blur-sm !shadow-sm !py-2.5 sm:!py-3 focus-visible:!ring-blue-500 focus-visible:!border-blue-400"
+              className="w-full px-4 py-2.5 sm:py-3 text-sm font-medium border border-slate-300/80 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-400 shadow-sm bg-white/70 backdrop-blur-sm text-slate-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
               required
             />
           </div>
@@ -239,6 +255,7 @@ export const Register: React.FC<RegisterProps> = ({
             </label>
             <select
               id="auth-country-select"
+              name="country"
               value={country}
               onChange={(e) => handleCountryChange(e.target.value)}
               className="w-full max-w-full min-w-0 px-3.5 py-2.5 sm:py-3 text-sm font-medium border border-slate-300/80 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-400 shadow-sm bg-white/70 backdrop-blur-sm text-slate-900 transition-all duration-150 focus-visible:outline-none cursor-pointer"
@@ -262,6 +279,7 @@ export const Register: React.FC<RegisterProps> = ({
               <input
                 type="text"
                 id="auth-country-code"
+                name="country-code"
                 value={countryCode}
                 readOnly
                 placeholder="+1"
@@ -271,8 +289,11 @@ export const Register: React.FC<RegisterProps> = ({
               <input
                 type="tel"
                 id="auth-mobile-input"
+                name="tel"
+                autoComplete="tel"
                 value={mobileNumber}
                 onChange={(e) => updateField('reg_mobile', e.target.value, setMobileNumber)}
+                onInput={(e) => updateField('reg_mobile', (e.target as HTMLInputElement).value, setMobileNumber)}
                 placeholder="555-0199"
                 className="flex-1 min-w-0 px-4 py-2.5 sm:py-3 text-sm font-medium border border-slate-300/80 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-400 shadow-sm bg-white/70 backdrop-blur-sm text-slate-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
                 required
@@ -287,9 +308,12 @@ export const Register: React.FC<RegisterProps> = ({
             <div className="relative">
               <input
                 id="auth-password-input-reg"
+                name="password"
                 type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onInput={(e) => setPassword((e.target as HTMLInputElement).value)}
                 placeholder="••••••••"
                 className="w-full pl-4 pr-10 py-2.5 sm:py-3 text-sm font-medium border border-slate-300/80 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-400 shadow-sm bg-white/70 backdrop-blur-sm text-slate-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
                 required
@@ -311,9 +335,12 @@ export const Register: React.FC<RegisterProps> = ({
             <div className="relative">
               <input
                 id="auth-confirm-password-input"
+                name="confirm-password"
                 type={showConfirmPassword ? "text" : "password"}
+                autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                onInput={(e) => setConfirmPassword((e.target as HTMLInputElement).value)}
                 placeholder="••••••••"
                 className="w-full pl-4 pr-10 py-2.5 sm:py-3 text-sm font-medium border border-slate-300/80 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-400 shadow-sm bg-white/70 backdrop-blur-sm text-slate-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
                 required
@@ -328,15 +355,17 @@ export const Register: React.FC<RegisterProps> = ({
             </div>
           </div>
 
-          <div className="md:col-span-2 min-w-0">
-            <Input
-              label="Referral Code (Optional)"
+          <div className="md:col-span-2 min-w-0 space-y-1">
+            <label htmlFor="auth-referral-input" className="block text-xs font-semibold text-slate-800 tracking-wide mb-1.5">
+              Referral Code (Optional)
+            </label>
+            <input
               type="text"
+              id="auth-referral-input"
               value={referralCode}
               onChange={(e) => updateField('reg_referralCode', e.target.value, setReferralCode)}
               placeholder="e.g. PARTNER88"
-              id="auth-referral-input"
-              className="!rounded-2xl !border-slate-300/80 !bg-white/70 !backdrop-blur-sm !shadow-sm !py-2.5 sm:!py-3 focus-visible:!ring-blue-500 focus-visible:!border-blue-400"
+              className="w-full px-4 py-2.5 sm:py-3 text-sm font-medium border border-slate-300/80 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-400 shadow-sm bg-white/70 backdrop-blur-sm text-slate-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
             />
           </div>
         </div>

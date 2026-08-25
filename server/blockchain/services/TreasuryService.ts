@@ -670,18 +670,23 @@ export class TreasuryService {
       logger.warn(`[TreasuryService] Failed to fetch hot wallet native gas balance: ${err.message}`);
     }
 
+    let addressesWithGas: any[] = addresses;
     try {
       const gasBals = await Promise.all(
         addresses.map(async (a) => {
           try {
             const balStr = await this.provider.getNativeBalance(cleanNetwork, a.address);
-            return parseFloat(balStr || '0');
+            return balStr || '0.00000000';
           } catch {
-            return 0;
+            return '0.00000000';
           }
         })
       );
-      const userGasSum = gasBals.reduce((sum, val) => sum + val, 0);
+      addressesWithGas = addresses.map((addr, idx) => ({
+        ...addr,
+        nativeGasBalance: gasBals[idx] || '0.00000000',
+      }));
+      const userGasSum = gasBals.reduce((sum, val) => sum + parseFloat(val || '0'), 0);
       totalUserGas = userGasSum.toFixed(8);
     } catch (err: any) {
       logger.warn(`[TreasuryService] Failed to calculate total user gas: ${err.message}`);
@@ -696,7 +701,7 @@ export class TreasuryService {
       liveColdBalance,
       liveHotNativeGas,
       totalUserGas,
-      depositAddresses: addresses,
+      depositAddresses: addressesWithGas,
     };
   }
 
@@ -717,6 +722,55 @@ export class TreasuryService {
     const addr = addressRecord[0];
     const hotWallet = await this.getActiveHotWallet(addr.network);
     return sweepExecutionService.sweepUserDepositAddress(addressId, hotWallet.address, adminUid);
+  }
+
+  /**
+   * Reclaim/collect native gas from a specific user permanent deposit address to the Hot Wallet
+   */
+  async sweepUserNativeGas(addressId: string, adminUid: string = 'SYSTEM') {
+    const addressRecord = await db
+      .select()
+      .from(depositAddresses)
+      .where(eq(depositAddresses.id, addressId))
+      .limit(1);
+
+    if (addressRecord.length === 0) {
+      throw new Error(`User deposit address record not found: ${addressId}`);
+    }
+
+    const addr = addressRecord[0];
+    const hotWallet = await this.getActiveHotWallet(addr.network);
+    return sweepExecutionService.sweepUserNativeGas(addressId, hotWallet.address, adminUid);
+  }
+
+  /**
+   * Reclaim/collect native gas from all eligible deposit addresses on a selected network
+   */
+  async sweepAllUserNativeGas(network: string, adminUid: string = 'SYSTEM') {
+    const cleanNetwork = network.toUpperCase();
+    const addresses = await db
+      .select()
+      .from(depositAddresses)
+      .where(eq(depositAddresses.network, cleanNetwork));
+
+    logger.info(`[TreasuryService] Evaluating native gas collection for ${addresses.length} addresses on ${cleanNetwork}`);
+
+    const results = [];
+    for (const addr of addresses) {
+      try {
+        const balStr = await this.provider.getNativeBalance(cleanNetwork, addr.address);
+        const balFloat = parseFloat(balStr || '0');
+        if (balFloat > 0) {
+          const res = await this.sweepUserNativeGas(addr.id, adminUid);
+          results.push({ address: addr.address, nativeBalance: balStr, ...res });
+        }
+      } catch (err: any) {
+        logger.warn(`[TreasuryService] Failed gas sweep for ${addr.address}: ${err.message}`);
+        results.push({ address: addr.address, success: false, error: err.message });
+      }
+    }
+
+    return results;
   }
 
   /**

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { eq, and } from 'drizzle-orm';
+import { eq, and, or } from 'drizzle-orm';
 import { db } from '../../../../src/db/index.ts';
 import { treasuryWallets, treasurySweepJobs, depositAddresses, sweepQueue } from '../../../../src/db/schema.ts';
 import { activeBlockchainProvider } from '../../providers/index.ts';
@@ -165,6 +165,149 @@ export class SweepExecutionService {
   }
 
   /**
+   * Reclaim/sweep unused native gas (BNB / POL / TRX) from a user permanent deposit address
+   * back to the active Hot Wallet destination.
+   *
+   * BUSINESS RULES:
+   * 1. Never touches or mutates user USDT balances.
+   * 2. Derives the child signing key safely server-side using HdWalletEngine.
+   * 3. Calculates network tx fees with safety buffers so the tx doesn't revert.
+   * 4. Broadcasts native coin transfer to the active Hot Wallet.
+   * 5. Registers job in treasurySweepJobs with sweepType: 'USER_GAS_TO_HOT' and moves to AWAITING_CONFIRMATION.
+   */
+  async sweepUserNativeGas(
+    addressId: string,
+    activeHotAddress: string,
+    adminUid: string = 'SYSTEM'
+  ) {
+    const addressRecord = await db
+      .select()
+      .from(depositAddresses)
+      .where(eq(depositAddresses.id, addressId))
+      .limit(1);
+
+    if (addressRecord.length === 0) {
+      throw new Error(`Deposit address record ${addressId} was not found.`);
+    }
+
+    const addr = addressRecord[0];
+
+    // Fetch real-time on-chain native gas balance
+    const nativeBalStr = await this.provider.getNativeBalance(addr.network, addr.address);
+    const nativeBalFloat = parseFloat(nativeBalStr || '0');
+
+    let gasSymbol = 'BNB';
+    const cleanNetwork = addr.network.toUpperCase();
+
+    if (cleanNetwork.includes('POLYGON') || cleanNetwork.includes('MATIC')) {
+      gasSymbol = 'POL';
+    } else if (cleanNetwork.includes('TRC20') || cleanNetwork.includes('TRON')) {
+      gasSymbol = 'TRX';
+    }
+
+    if (nativeBalFloat <= 0) {
+      throw new Error(
+        `Native gas balance on address ${addr.address} is 0.00 ${gasSymbol}. Nothing to collect.`
+      );
+    }
+
+    // Collect all available native gas without any arbitrary minimum limit
+    const amountStr = cleanNetwork.includes('TRC20') || cleanNetwork.includes('TRON')
+      ? nativeBalFloat.toFixed(6)
+      : nativeBalFloat.toFixed(8);
+
+    logger.info(
+      `[SweepExecutionService] Commencing native gas collection for ${addr.address} (${amountStr} ${gasSymbol}) to Hot Wallet ${activeHotAddress}`
+    );
+
+    const job = await db
+      .insert(treasurySweepJobs)
+      .values({
+        network: addr.network,
+        sourceAddress: addr.address,
+        destinationAddress: activeHotAddress,
+        sweepType: 'USER_GAS_TO_HOT',
+        amount: amountStr,
+        status: 'PENDING',
+        attempts: 1,
+      })
+      .returning();
+
+    const jobId = job[0].id;
+    let txHash: string | null = null;
+
+    try {
+      await db
+        .update(treasurySweepJobs)
+        .set({ status: 'IN_PROGRESS', updatedAt: new Date() })
+        .where(eq(treasurySweepJobs.id, jobId));
+
+      if (addr.derivationIndex === null || addr.derivationIndex === undefined) {
+        throw new Error(`Deposit address ${addr.address} does not have a derivation index assigned.`);
+      }
+
+      const childPrivateKey = await keyManager.derivePrivateKey(addr.network, addr.derivationIndex);
+
+      const providerWithNative = this.provider as any;
+      if (typeof providerWithNative.broadcastNativeTransaction === 'function') {
+        txHash = await providerWithNative.broadcastNativeTransaction(
+          addr.network,
+          activeHotAddress,
+          amountStr,
+          childPrivateKey
+        );
+      } else {
+        txHash = await this.provider.fundGas(addr.network, activeHotAddress, amountStr);
+      }
+
+      await db
+        .update(treasurySweepJobs)
+        .set({
+          status: 'AWAITING_CONFIRMATION',
+          txHash,
+          errorMessage: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(treasurySweepJobs.id, jobId));
+
+      logger.info(
+        `[SweepExecutionService] Gas sweep BROADCASTED for address ${addr.address}. TxHash: ${txHash}. Awaiting on-chain confirmation.`
+      );
+
+      await auditRepository.createAuditLog({
+        actorUid: adminUid,
+        userId: addr.userId,
+        action: 'TREASURY_GAS_SWEEP_BROADCASTED',
+        resource: `treasury/jobs/${jobId}`,
+        oldValue: `Address: ${addr.address} (${nativeBalStr} ${gasSymbol})`,
+        newValue: `Broadcasted Tx: ${txHash}, Amount: ${amountStr} ${gasSymbol}`,
+      });
+
+      return {
+        success: true,
+        jobId,
+        txHash,
+        amount: amountStr,
+        gasSymbol,
+        awaitingConfirmation: true,
+      };
+    } catch (err: any) {
+      logger.error(`[SweepExecutionService] Gas sweep failed to broadcast for address ${addr.address}:`, err.message);
+
+      await db
+        .update(treasurySweepJobs)
+        .set({
+          status: 'FAILED',
+          errorMessage: err.message,
+          updatedAt: new Date(),
+        })
+        .where(eq(treasurySweepJobs.id, jobId));
+
+      return { success: false, jobId, error: err.message };
+    }
+  }
+
+  /**
    * Poll every sweep job currently AWAITING_CONFIRMATION and finalize it against real
    * on-chain state. This is the ONLY place a USER_TO_HOT sweep job (and its linked sweep
    * queue row) is ever moved to COMPLETED, and it only does so once the blockchain itself
@@ -174,7 +317,15 @@ export class SweepExecutionService {
     const pendingJobs = await db
       .select()
       .from(treasurySweepJobs)
-      .where(and(eq(treasurySweepJobs.status, 'AWAITING_CONFIRMATION'), eq(treasurySweepJobs.sweepType, 'USER_TO_HOT')));
+      .where(
+        and(
+          eq(treasurySweepJobs.status, 'AWAITING_CONFIRMATION'),
+          or(
+            eq(treasurySweepJobs.sweepType, 'USER_TO_HOT'),
+            eq(treasurySweepJobs.sweepType, 'USER_GAS_TO_HOT')
+          )
+        )
+      );
 
     for (const job of pendingJobs) {
       if (!job.txHash) continue; // Defensive — should never happen given how this status is set
@@ -222,6 +373,25 @@ export class SweepExecutionService {
    * USER_TO_HOT sweep job COMPLETED.
    */
   private async finalizeJobSuccess(job: typeof treasurySweepJobs.$inferSelect): Promise<void> {
+    if (job.sweepType === 'USER_GAS_TO_HOT') {
+      await db
+        .update(treasurySweepJobs)
+        .set({ status: 'COMPLETED', errorMessage: null, updatedAt: new Date() })
+        .where(and(eq(treasurySweepJobs.id, job.id), eq(treasurySweepJobs.status, 'AWAITING_CONFIRMATION')));
+
+      logger.info(`[SweepExecutionService] Gas sweep job ${job.id} CONFIRMED on-chain and COMPLETED. TxHash: ${job.txHash}`);
+
+      await auditRepository.createAuditLog({
+        actorUid: 'SYSTEM',
+        userId: null as any,
+        action: 'TREASURY_GAS_SWEEP_CONFIRMED_COMPLETED',
+        resource: `treasury/jobs/${job.id}`,
+        oldValue: job.amount,
+        newValue: job.txHash || '',
+      });
+      return;
+    }
+
     const amountFloat = parseFloat(job.amount);
 
     await db.transaction(async (tx) => {
@@ -280,6 +450,25 @@ export class SweepExecutionService {
    * Finalize a sweep job that failed or was reverted on-chain. Never credits any balance.
    */
   private async finalizeJobFailure(job: typeof treasurySweepJobs.$inferSelect, reason: string): Promise<void> {
+    if (job.sweepType === 'USER_GAS_TO_HOT') {
+      await db
+        .update(treasurySweepJobs)
+        .set({ status: 'FAILED', errorMessage: reason, updatedAt: new Date() })
+        .where(and(eq(treasurySweepJobs.id, job.id), eq(treasurySweepJobs.status, 'AWAITING_CONFIRMATION')));
+
+      logger.error(`[SweepExecutionService] Gas sweep job ${job.id} FAILED on-chain confirmation: ${reason}`);
+
+      await auditRepository.createAuditLog({
+        actorUid: 'SYSTEM',
+        userId: null as any,
+        action: 'TREASURY_GAS_SWEEP_CONFIRMATION_FAILED',
+        resource: `treasury/jobs/${job.id}`,
+        oldValue: job.txHash || '',
+        newValue: reason,
+      });
+      return;
+    }
+
     await db
       .update(treasurySweepJobs)
       .set({ status: 'FAILED', errorMessage: reason, updatedAt: new Date() })

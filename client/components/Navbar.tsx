@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth.ts';
 import { Menu, X, ArrowUpRight, LogOut, LayoutDashboard, Shield } from 'lucide-react';
-import logoImg from '../../assets/images/branding/logo.png';
+import logoMarkImg from '../../assets/images/branding/logo-mark.png';
 
 interface NavbarProps {
   onOpenAuth: (mode: 'login' | 'register') => void;
@@ -52,15 +52,18 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onNavigateToSection,
           {/* Logo Brand Identity */}
           <button
             onClick={() => handleLinkClick('hero')}
-            className="flex items-center text-left focus:outline-none group cursor-pointer"
+            className="flex items-center gap-2.5 sm:gap-3.5 text-left focus:outline-none group cursor-pointer"
             id="navbar-brand-logo"
           >
             <img
-              src={logoImg}
+              src={logoMarkImg}
               alt="MetaFirm Logo"
               referrerPolicy="no-referrer"
-              className="h-10 object-contain"
+              className="h-9 sm:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             />
+            <span className="text-[26px] sm:text-[32px] font-bold tracking-tight text-white font-['Outfit',sans-serif] select-none leading-none">
+              MetaFirm
+            </span>
           </button>
 
           {/* Desktop Navigation list */}

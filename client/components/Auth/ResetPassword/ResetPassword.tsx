@@ -136,9 +136,12 @@ export const ResetPassword: React.FC<ResetPasswordProps> = ({
           <div className="relative">
             <input
               id="auth-password-reset-input"
+              name="password"
               type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onInput={(e) => setPassword((e.target as HTMLInputElement).value)}
               placeholder="••••••••"
               className="w-full pl-4 pr-10 py-3 text-sm font-medium border border-slate-300/80 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-400 shadow-sm bg-white/70 backdrop-blur-sm text-slate-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
               required
@@ -162,9 +165,12 @@ export const ResetPassword: React.FC<ResetPasswordProps> = ({
           <div className="relative">
             <input
               id="auth-confirm-password-reset-input"
+              name="confirm-password"
               type={showConfirmPassword ? "text" : "password"}
+              autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              onInput={(e) => setConfirmPassword((e.target as HTMLInputElement).value)}
               placeholder="••••••••"
               className="w-full pl-4 pr-10 py-3 text-sm font-medium border border-slate-300/80 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-400 shadow-sm bg-white/70 backdrop-blur-sm text-slate-900 placeholder:text-gray-400 transition-all duration-150 focus-visible:outline-none"
               required

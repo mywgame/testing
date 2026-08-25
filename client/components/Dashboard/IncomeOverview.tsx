@@ -100,11 +100,26 @@ export const IncomeOverview: React.FC<IncomeOverviewProps> = ({
   return (
     <div
       id="income-overview-panel"
-      className={`w-full rounded-2xl p-4 sm:p-5 transition-all duration-300 bg-gradient-to-b backdrop-blur-xl border ${themeTokens.claimCard}`}
+      className={`relative w-full rounded-3xl p-5 sm:p-6 transition-all duration-300 border overflow-hidden backdrop-blur-xl ${
+        themeTokens.isDark
+          ? 'bg-white/5 border-white/10 hover:border-white/18 shadow-xl shadow-black/20'
+          : 'border-white/80 hover:border-white shadow-[0_20px_40px_rgba(31,38,135,0.06)]'
+      }`}
+      style={
+        !themeTokens.isDark
+          ? {
+              background: 'linear-gradient(135deg, #F5F7FF 0%, #ECE8FF 100%)',
+            }
+          : undefined
+      }
     >
+      {/* Decorative glow blobs matching the hero wallet card */}
+      <div className={`absolute -right-16 -top-16 w-60 h-60 rounded-full blur-3xl pointer-events-none ${themeTokens.isDark ? 'bg-cyan-500/15' : 'bg-violet-400/20'}`} />
+      <div className={`absolute -left-10 -bottom-10 w-48 h-48 rounded-full blur-3xl pointer-events-none ${themeTokens.isDark ? 'bg-purple-600/15' : 'bg-sky-400/20'}`} />
+
       {/* Header Section */}
       <div
-        className={`flex items-center justify-between cursor-pointer select-none pb-4 ${isExpanded ? 'border-b ' + themeTokens.sep : ''}`}
+        className={`relative flex items-center justify-between cursor-pointer select-none pb-4 ${isExpanded ? 'border-b ' + themeTokens.sep : ''}`}
         onClick={() => setIsExpanded(!isExpanded)}
         role="button"
         tabIndex={0}
@@ -137,8 +152,8 @@ export const IncomeOverview: React.FC<IncomeOverviewProps> = ({
           <div
             className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
               isDark
-                ? 'bg-slate-800/90 text-cyan-400 border border-slate-700/70 hover:bg-slate-700'
-                : 'bg-slate-100 text-cyan-600 border border-slate-200 hover:bg-slate-200'
+                ? 'bg-white/8 text-cyan-400 border border-white/10 hover:bg-white/12'
+                : 'bg-white/80 text-cyan-600 border border-slate-200 hover:bg-white shadow-sm'
             }`}
             aria-label="Toggle income overview"
           >
@@ -159,19 +174,19 @@ export const IncomeOverview: React.FC<IncomeOverviewProps> = ({
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden"
+            className="relative overflow-hidden"
           >
-            <div className="space-y-2 sm:space-y-2.5 pt-1">
+            <div className="space-y-2.5 sm:space-y-3 pt-3">
               {incomeRows.map((row) => {
                 const Icon = row.icon;
                 return (
                   <div
                     key={row.id}
                     id={`income-row-${row.id}`}
-                    className={`group relative rounded-xl sm:rounded-2xl p-3 sm:p-3.5 border transition-all duration-200 select-none ${
+                    className={`group relative rounded-2xl p-3.5 sm:p-4 border transition-all duration-200 select-none backdrop-blur-sm ${
                       isDark
-                        ? 'bg-[#121538]/60 hover:bg-[#181c47]/80 border-white/[0.06] hover:border-white/[0.12]'
-                        : 'bg-slate-50/90 hover:bg-slate-100/90 border-slate-200/70 hover:border-slate-300 shadow-xs'
+                        ? 'bg-white/5 hover:bg-white/8 border-white/10 hover:border-white/20'
+                        : 'bg-white/70 hover:bg-white/90 border-slate-200/70 hover:border-slate-300/90 shadow-sm'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2.5 sm:gap-4">

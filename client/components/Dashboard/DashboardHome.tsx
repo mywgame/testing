@@ -19,6 +19,7 @@ import { MonthlyEarningsChart } from './MonthlyEarningsChart.tsx';
 import { NetworkLevels } from './NetworkLevels.tsx';
 import { RecentActivity } from './RecentActivity.tsx';
 import { DownloadAppsSection } from './DownloadAppsSection.tsx';
+import { PromoOfferSlider } from './Promo/PromoOfferSlider.tsx';
 import { useLocalization } from '../../contexts/LocalizationContext.tsx';
 
 const VIP_CONFIG: Record<string, { label: string; color: string; bg: string; icon: string }> = {
@@ -213,6 +214,9 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
             <span className="truncate">Task</span>
           </button>
         </div>
+
+        {/* 2.5 Promotional Offers Hero Carousel */}
+        <PromoOfferSlider onQuickAction={onQuickAction} />
 
         {/* 3. Income Overview Section */}
         <IncomeOverview

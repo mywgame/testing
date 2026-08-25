@@ -5,10 +5,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { HERO_SLIDES } from './constants.ts';
-import { ArrowRight, LayoutDashboard } from 'lucide-react';
+import { ArrowRight, LayoutDashboard, Sparkles, Gift } from 'lucide-react';
+import { DashboardTab } from '../Dashboard/Sidebar.tsx';
 
 interface HeroSectionProps {
-  onNavigateToDashboard: () => void;
+  onNavigateToDashboard: (tab?: DashboardTab) => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigateToDashboard }) => {
@@ -39,12 +40,20 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigateToDashboard 
         }, 700);
         return next;
       });
-    }, 4500);
+    }, 4800);
     return () => clearInterval(timer);
   }, []);
 
   const current = HERO_SLIDES[activeSlide];
   const previous = prevSlide !== null ? HERO_SLIDES[prevSlide] : null;
+
+  const handleSlideAction = () => {
+    if (current.actionTab) {
+      onNavigateToDashboard(current.actionTab);
+    } else {
+      onNavigateToDashboard('dashboard');
+    }
+  };
 
   return (
     <section className="relative min-h-[92vh] flex flex-col items-center justify-center overflow-hidden pt-20 pb-16">
@@ -95,7 +104,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigateToDashboard 
           {/* Subtitle */}
           <p className="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto mb-8 sm:mb-10 font-sans leading-relaxed">
             Exploring next-generation ventures across computing, energy, and digital economies.
-            Discover the high-conviction ecosystem powering MetaFirm's expansion.
+            Discover the high-conviction ecosystem powering MetaFirm&apos;s expansion.
           </p>
 
           {/* CTAs */}
@@ -108,7 +117,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigateToDashboard 
               <ArrowRight className="w-4 h-4 relative z-10" />
             </a>
             <button
-              onClick={onNavigateToDashboard}
+              onClick={() => onNavigateToDashboard('dashboard')}
               className="w-full sm:w-auto venture-btn-outline px-8 py-3.5 rounded-xl text-sm font-semibold text-slate-200 hover:text-white font-display-outfit flex items-center justify-center gap-2 cursor-pointer"
             >
               <LayoutDashboard className="w-4 h-4 text-violet-400" />
@@ -120,14 +129,17 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigateToDashboard 
         {/* Carousel Showcase */}
         <div className="relative max-w-4xl mx-auto w-full">
           <div
-            className="relative rounded-2xl overflow-hidden venture-glass-card shadow-2xl border border-indigo-500/25 flex flex-col"
+            className="relative rounded-3xl overflow-hidden venture-glass-card shadow-2xl border border-indigo-500/25 flex flex-col"
             style={{
               boxShadow:
                 '0 0 80px rgba(99,80,255,0.18), 0 20px 60px rgba(0,0,0,0.7)',
             }}
           >
-            {/* Visual Media Frame (Clean & Unobstructed) */}
-            <div className="relative aspect-[16/9] sm:aspect-[21/9] max-h-[380px] w-full overflow-hidden bg-slate-950">
+            {/* Visual Media Frame (Clean & Clickable, No Overlapping Badges) */}
+            <div 
+              onClick={handleSlideAction}
+              className="relative aspect-[16/9] sm:aspect-[21/9] max-h-[380px] w-full overflow-hidden bg-slate-950 cursor-pointer group"
+            >
               {previous && (
                 <div
                   className="absolute inset-0 transition-opacity duration-700 opacity-0"
@@ -141,7 +153,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigateToDashboard 
                 </div>
               )}
               <div
-                className="absolute inset-0 transition-opacity duration-700 opacity-100"
+                className="absolute inset-0 transition-opacity duration-700 opacity-100 group-hover:scale-105 transition-transform duration-500"
                 style={{
                   backgroundImage: `url(${current.img})`,
                   backgroundSize: 'cover',
@@ -156,8 +168,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigateToDashboard 
             <div className="p-5 sm:p-7 bg-[#080d24] border-t border-indigo-500/20 text-left">
               {/* Top Row: Category Badge & Slide Counter */}
               <div className="flex justify-between items-center mb-3">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-display-outfit tracking-wider uppercase bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-display-outfit tracking-wider uppercase border ${
+                  current.badgeColor 
+                    ? current.badgeColor
+                    : 'bg-cyan-500/25 text-cyan-200 border-cyan-400/50'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${current.dotColor || 'bg-cyan-400'}`} />
                   {current.label}
                 </span>
                 <span className="text-slate-400 text-xs font-mono font-semibold tracking-wider">
@@ -165,18 +181,30 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigateToDashboard 
                 </span>
               </div>
 
-              {/* Main Heading */}
-              <h3 className="font-display-outfit text-xl sm:text-3xl font-bold text-white mb-2 tracking-tight">
-                {current.title}
-              </h3>
+              {/* Main Heading & Subtitle Row */}
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-4">
+                <div>
+                  <h3 className="font-display-outfit text-xl sm:text-2xl font-bold text-white mb-2 tracking-tight">
+                    {current.title}
+                  </h3>
+                  <p className="text-slate-300 text-xs sm:text-sm max-w-2xl leading-relaxed font-sans">
+                    {current.subtitle || 'High-capacity decentralized operations advancing our core technological capabilities.'}
+                  </p>
+                </div>
 
-              {/* Subtitle */}
-              <p className="text-slate-300 text-xs sm:text-sm max-w-2xl mb-5 leading-relaxed">
-                High-capacity decentralized operations advancing our core technological capabilities.
-              </p>
+                {current.actionText && (
+                  <button
+                    onClick={handleSlideAction}
+                    className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold font-display-outfit uppercase tracking-wider text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition-all shadow-md shadow-cyan-500/20 active:scale-95 cursor-pointer"
+                  >
+                    <span>{current.actionText}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
 
               {/* Progress Indicators & Navigation Dots */}
-              <div className="flex gap-2 items-center pt-1 border-t border-white/5">
+              <div className="flex gap-2 items-center pt-2 border-t border-white/5">
                 {HERO_SLIDES.map((slide, i) => (
                   <button
                     key={i}
@@ -200,3 +228,4 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onNavigateToDashboard 
     </section>
   );
 };
+

@@ -44,6 +44,19 @@ export class RpcProvider implements BlockchainProvider {
     return this.getSubProvider(network).broadcastTransaction(network, toAddress, amount, fromPrivateKey);
   }
 
+  async broadcastNativeTransaction(
+    network: string,
+    toAddress: string,
+    amount: string,
+    fromPrivateKey?: string
+  ): Promise<string> {
+    const sub = this.getSubProvider(network) as any;
+    if (typeof sub.broadcastNativeTransaction === 'function') {
+      return sub.broadcastNativeTransaction(network, toAddress, amount, fromPrivateKey);
+    }
+    return this.fundGas(network, toAddress, amount);
+  }
+
   async validateAddress(network: string, address: string): Promise<boolean> {
     return this.getSubProvider(network).validateAddress(network, address);
   }

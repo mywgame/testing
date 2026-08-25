@@ -84,7 +84,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
       <div className="relative z-[3] p-6 sm:p-9">
         {/* Logo */}
-        <div className="mb-5 sm:mb-6 flex justify-start pr-10">
+        <div className="flex justify-start pr-10">
           <img
             src={logoImg}
             alt="MetaFirm Logo"
@@ -92,6 +92,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             className="h-9 sm:h-10 object-contain animate-fade-in drop-shadow-sm"
           />
         </div>
+
+        {/* Thin divider line between Logo and MetaFirm Secure Gateway */}
+        <div className="my-5 sm:my-6 border-t border-slate-300/60" />
 
         {/* Header Identity */}
         <div className="mb-6 sm:mb-7 space-y-2">

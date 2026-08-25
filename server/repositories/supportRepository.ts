@@ -77,50 +77,10 @@ export class SupportRepository {
   }
 
   /**
-   * Find support tickets by guestSessionId
-   */
-  async findByGuestSessionId(
-    guestSessionId: string,
-    options?: {
-      limit?: number;
-      offset?: number;
-      status?: string;
-    }
-  ) {
-    try {
-      const limit = options?.limit ?? 50;
-      const offset = options?.offset ?? 0;
-      const status = options?.status;
-
-      let query = db.select().from(supportTickets).$dynamic();
-      const conditions = [eq(supportTickets.guestSessionId, guestSessionId)];
-
-      if (status) {
-        conditions.push(eq(supportTickets.status, status));
-      }
-
-      const result = await query
-        .where(and(...conditions))
-        .orderBy(desc(supportTickets.createdAt))
-        .limit(limit)
-        .offset(offset);
-
-      return result;
-    } catch (error) {
-      console.error('Database query (findByGuestSessionId) failed:', error);
-      throw new Error('Failed to query guest support tickets.');
-    }
-  }
-
-  /**
    * Create a new support ticket
    */
   async createTicket(data: {
-    userId?: string | null;
-    guestSessionId?: string | null;
-    guestName?: string | null;
-    guestEmail?: string | null;
-    guestPhone?: string | null;
+    userId: string;
     ticketNumber: string;
     category: string;
     subject: string;
@@ -133,11 +93,7 @@ export class SupportRepository {
       const result = await db
         .insert(supportTickets)
         .values({
-          userId: data.userId || null,
-          guestSessionId: data.guestSessionId || null,
-          guestName: data.guestName || null,
-          guestEmail: data.guestEmail || null,
-          guestPhone: data.guestPhone || null,
+          userId: data.userId,
           ticketNumber: data.ticketNumber,
           category: data.category,
           subject: data.subject,
@@ -205,10 +161,6 @@ export class SupportRepository {
         .select({
           id: supportTickets.id,
           userId: supportTickets.userId,
-          guestSessionId: supportTickets.guestSessionId,
-          guestName: supportTickets.guestName,
-          guestEmail: supportTickets.guestEmail,
-          guestPhone: supportTickets.guestPhone,
           ticketNumber: supportTickets.ticketNumber,
           status: supportTickets.status,
           priority: supportTickets.priority,
@@ -247,8 +199,6 @@ export class SupportRepository {
             ilike(supportTickets.ticketNumber, searchPattern),
             ilike(supportTickets.subject, searchPattern),
             ilike(supportTickets.description, searchPattern),
-            ilike(supportTickets.guestName, searchPattern),
-            ilike(supportTickets.guestEmail, searchPattern),
             ilike(users.email, searchPattern),
             ilike(users.name, searchPattern)
           )
@@ -318,8 +268,7 @@ export class SupportRepository {
   async createMessage(data: {
     ticketId: string;
     senderId?: string | null;
-    senderName?: string | null;
-    senderType: 'USER' | 'ADMIN' | 'SYSTEM' | 'GUEST';
+    senderType: 'USER' | 'ADMIN' | 'SYSTEM';
     message: string;
   }) {
     try {
@@ -328,7 +277,6 @@ export class SupportRepository {
         .values({
           ticketId: data.ticketId,
           senderId: data.senderId || null,
-          senderName: data.senderName || null,
           senderType: data.senderType,
           message: data.message,
         })

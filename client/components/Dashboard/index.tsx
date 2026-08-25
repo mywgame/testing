@@ -60,6 +60,7 @@ import { TaskView } from './Task/TaskView.tsx';
 import { DepositSuccessModal } from './Deposit/DepositSuccessModal.tsx';
 import { DailyClaimModal } from './DailyClaimModal.tsx';
 import { WelcomeTrialFundModal } from './WelcomeTrialFundModal.tsx';
+import { OfferPromoModal } from './Promo/OfferPromoModal.tsx';
 import { clientTaskService, TaskItemDTO } from '../../services/taskService.ts';
 
 // Overlay
@@ -101,9 +102,11 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   const [welcomeTrialTask, setWelcomeTrialTask] = useState<TaskItemDTO | null>(null);
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false);
   const [isClaimingTrial, setIsClaimingTrial] = useState(false);
+  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const seenCompletedDepositIds = React.useRef<Set<string>>(new Set());
   const isInitialDepositCheck = React.useRef<boolean>(true);
   const hasCheckedWelcomeTrial = React.useRef<boolean>(false);
+  const hasCheckedPromoPopup = React.useRef<boolean>(false);
 
   // Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -253,6 +256,30 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [fetchDashboard, checkAutoVerifiedDeposits, checkWelcomeTrialFund]);
+
+  // Check Exclusive Promotions modal on login / boot (with frequency capping)
+  useEffect(() => {
+    if (hasCheckedPromoPopup.current) return;
+    hasCheckedPromoPopup.current = true;
+
+    try {
+      const dismissedUntil = localStorage.getItem('metafirm_promo_popup_dismissed_until');
+      if (dismissedUntil && parseInt(dismissedUntil, 10) > Date.now()) {
+        return;
+      }
+      const lastSeen = localStorage.getItem('metafirm_promo_popup_last_seen');
+      // If never seen or seen more than 12 hours ago
+      if (!lastSeen || (Date.now() - parseInt(lastSeen, 10) > 12 * 60 * 60 * 1000)) {
+        const timer = setTimeout(() => {
+          // If welcome modal or other critical modal is not active, open promo modal
+          setIsPromoModalOpen(true);
+        }, 1200);
+        return () => clearTimeout(timer);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -491,6 +518,16 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           }}
         />
       )}
+
+      {/* Exclusive Promotions Modal (Refer & Earn + Deposit Milestones) */}
+      <OfferPromoModal
+        isOpen={isPromoModalOpen}
+        onClose={() => setIsPromoModalOpen(false)}
+        onNavigate={(tab) => {
+          setIsPromoModalOpen(false);
+          setActiveTab(tab);
+        }}
+      />
 
     </div>
   );

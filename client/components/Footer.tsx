@@ -1,7 +1,7 @@
 import React from 'react';
 import { Shield, Github, Linkedin, Twitter, ArrowUpRight } from 'lucide-react';
 import { companyInfo } from '../utils/landingData.ts';
-import logoImg from '../../assets/images/branding/logo.png';
+import logoMarkImg from '../../assets/images/branding/logo-mark.png';
 
 interface FooterProps {
   onNavigateToSection: (sectionId: string) => void;
@@ -28,12 +28,21 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateToSection }) => {
           {/* Brand Col */}
           <div className="md:col-span-5 space-y-4">
             <div className="flex items-center">
-              <img
-                src={logoImg}
-                alt="MetaFirm Logo"
-                referrerPolicy="no-referrer"
-                className="h-8 object-contain"
-              />
+              <button
+                onClick={() => onNavigateToSection('hero')}
+                className="flex items-center gap-2.5 sm:gap-3.5 text-left focus:outline-none group cursor-pointer"
+                id="footer-brand-logo"
+              >
+                <img
+                  src={logoMarkImg}
+                  alt="MetaFirm Logo"
+                  referrerPolicy="no-referrer"
+                  className="h-9 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                />
+                <span className="text-[26px] sm:text-[30px] font-bold tracking-tight text-white font-['Outfit',sans-serif] select-none leading-none">
+                  MetaFirm
+                </span>
+              </button>
             </div>
             
             <p className="text-[11px] sm:text-xs text-ink-300 max-w-sm leading-relaxed font-sans">

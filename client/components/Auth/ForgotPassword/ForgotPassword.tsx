@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Input, Button } from '../../ui/index.ts';
+import { Button } from '../../ui/index.ts';
 import { ArrowRight } from 'lucide-react';
 import { getApiUrl } from '../../../services/apiConfig.ts';
 
@@ -73,18 +73,22 @@ export const ForgotPassword: React.FC<ForgotPasswordProps> = ({
       exit={{ opacity: 0, y: -10 }}
     >
       <form onSubmit={handleSubmit} className="space-y-5">
-        <Input
-          label="Registered Email Address"
-          type="email"
-          value={resetEmail}
-          onChange={(e) => handleEmailChange(e.target.value)}
-          placeholder="investor@metafirm.io"
-          id="auth-forgot-email-input"
-          className="!rounded-2xl !border-slate-300/80 !bg-white/70 !backdrop-blur-sm !shadow-sm !py-3 focus-visible:!ring-blue-500 focus-visible:!border-blue-400"
-          required
-          autoFocus
-          disabled={busy}
-        />
+        <div className="space-y-1.5">
+          <label htmlFor="auth-forgot-email-input" className="block text-xs font-bold text-slate-800 tracking-wide mb-1.5">
+            Registered Email Address
+          </label>
+          <input
+            id="auth-forgot-email-input"
+            type="email"
+            value={resetEmail}
+            onChange={(e) => handleEmailChange(e.target.value)}
+            placeholder="investor@metafirm.io"
+            className="w-full px-4 py-3 sm:py-3.5 text-sm font-medium border border-slate-300/80 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-400 bg-white/70 backdrop-blur-sm text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus-visible:outline-none shadow-sm"
+            required
+            autoFocus
+            disabled={busy}
+          />
+        </div>
 
         <Button
           type="submit"

@@ -461,9 +461,16 @@ export class AdminService {
     return withs.map(w => ({
       id: w.id,
       amount: `$${parseFloat(w.amount).toFixed(2)}`,
+      network: w.network || 'USDT_BEP20',
       wallet: w.walletAddress,
+      txHash: w.txHash || (w.adminNotes?.match(/0x[a-fA-F0-9]{64}/)?.[0]) || null,
       date: new Date(w.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      status: w.status === 'COMPLETED' ? 'Approved' : w.status === 'PENDING' ? 'Pending' : 'Rejected',
+      status: (w.status === 'COMPLETED' || w.status === 'PROCESSING' || w.adminApprovalStatus === 'APPROVED')
+        ? 'Approved'
+        : w.status === 'PENDING'
+        ? 'Pending'
+        : 'Rejected',
+      rawStatus: w.status,
     }));
   }
 
@@ -707,10 +714,17 @@ export class AdminService {
         id: w.id,
         user: userName,
         amount: `$${parseFloat(w.amount).toFixed(2)}`,
+        network: w.network || 'USDT_BEP20',
         wallet: w.walletAddress,
+        txHash: w.txHash || (w.adminNotes?.match(/0x[a-fA-F0-9]{64}/)?.[0]) || null,
         date: new Date(w.createdAt).toISOString(),
         rawTimestamp: w.createdAt,
-        status: w.status === 'COMPLETED' ? 'Approved' : w.status === 'PENDING' ? 'Pending' : 'Rejected',
+        status: (w.status === 'COMPLETED' || w.status === 'PROCESSING' || w.adminApprovalStatus === 'APPROVED')
+          ? 'Approved'
+          : w.status === 'PENDING'
+          ? 'Pending'
+          : 'Rejected',
+        rawStatus: w.status,
       });
     }
     return result;

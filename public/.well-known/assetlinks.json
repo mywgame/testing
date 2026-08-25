@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.meta.metafirm",
+      "sha256_cert_fingerprints": [
+        "14:6D:E9:EB:72:DE:09:A5:DF:25:2A:B5:E8:EE:F3:D5:71:0D:37:D5:7B:66:3D:28:B6:3C:99:98:C3:FF:78:A6"
+      ]
+    }
+  }
+]

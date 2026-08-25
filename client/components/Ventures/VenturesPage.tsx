@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { VenturesNavbar } from './VenturesNavbar.tsx';
 import { HeroSection } from './HeroSection.tsx';
 import { FeaturedProject } from './FeaturedProject.tsx';
@@ -15,6 +15,7 @@ import { FinalCTA } from './FinalCTA.tsx';
 import { VenturesFooter } from './VenturesFooter.tsx';
 import { BottomNav } from '../Dashboard/BottomNav.tsx';
 import { DashboardTab } from '../Dashboard/Sidebar.tsx';
+import { OfferPromoModal } from '../Dashboard/Promo/OfferPromoModal.tsx';
 import { useAuth } from '../../hooks/useAuth.ts';
 
 interface VenturesPageProps {
@@ -27,6 +28,29 @@ export const VenturesPage: React.FC<VenturesPageProps> = ({
   onLogout,
 }) => {
   const { user } = useAuth();
+  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
+  const hasCheckedPromoPopup = useRef(false);
+
+  useEffect(() => {
+    if (hasCheckedPromoPopup.current || !user) return;
+    hasCheckedPromoPopup.current = true;
+
+    try {
+      const dismissedUntil = localStorage.getItem('metafirm_promo_popup_dismissed_until');
+      if (dismissedUntil && parseInt(dismissedUntil, 10) > Date.now()) {
+        return;
+      }
+      const lastSeen = localStorage.getItem('metafirm_promo_popup_last_seen');
+      if (!lastSeen || (Date.now() - parseInt(lastSeen, 10) > 12 * 60 * 60 * 1000)) {
+        const timer = setTimeout(() => {
+          setIsPromoModalOpen(true);
+        }, 1200);
+        return () => clearTimeout(timer);
+      }
+    } catch {
+      // ignore
+    }
+  }, [user]);
 
   const handleBottomNavClick = (tab: DashboardTab) => {
     onNavigateToDashboard(tab);
@@ -45,7 +69,7 @@ export const VenturesPage: React.FC<VenturesPageProps> = ({
 
       {/* Main Sections */}
       <main className="w-full">
-        <HeroSection onNavigateToDashboard={() => onNavigateToDashboard('dashboard')} />
+        <HeroSection onNavigateToDashboard={onNavigateToDashboard} />
         <FeaturedProject />
         <EcosystemSection onNavigateToDashboard={() => onNavigateToDashboard('dashboard')} />
         <PromoVideoSection />
@@ -65,6 +89,16 @@ export const VenturesPage: React.FC<VenturesPageProps> = ({
           variant="dark"
         />
       )}
+
+      {/* Exclusive Promotions Modal */}
+      <OfferPromoModal
+        isOpen={isPromoModalOpen}
+        onClose={() => setIsPromoModalOpen(false)}
+        onNavigate={(tab) => {
+          setIsPromoModalOpen(false);
+          onNavigateToDashboard(tab);
+        }}
+      />
     </div>
   );
 };

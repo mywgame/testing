@@ -61,16 +61,18 @@ export const TeamTable: React.FC<TeamTableProps> = ({ members, levelLabel, isLoa
         <table className="w-full table-fixed text-left border-collapse">
           <thead>
             <tr className={`border-b ${t.sep} ${t.isDark ? 'bg-white/3' : 'bg-black/3'}`}>
-              <th className={`py-2.5 sm:py-3 pl-3 sm:pl-5 pr-2 sm:pr-3 font-extrabold font-display text-[10px] sm:text-xs tracking-wider uppercase ${t.isDark ? 'text-slate-300' : 'text-slate-700'} w-[40%] sm:w-[42%]`}>
-                <span className="pl-[2.375rem] sm:pl-[2.75rem] block">
+              <th className={`py-2.5 sm:py-3 pl-3 sm:pl-5 pr-1.5 sm:pr-3 font-extrabold font-display text-[10px] sm:text-xs tracking-wider uppercase ${t.isDark ? 'text-slate-300' : 'text-slate-700'} w-[38%] sm:w-[40%]`}>
+                <span className="pl-[2.375rem] sm:pl-[2.75rem] block truncate">
                   User
                 </span>
               </th>
-              <th className={`py-2.5 sm:py-3 px-1.5 sm:px-3 font-extrabold font-display text-[10px] sm:text-xs tracking-tight sm:tracking-wider uppercase ${t.isDark ? 'text-slate-300' : 'text-slate-700'} w-[28%] sm:w-[28%] text-right`}>
-                Total Contribution
+              <th className={`py-2.5 sm:py-3 px-1 sm:px-3 font-extrabold font-display text-[9px] sm:text-xs tracking-tight uppercase ${t.isDark ? 'text-slate-300' : 'text-slate-700'} w-[30%] text-right`}>
+                <span className="hidden sm:inline">Total Contribution</span>
+                <span className="sm:hidden block truncate">Total</span>
               </th>
-              <th className={`py-2.5 sm:py-3 pl-1.5 sm:pl-3 pr-3 sm:pr-5 font-extrabold font-display text-[10px] sm:text-xs tracking-tight sm:tracking-wider uppercase ${t.isDark ? 'text-slate-300' : 'text-slate-700'} w-[32%] sm:w-[30%] text-right`}>
-                Today's Contribution
+              <th className={`py-2.5 sm:py-3 pl-1 sm:pl-3 pr-3 sm:pr-5 font-extrabold font-display text-[9px] sm:text-xs tracking-tight uppercase ${t.isDark ? 'text-slate-300' : 'text-slate-700'} w-[32%] sm:w-[30%] text-right`}>
+                <span className="hidden sm:inline">Today's Contribution</span>
+                <span className="sm:hidden block truncate">Today</span>
               </th>
             </tr>
           </thead>

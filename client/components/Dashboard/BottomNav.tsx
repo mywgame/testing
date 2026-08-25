@@ -80,7 +80,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab, v
 
         {/* Label wrapper */}
         <span
-          className={`text-[10px] tracking-wide transition-all duration-200 relative z-10 select-none ${
+          className={`text-[9.5px] sm:text-[10px] tracking-tight transition-all duration-200 relative z-10 select-none whitespace-nowrap overflow-hidden text-ellipsis max-w-full px-0.5 ${
             showGradient
               ? 'bg-gradient-to-r from-cyan-400 via-sky-400 to-purple-400 bg-clip-text text-transparent font-black'
               : isDark

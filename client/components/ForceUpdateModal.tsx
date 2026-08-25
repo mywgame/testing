@@ -5,10 +5,16 @@
 
 import React, { useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Download, ShieldAlert, Sparkles, RefreshCw, Smartphone } from 'lucide-react';
+import { Download, ShieldAlert, RefreshCw, Smartphone } from 'lucide-react';
 import { App } from '@capacitor/app';
 import { AppVersionStatus } from '../utils/versionCheck.ts';
-import logoImg from '../../assets/images/branding/logo.png';
+import logoMarkImg from '../../assets/images/branding/logo-mark.png';
+
+const AndroidIcon: React.FC<{ className?: string }> = ({ className = 'w-3.5 h-3.5' }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997 0-.551.4482-.9993.9993-.9993.5511 0 .9993.4483.9993.9993 0 .5511-.4482.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997 0-.551.4482-.9993.9993-.9993.5511 0 .9993.4483.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592c.1502-.2603.061-.5931-.1993-.7433-.2602-.1503-.5931-.061-.7433.1993l-2.0233 3.5042C15.3678 8.1632 13.7317 7.747 12 7.747c-1.7317 0-3.3678.4162-4.9127 1.0754L5.064 5.3182c-.1502-.2603-.4831-.3496-.7433-.1993-.2603.1502-.3495.483-.1993.7433l1.9973 3.4592C2.686 11.2312.3428 15.0215.3428 19.3333h23.3144c0-4.3118-2.3432-8.1021-5.7767-9.0119" />
+  </svg>
+);
 
 interface ForceUpdateModalProps {
   versionStatus: AppVersionStatus;
@@ -71,7 +77,7 @@ export const ForceUpdateModal: React.FC<ForceUpdateModalProps> = ({ versionStatu
             <div className="w-20 h-20 bg-gradient-to-tr from-blue-600 to-cyan-500 rounded-3xl p-0.5 shadow-lg shadow-blue-500/25 flex items-center justify-center">
               <div className="w-full h-full bg-white dark:bg-[#0f172a] rounded-[22px] flex items-center justify-center overflow-hidden p-2.5">
                 <img
-                  src={logoImg}
+                  src={logoMarkImg}
                   alt="MetaFirm Logo"
                   className="w-full h-full object-contain"
                   onError={(e) => {
@@ -88,7 +94,7 @@ export const ForceUpdateModal: React.FC<ForceUpdateModalProps> = ({ versionStatu
           {/* Heading */}
           <div className="space-y-1.5">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-bold uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5" />
+              <AndroidIcon className="w-3.5 h-3.5 fill-current" />
               <span>Mandatory App Update</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight">

@@ -187,16 +187,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const resData = await loginResponse.json();
       if (resData.success && resData.data) {
         if (resData.data.requiresMfa) {
+          setLoading(false);
           return resData.data;
         }
 
         const returnedUser = resData.data.user;
         const returnedToken = resData.data.accessToken || 'cookie_based_token';
 
-        setToken(returnedToken);
-        setUser(returnedUser);
         localStorage.setItem('metafirm_token', returnedToken);
         localStorage.setItem('metafirm_user', JSON.stringify(returnedUser));
+        setToken(returnedToken);
+        setUser(returnedUser);
+        setLoading(false);
         return resData.data;
       } else {
         throw new Error('MetaFirm authentication response returned invalid payload');
@@ -208,6 +210,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('metafirm_user');
       setToken(null);
       setUser(null);
+      setLoading(false);
       throw err;
     } finally {
       setLoading(false);
@@ -238,16 +241,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const returnedUser = resData.data.user;
         const returnedToken = resData.data.accessToken || 'cookie_based_token';
 
-        setToken(returnedToken);
-        setUser(returnedUser);
         localStorage.setItem('metafirm_token', returnedToken);
         localStorage.setItem('metafirm_user', JSON.stringify(returnedUser));
+        setToken(returnedToken);
+        setUser(returnedUser);
+        setLoading(false);
         return resData.data;
       } else {
         throw new Error('MFA verification response returned invalid payload');
       }
     } catch (err: any) {
       setError(err.message || 'MFA verification failed');
+      setLoading(false);
       throw err;
     } finally {
       setLoading(false);

@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useAuth } from '../../../hooks/useAuth.ts';
 import { Eye, EyeOff, ArrowRight } from 'lucide-react';
-import { Input, Button } from '../../ui/index.ts';
+import { Button } from '../../ui/index.ts';
 import { playSuccessSound } from '../../../utils/sound.ts';
 
 interface LoginProps {
@@ -91,20 +91,27 @@ export const Login: React.FC<LoginProps> = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
     >
-      <form onSubmit={handleLocalSubmit} className="space-y-5 sm:space-y-6">
+      <form onSubmit={handleLocalSubmit} method="POST" action="#" name="loginForm" autoComplete="on" className="space-y-5 sm:space-y-6">
         <div className="space-y-4 sm:space-y-5">
-          <Input
-            label="Username or Email Address"
-            type="text"
-            value={email}
-            onChange={(e) => handleEmailChange(e.target.value)}
-            placeholder="Username or email address"
-            id="auth-email-input-login"
-            autoComplete="username"
-            className="!rounded-2xl !border-slate-300/80 !bg-white/70 !backdrop-blur-sm !shadow-sm !py-3 focus-visible:!ring-blue-500 focus-visible:!border-blue-400"
-            required
-            autoFocus
-          />
+          <div className="space-y-1.5">
+            <label htmlFor="auth-email-input-login" className="block text-xs font-bold text-slate-800 tracking-wide mb-1.5">
+              Username or Email Address
+            </label>
+            <input
+              id="auth-email-input-login"
+              name="username"
+              type="text"
+              inputMode="email"
+              value={email}
+              onChange={(e) => handleEmailChange(e.target.value)}
+              onInput={(e) => handleEmailChange((e.target as HTMLInputElement).value)}
+              placeholder="Username or email address"
+              autoComplete="username"
+              className="w-full px-4 py-3 sm:py-3.5 text-sm font-medium border border-slate-300/80 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-400 bg-white/70 backdrop-blur-sm text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus-visible:outline-none shadow-sm"
+              required
+              autoFocus
+            />
+          </div>
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
@@ -127,9 +134,11 @@ export const Login: React.FC<LoginProps> = ({
             <div className="relative">
               <input
                 id="auth-password-input-login"
+                name="password"
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onInput={(e) => setPassword((e.target as HTMLInputElement).value)}
                 placeholder="••••••••"
                 autoComplete="current-password"
                 className="w-full pl-4 pr-10 py-3 sm:py-3.5 text-sm font-medium border border-slate-300/80 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:border-blue-400 bg-white/70 backdrop-blur-sm text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus-visible:outline-none shadow-sm"

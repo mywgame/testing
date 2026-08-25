@@ -25,12 +25,11 @@ import {
   Sparkles,
   ChevronRight,
   ShieldCheck,
-  Check,
-  RefreshCw,
+  Check
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth.ts';
 import { useTheme } from '../../hooks/useTheme.ts';
-import { useLocalization, SupportedLanguage, SupportedCurrency, SupportedTimeFormat, CurrencyMeta } from '../../contexts/LocalizationContext.tsx';
+import { useLocalization, SupportedLanguage, SupportedCurrency, SupportedTimeFormat } from '../../contexts/LocalizationContext.tsx';
 import { DashboardTab } from './Sidebar.tsx';
 import { playSuccessSound } from '../../utils/sound.ts';
 
@@ -50,11 +49,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigate, showToas
     setCurrency,
     setTimeFormat,
     t,
-    currencies,
-    lastRatesUpdate,
-    isFetchingRates,
-    refreshRates,
-    formatDate,
   } = useLocalization();
 
   // Notification Preferences
@@ -200,8 +194,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigate, showToas
                   }`}
                 >
                   <option value="en">English (US) — Default</option>
-                  <option value="zh">简体中文 (Chinese - Simplified)</option>
-                  <option value="id">Bahasa Indonesia (Indonesian)</option>
                   <option value="hi">हिन्दी (Hindi)</option>
                   <option value="es">Español (Spanish)</option>
                   <option value="ar">العربية (Arabic)</option>
@@ -213,24 +205,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigate, showToas
 
               {/* Reference Currency */}
               <div className="space-y-1.5 text-left">
-                <div className="flex items-center justify-between">
-                  <label className={`block text-xs font-semibold ${themeTokens.textSub}`}>
-                    {t('referenceCurrency', 'Reference Currency (USDT base)')}
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      refreshRates();
-                      if (showToast) showToast('Refreshing live exchange rates...');
-                    }}
-                    disabled={isFetchingRates}
-                    title="Refresh live forex exchange rates"
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 transition-colors disabled:opacity-50 cursor-pointer"
-                  >
-                    <RefreshCw className={`w-3 h-3 ${isFetchingRates ? 'animate-spin' : ''}`} />
-                    <span>{isFetchingRates ? 'Updating...' : 'Live Rates'}</span>
-                  </button>
-                </div>
+                <label className={`block text-xs font-semibold ${themeTokens.textSub}`}>
+                  {t('referenceCurrency', 'Reference Currency (USDT base)')}
+                </label>
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value as SupportedCurrency)}
@@ -240,24 +217,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onNavigate, showToas
                       : 'bg-white border-slate-200 text-slate-900 shadow-sm [&>option]:bg-white [&>option]:text-slate-900'
                   }`}
                 >
-                  {(Object.values(currencies) as CurrencyMeta[]).map((curr: CurrencyMeta) => {
-                    const formattedRate = curr.rate.toLocaleString(undefined, {
-                      minimumFractionDigits: curr.rate > 500 ? 0 : 2,
-                      maximumFractionDigits: curr.rate > 500 ? 0 : 2,
-                    });
-                    return (
-                      <option key={curr.code} value={curr.code}>
-                        {curr.label} — {curr.name} (1 USDT ≈ {curr.symbol}{formattedRate})
-                      </option>
-                    );
-                  })}
+                  <option value="USD">USD ($) — Standard (1 USDT ≈ $1.00)</option>
+                  <option value="INR">INR (₹) — Indian Rupee (1 USDT ≈ ₹86.50)</option>
+                  <option value="EUR">EUR (€) — Euro (1 USDT ≈ €0.92)</option>
+                  <option value="GBP">GBP (£) — British Pound (1 USDT ≈ £0.79)</option>
+                  <option value="AED">AED (د.إ) — UAE Dirham (1 USDT ≈ 3.67 AED)</option>
                 </select>
-                {lastRatesUpdate && (
-                  <p className={`text-[10px] ${themeTokens.textMuted} flex items-center gap-1 mt-1`}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                    <span>Real-time rates synced • {formatDate(lastRatesUpdate)}</span>
-                  </p>
-                )}
               </div>
 
               {/* Date & Time format */}

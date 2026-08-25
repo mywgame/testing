@@ -5,35 +5,24 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-export type SupportedLanguage = 'en' | 'hi' | 'es' | 'ar' | 'vi' | 'de' | 'ja' | 'zh' | 'id';
-export type SupportedCurrency = 'USD' | 'INR' | 'EUR' | 'GBP' | 'AED' | 'CAD' | 'AUD' | 'JPY' | 'BRL' | 'PKR' | 'VND' | 'CNY' | 'IDR';
+export type SupportedLanguage = 'en' | 'hi' | 'es' | 'ar' | 'vi' | 'de' | 'ja';
+export type SupportedCurrency = 'USD' | 'INR' | 'EUR' | 'GBP' | 'AED';
 export type SupportedTimeFormat = '12h' | '24h';
 
 export interface CurrencyMeta {
   code: SupportedCurrency;
-  name: string;
   symbol: string;
   rate: number; // Conversion rate relative to 1 USDT/USD
   label: string;
 }
 
-export const BASE_CURRENCIES: Record<SupportedCurrency, CurrencyMeta> = {
-  USD: { code: 'USD', name: 'US Dollar', symbol: '$', rate: 1.0, label: 'USD ($)' },
-  INR: { code: 'INR', name: 'Indian Rupee', symbol: '₹', rate: 95.75, label: 'INR (₹)' },
-  EUR: { code: 'EUR', name: 'Euro', symbol: '€', rate: 0.856, label: 'EUR (€)' },
-  GBP: { code: 'GBP', name: 'British Pound', symbol: '£', rate: 0.733, label: 'GBP (£)' },
-  AED: { code: 'AED', name: 'UAE Dirham', symbol: 'د.إ', rate: 3.6725, label: 'AED (د.إ)' },
-  CNY: { code: 'CNY', name: 'Chinese Yuan', symbol: '¥', rate: 7.24, label: 'CNY (¥)' },
-  IDR: { code: 'IDR', name: 'Indonesian Rupiah', symbol: 'Rp', rate: 16250, label: 'IDR (Rp)' },
-  CAD: { code: 'CAD', name: 'Canadian Dollar', symbol: 'CA$', rate: 1.362, label: 'CAD (CA$)' },
-  AUD: { code: 'AUD', name: 'Australian Dollar', symbol: 'AU$', rate: 1.524, label: 'AUD (AU$)' },
-  JPY: { code: 'JPY', name: 'Japanese Yen', symbol: '¥', rate: 154.5, label: 'JPY (¥)' },
-  BRL: { code: 'BRL', name: 'Brazilian Real', symbol: 'R$', rate: 5.65, label: 'BRL (R$)' },
-  PKR: { code: 'PKR', name: 'Pakistani Rupee', symbol: '₨', rate: 278.5, label: 'PKR (₨)' },
-  VND: { code: 'VND', name: 'Vietnamese Dong', symbol: '₫', rate: 25450, label: 'VND (₫)' },
+export const CURRENCIES: Record<SupportedCurrency, CurrencyMeta> = {
+  USD: { code: 'USD', symbol: '$', rate: 1.0, label: 'USD ($)' },
+  INR: { code: 'INR', symbol: '₹', rate: 86.5, label: 'INR (₹)' },
+  EUR: { code: 'EUR', symbol: '€', rate: 0.92, label: 'EUR (€)' },
+  GBP: { code: 'GBP', symbol: '£', rate: 0.79, label: 'GBP (£)' },
+  AED: { code: 'AED', symbol: 'د.إ', rate: 3.67, label: 'AED (د.إ)' },
 };
-
-export const CURRENCIES = BASE_CURRENCIES;
 
 export const DICTIONARY: Record<SupportedLanguage, Record<string, string>> = {
   en: {
@@ -491,146 +480,6 @@ export const DICTIONARY: Record<SupportedLanguage, Record<string, string>> = {
     securityShortcuts: 'セキュリティショートカット',
     accountOverview: 'アカウント概要',
   },
-  zh: {
-    // Nav & Tabs
-    dashboard: '仪表板',
-    vip: 'VIP俱乐部',
-    profile: '个人资料',
-    team: '我的团队',
-    transactions: '交易明细',
-    security: '安全中心',
-    twoFactor: '双重身份验证 (2FA)',
-    withdrawalAddresses: '提现地址',
-    settings: '设置',
-    support: '在线客服',
-    deposit: '充值',
-    withdraw: '提现',
-    staking: '质押生息',
-    task: '任务中心',
-    logout: '退出登录',
-    home: '首页',
-    history: '历史记录',
-
-    // Hero & Stats
-    totalBalance: '总资产折合',
-    totalEarned: '累计总收益',
-    totalWithdrawn: '累计提现',
-    dailyYield: '每日静态收益',
-    referralIncome: '直推邀请奖励',
-    teamIncome: '团队分红收益',
-    incentiveIncome: '激励奖励',
-    today: '今日',
-    total: '累计',
-    activeStreak: '连续签到',
-    metafirmWallet: 'MetaFirm 钱包',
-
-    // Actions & Cards
-    triggerClaim: '领取收益',
-    claimDailyReward: '领取每日奖励',
-    claimed: '已领取',
-    cooldown: '冷却中',
-    monthlyEarnings: '月度收益走势',
-    recentTransactions: '最近交易动态',
-    viewAll: '查看全部',
-    days: '天',
-    hours: '小时',
-    minutes: '分',
-    seconds: '秒',
-
-    // Settings
-    accountSettings: '账户与应用设置',
-    settingsSubtitle: '自定义您的语言、显示货币、通知提醒和隐私偏好。',
-    saveChanges: '保存更改',
-    saved: '保存成功！',
-    regionalLocalization: '地区与语言本地化',
-    platformLanguage: '平台显示语言',
-    referenceCurrency: '参考计价货币 (USDT基准)',
-    timestampDisplay: '时间与日期格式',
-    displayPrivacy: '显示与隐私设置',
-    themeAppearance: '界面主题外观',
-    maskBalances: '默认隐藏资产余额 (••••••)',
-    audioEffects: '操作提示音效',
-    notificationPreferences: '通知与提醒偏好',
-    depositAlerts: '充值与提现到账提醒',
-    yieldAlerts: '每日质押收益汇总',
-    securityAlerts: '安全与异地登录提醒',
-    taskAlerts: '任务与官方活动公告',
-    alwaysOn: '始终开启',
-    resetDiagnostics: '重置与诊断',
-    clearCache: '清除本地缓存',
-    securityShortcuts: '安全中心快捷方式',
-    accountOverview: '账户基本信息',
-  },
-  id: {
-    // Nav & Tabs
-    dashboard: 'Dasbor',
-    vip: 'Klub VIP',
-    profile: 'Profil',
-    team: 'Tim Saya',
-    transactions: 'Transaksi',
-    security: 'Keamanan',
-    twoFactor: 'Autentikasi Dua Faktor (2FA)',
-    withdrawalAddresses: 'Alamat Penarikan',
-    settings: 'Pengaturan',
-    support: 'Bantuan & Dukungan',
-    deposit: 'Deposit',
-    withdraw: 'Tarik Dana',
-    staking: 'Staking',
-    task: 'Tugas',
-    logout: 'Keluar',
-    home: 'Beranda',
-    history: 'Riwayat',
-
-    // Hero & Stats
-    totalBalance: 'Total Saldo',
-    totalEarned: 'Total Pendapatan',
-    totalWithdrawn: 'Total Penarikan',
-    dailyYield: 'Hasil Harian',
-    referralIncome: 'Pendapatan Referral',
-    teamIncome: 'Pendapatan Tim',
-    incentiveIncome: 'Bonus & Insentif',
-    today: 'Hari Ini',
-    total: 'Total',
-    activeStreak: 'Streak Aktif',
-    metafirmWallet: 'Dompet MetaFirm',
-
-    // Actions & Cards
-    triggerClaim: 'Klaim Hasil',
-    claimDailyReward: 'Klaim Hadiah Harian',
-    claimed: 'Sudah Diklaim',
-    cooldown: 'Cooldown',
-    monthlyEarnings: 'Grafik Pendapatan Bulanan',
-    recentTransactions: 'Aktivitas Terkini',
-    viewAll: 'Lihat Semua',
-    days: 'Hari',
-    hours: 'Jam',
-    minutes: 'Menit',
-    seconds: 'Detik',
-
-    // Settings
-    accountSettings: 'Pengaturan Akun & Aplikasi',
-    settingsSubtitle: 'Sesuaikan bahasa, mata uang referensi, notifikasi, dan privasi saldo.',
-    saveChanges: 'Simpan Perubahan',
-    saved: 'Tersimpan!',
-    regionalLocalization: 'Regional & Lokalisasi',
-    platformLanguage: 'Bahasa Tampilan Platform',
-    referenceCurrency: 'Mata Uang Referensi (Basis USDT)',
-    timestampDisplay: 'Format Waktu & Tanggal',
-    displayPrivacy: 'Tampilan & Privasi',
-    themeAppearance: 'Tampilan Tema',
-    maskBalances: 'Sembunyikan Saldo (••••••)',
-    audioEffects: 'Efek Suara Audio',
-    notificationPreferences: 'Preferensi Notifikasi & Peringatan',
-    depositAlerts: 'Pemberitahuan Deposit & Penarikan',
-    yieldAlerts: 'Ringkasan Hasil Staking Harian',
-    securityAlerts: 'Peringatan Keamanan & Login',
-    taskAlerts: 'Pengumuman Tugas & Promosi',
-    alwaysOn: 'Selalu Aktif',
-    resetDiagnostics: 'Reset & Diagnostik',
-    clearCache: 'Hapus Cache Lokal',
-    securityShortcuts: 'Pintasan Pusat Keamanan',
-    accountOverview: 'Ikhtisar Profil Akun',
-  },
 };
 
 export interface LocalizationContextType {
@@ -644,45 +493,11 @@ export interface LocalizationContextType {
   formatCurrency: (amountInUSDT: number | string, options?: { showCode?: boolean; decimals?: number }) => string;
   formatDate: (date: string | number | Date) => string;
   activeCurrencyMeta: CurrencyMeta;
-  currencies: Record<SupportedCurrency, CurrencyMeta>;
-  lastRatesUpdate: string | null;
-  isFetchingRates: boolean;
-  refreshRates: () => Promise<void>;
 }
 
 const LocalizationContext = createContext<LocalizationContextType | undefined>(undefined);
 
 export const LocalizationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currencies, setCurrencies] = useState<Record<SupportedCurrency, CurrencyMeta>>(() => {
-    try {
-      const cached = localStorage.getItem('metafirm_rates_cache');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        const merged: Record<SupportedCurrency, CurrencyMeta> = { ...BASE_CURRENCIES };
-        for (const [code, rate] of Object.entries(parsed)) {
-          if (merged[code as SupportedCurrency] && typeof rate === 'number' && rate > 0) {
-            merged[code as SupportedCurrency] = {
-              ...merged[code as SupportedCurrency],
-              rate,
-            };
-          }
-        }
-        return merged;
-      }
-    } catch {}
-    return BASE_CURRENCIES;
-  });
-
-  const [lastRatesUpdate, setLastRatesUpdate] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem('metafirm_rates_updated_at') || null;
-    } catch {
-      return null;
-    }
-  });
-
-  const [isFetchingRates, setIsFetchingRates] = useState<boolean>(false);
-
   const [language, setLanguageState] = useState<SupportedLanguage>(() => {
     try {
       const stored = localStorage.getItem('metafirm_language') as SupportedLanguage;
@@ -694,7 +509,7 @@ export const LocalizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [currency, setCurrencyState] = useState<SupportedCurrency>(() => {
     try {
       const stored = localStorage.getItem('metafirm_currency') as SupportedCurrency;
-      if (stored && BASE_CURRENCIES[stored]) return stored;
+      if (stored && CURRENCIES[stored]) return stored;
     } catch {}
     return 'USD';
   });
@@ -706,88 +521,6 @@ export const LocalizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } catch {}
     return '12h';
   });
-
-  const refreshRates = useCallback(async () => {
-    setIsFetchingRates(true);
-    try {
-      let fetchedRates: Record<string, number> | null = null;
-      // 1. Try internal backend API first
-      try {
-        const res = await fetch('/api/v1/system/exchange-rates');
-        if (res.ok) {
-          const json = await res.json();
-          if (json.data?.rates) {
-            fetchedRates = json.data.rates;
-          }
-        }
-      } catch (err) {
-        console.warn('Backend exchange-rates fetch failed, trying public fallback...', err);
-      }
-
-      // 2. Try open forex API fallback if backend rates unavailable
-      if (!fetchedRates) {
-        try {
-          const res = await fetch('https://open.er-api.com/v6/latest/USD');
-          if (res.ok) {
-            const json = await res.json();
-            if (json.rates) {
-              fetchedRates = json.rates;
-            }
-          }
-        } catch (err) {
-          console.warn('Public exchange rates fallback failed:', err);
-        }
-      }
-
-      if (fetchedRates) {
-        const now = new Date().toISOString();
-        const updated: Record<SupportedCurrency, CurrencyMeta> = { ...BASE_CURRENCIES };
-        const ratesCache: Record<string, number> = {};
-
-        for (const code of Object.keys(BASE_CURRENCIES) as SupportedCurrency[]) {
-          if (fetchedRates[code] && typeof fetchedRates[code] === 'number') {
-            const rawRate = fetchedRates[code];
-            updated[code] = {
-              ...updated[code],
-              rate: rawRate,
-            };
-            ratesCache[code] = rawRate;
-          }
-        }
-
-        setCurrencies(updated);
-        setLastRatesUpdate(now);
-        try {
-          localStorage.setItem('metafirm_rates_cache', JSON.stringify(ratesCache));
-          localStorage.setItem('metafirm_rates_updated_at', now);
-        } catch {}
-      }
-    } catch (err) {
-      console.error('Error refreshing exchange rates:', err);
-    } finally {
-      setIsFetchingRates(false);
-    }
-  }, []);
-
-  // Check and auto-refresh rates if stale (> 30 mins old or never updated)
-  useEffect(() => {
-    const checkRatesFreshness = () => {
-      try {
-        const lastUpdated = localStorage.getItem('metafirm_rates_updated_at');
-        if (!lastUpdated) {
-          refreshRates();
-          return;
-        }
-        const diffMs = Date.now() - new Date(lastUpdated).getTime();
-        if (isNaN(diffMs) || diffMs > 30 * 60 * 1000) {
-          refreshRates();
-        }
-      } catch {
-        refreshRates();
-      }
-    };
-    checkRatesFreshness();
-  }, [refreshRates]);
 
   const setLanguage = useCallback((lang: SupportedLanguage) => {
     setLanguageState(lang);
@@ -816,7 +549,7 @@ export const LocalizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       if (e.key === 'metafirm_language' && e.newValue && DICTIONARY[e.newValue as SupportedLanguage]) {
         setLanguageState(e.newValue as SupportedLanguage);
       }
-      if (e.key === 'metafirm_currency' && e.newValue && BASE_CURRENCIES[e.newValue as SupportedCurrency]) {
+      if (e.key === 'metafirm_currency' && e.newValue && CURRENCIES[e.newValue as SupportedCurrency]) {
         setCurrencyState(e.newValue as SupportedCurrency);
       }
       if (e.key === 'metafirm_date_format' && (e.newValue === '12h' || e.newValue === '24h')) {
@@ -841,7 +574,7 @@ export const LocalizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     [language]
   );
 
-  const activeCurrencyMeta = currencies[currency] || BASE_CURRENCIES.USD;
+  const activeCurrencyMeta = CURRENCIES[currency] || CURRENCIES.USD;
 
   const formatCurrency = useCallback(
     (amountInUSDT: number | string, options?: { showCode?: boolean; decimals?: number }): string => {
@@ -849,9 +582,7 @@ export const LocalizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       if (isNaN(num)) return `${activeCurrencyMeta.symbol}0.00`;
 
       const converted = num * activeCurrencyMeta.rate;
-      const decimals = options?.decimals !== undefined 
-        ? options.decimals 
-        : (activeCurrencyMeta.rate > 500 ? 0 : 2);
+      const decimals = options?.decimals !== undefined ? options.decimals : 2;
 
       const formattedNumber = converted.toLocaleString(language === 'hi' ? 'en-IN' : 'en-US', {
         minimumFractionDigits: decimals,
@@ -904,10 +635,6 @@ export const LocalizationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         formatCurrency,
         formatDate,
         activeCurrencyMeta,
-        currencies,
-        lastRatesUpdate,
-        isFetchingRates,
-        refreshRates,
       }}
     >
       {children}
