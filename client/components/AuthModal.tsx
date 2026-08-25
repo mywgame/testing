@@ -232,7 +232,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   resetMessages();
                   setActiveView('register');
                 }}
-                className="ml-1.5 font-bold text-blue-700 hover:text-blue-800 hover:underline inline-flex items-center space-x-0.5 cursor-pointer font-mono text-[11px] focus:outline-none"
+                className="ml-1.5 font-bold text-blue-600 hover:text-blue-700 hover:underline inline-flex items-center space-x-0.5 cursor-pointer font-mono text-[11px] focus:outline-none"
                 id="auth-toggle-mode-btn"
               >
                 <UserPlus className="w-3.5 h-3.5 mr-1" /> Create Account
@@ -248,7 +248,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   resetMessages();
                   setActiveView('login');
                 }}
-                className="ml-1.5 font-bold text-blue-700 hover:text-blue-800 hover:underline inline-flex items-center space-x-0.5 cursor-pointer font-mono text-[11px] focus:outline-none"
+                className="ml-1.5 font-bold text-blue-600 hover:text-blue-700 hover:underline inline-flex items-center space-x-0.5 cursor-pointer font-mono text-[11px] focus:outline-none"
                 id="auth-toggle-mode-btn"
               >
                 Sign In
@@ -264,7 +264,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   resetMessages();
                   setActiveView('register');
                 }}
-                className="ml-1.5 font-bold text-blue-700 hover:text-blue-800 hover:underline cursor-pointer font-mono text-[11px] focus:outline-none"
+                className="ml-1.5 font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer font-mono text-[11px] focus:outline-none"
               >
                 Back to Registration
               </button>
@@ -279,7 +279,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   resetMessages();
                   setActiveView('login');
                 }}
-                className="ml-1.5 font-bold text-blue-700 hover:text-blue-800 hover:underline cursor-pointer font-mono text-[11px] focus:outline-none"
+                className="ml-1.5 font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer font-mono text-[11px] focus:outline-none"
               >
                 Back to Sign In
               </button>

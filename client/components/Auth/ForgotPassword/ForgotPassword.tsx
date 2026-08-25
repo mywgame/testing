@@ -72,7 +72,7 @@ export const ForgotPassword: React.FC<ForgotPasswordProps> = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <Input
           label="Registered Email Address"
           type="email"
@@ -80,6 +80,7 @@ export const ForgotPassword: React.FC<ForgotPasswordProps> = ({
           onChange={(e) => handleEmailChange(e.target.value)}
           placeholder="investor@metafirm.io"
           id="auth-forgot-email-input"
+          className="!rounded-2xl !border-slate-300/80 !bg-white/70 !backdrop-blur-sm !shadow-sm !py-3 focus-visible:!ring-blue-500 focus-visible:!border-blue-400"
           required
           autoFocus
           disabled={busy}
@@ -88,7 +89,7 @@ export const ForgotPassword: React.FC<ForgotPasswordProps> = ({
         <Button
           type="submit"
           isLoading={busy}
-          className="w-full mt-2"
+          className="w-full mt-2 !py-3.5 !bg-[image:var(--background-image-brand-gradient)] hover:!opacity-90 !shadow-lg !shadow-blue-500/25 !text-white !border-none"
           variant="primary"
           size="lg"
           id="auth-submit-btn"

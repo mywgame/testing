@@ -92,7 +92,7 @@ export const VerifyEmail: React.FC<VerifyEmailProps> = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
     >
-      <form onSubmit={handleVerify} className="space-y-4">
+      <form onSubmit={handleVerify} className="space-y-5">
         <div className="space-y-1.5 text-center py-2">
           <label htmlFor="auth-otp-input" className="block text-xs font-semibold text-gray-700 tracking-wide uppercase font-mono">
             Security Verification Code
@@ -104,7 +104,7 @@ export const VerifyEmail: React.FC<VerifyEmailProps> = ({
             value={otp}
             onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
             placeholder="000000"
-            className="w-full max-w-[200px] mx-auto text-center tracking-[0.5em] font-mono text-2xl font-bold px-4 py-3.5 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent bg-gray-50 text-gray-900 placeholder:text-gray-400 shadow-inner"
+            className="w-full max-w-[200px] mx-auto text-center tracking-[0.5em] font-mono text-2xl font-bold px-4 py-3.5 border border-slate-300/80 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 bg-white/70 backdrop-blur-sm text-slate-900 placeholder:text-gray-400 shadow-inner"
             required
             autoFocus
             disabled={busy}
@@ -119,7 +119,7 @@ export const VerifyEmail: React.FC<VerifyEmailProps> = ({
             className={`text-xs font-mono font-bold inline-flex items-center space-x-1 ${
               cooldown > 0 || busy
                 ? 'text-gray-400 cursor-not-allowed bg-transparent border-none'
-                : 'text-blue-600 hover:underline cursor-pointer bg-transparent border-none'
+                : 'text-blue-700 hover:underline cursor-pointer bg-transparent border-none'
             }`}
           >
             <RefreshCw className={`w-3 h-3 ${cooldown > 0 && !busy ? 'animate-spin' : ''}`} />
@@ -130,7 +130,7 @@ export const VerifyEmail: React.FC<VerifyEmailProps> = ({
         <Button
           type="submit"
           isLoading={busy}
-          className="w-full mt-2"
+          className="w-full mt-2 !py-3.5 !bg-[image:var(--background-image-brand-gradient)] hover:!opacity-90 !shadow-lg !shadow-blue-500/25 !text-white !border-none"
           variant="primary"
           size="lg"
           id="auth-submit-btn"
