@@ -5,7 +5,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../../hooks/useTheme.ts';
-import { ArrowRight, ChevronLeft, ChevronRight, Sparkles, Gift, Users, Coins } from 'lucide-react';
+import { useAuth } from '../../../hooks/useAuth.ts';
+import { getReferralLink } from '../../../utils/referral.ts';
+import { ArrowRight, ChevronLeft, ChevronRight, Gift, Users, Coins, Copy, Check } from 'lucide-react';
 
 interface PromoSlide {
   id: string;
@@ -16,7 +18,7 @@ interface PromoSlide {
   title: string;
   subtitle: string;
   actionText: string;
-  actionType: 'team' | 'deposit';
+  actionType: 'copy-referral' | 'deposit';
   icon: typeof Gift;
 }
 
@@ -30,7 +32,7 @@ const PROMO_SLIDES: PromoSlide[] = [
     title: 'Refer & Earn $0.10 USDT Instantly',
     subtitle: 'Share your invitation link. Earn $0.10 USDT for every verified user who registers using your link.',
     actionText: 'Refer Friends Now',
-    actionType: 'team',
+    actionType: 'copy-referral',
     icon: Users,
   },
   {
@@ -53,8 +55,13 @@ interface PromoOfferSliderProps {
 
 export const PromoOfferSlider: React.FC<PromoOfferSliderProps> = ({ onQuickAction }) => {
   const { t } = useTheme();
+  const { user } = useAuth();
   const [activeIdx, setActiveIdx] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const referralCode = user?.referralCode || user?.userId || '';
+  const referralLink = referralCode ? getReferralLink(referralCode) : `${window.location.origin}/register`;
 
   useEffect(() => {
     if (isPaused) return;
@@ -67,8 +74,12 @@ export const PromoOfferSlider: React.FC<PromoOfferSliderProps> = ({ onQuickActio
   const current = PROMO_SLIDES[activeIdx];
 
   const handleAction = () => {
-    if (current.actionType === 'team') {
-      onQuickAction?.('team');
+    if (current.actionType === 'copy-referral' || current.id === 'refer-earn') {
+      if (referralLink) {
+        navigator.clipboard.writeText(referralLink);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      }
     } else if (current.actionType === 'deposit') {
       onQuickAction?.('deposit');
     }
@@ -93,10 +104,10 @@ export const PromoOfferSlider: React.FC<PromoOfferSliderProps> = ({ onQuickActio
 
       {/* Main Grid: Responsive 2-column or Mobile stack */}
       <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 items-center min-h-[190px]">
-        {/* Visual Banner Media Column */}
+        {/* Visual Banner Media Column (Proper 16:9 Aspect Ratio to prevent stretching or cropping) */}
         <div 
           onClick={handleAction}
-          className="md:col-span-6 lg:col-span-5 relative h-48 sm:h-56 md:h-full min-h-[180px] overflow-hidden cursor-pointer bg-slate-950 flex items-center justify-center"
+          className="md:col-span-6 lg:col-span-5 relative w-full aspect-[16/9] md:aspect-auto md:h-full min-h-[180px] sm:min-h-[210px] overflow-hidden cursor-pointer bg-slate-950 flex items-center justify-center"
         >
           {PROMO_SLIDES.map((slide, idx) => (
             <div
@@ -109,9 +120,9 @@ export const PromoOfferSlider: React.FC<PromoOfferSliderProps> = ({ onQuickActio
                 src={slide.image}
                 alt={slide.title}
                 referrerPolicy="no-referrer"
-                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                className="w-full h-full object-cover object-top sm:object-center group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-transparent via-black/20 to-black/60 md:to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-slate-950/70 via-transparent to-transparent md:from-transparent md:via-black/20 md:to-black/50" />
             </div>
           ))}
         </div>
@@ -157,10 +168,30 @@ export const PromoOfferSlider: React.FC<PromoOfferSliderProps> = ({ onQuickActio
           <div className="flex items-center justify-between pt-1 gap-3">
             <button
               onClick={handleAction}
-              className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 transition-all shadow-md shadow-cyan-500/20 active:scale-95 cursor-pointer"
+              className={`inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-white transition-all shadow-md active:scale-95 cursor-pointer ${
+                current.id === 'refer-earn' && copied
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-600 shadow-emerald-500/30'
+                  : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 shadow-cyan-500/20'
+              }`}
             >
-              <span>{current.actionText}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              {current.id === 'refer-earn' ? (
+                copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-white" />
+                    <span>Referral Link Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>{current.actionText}</span>
+                  </>
+                )
+              ) : (
+                <>
+                  <span>{current.actionText}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </>
+              )}
             </button>
 
             {/* Manual Controls */}

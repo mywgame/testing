@@ -67,36 +67,29 @@ export const OfferPromoModal: React.FC<OfferPromoModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-300">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity"
+        className="absolute inset-0 bg-slate-950/75 backdrop-blur-md transition-opacity"
         onClick={handleClose}
       />
 
-      {/* Modal Container */}
+      {/* Modal Container: Always Crisp White / Light Theme */}
       <div
-        className="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border shadow-2xl transition-all duration-300 text-left"
-        style={{
-          background: t.isDark
-            ? 'linear-gradient(135deg, #0b1120 0%, #060b18 100%)'
-            : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-          borderColor: t.isDark ? 'rgba(99, 102, 241, 0.3)' : 'rgba(0, 0, 0, 0.1)',
-          boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(99, 102, 241, 0.2)',
-        }}
+        className="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200/90 bg-white text-slate-900 shadow-2xl shadow-black/40 transition-all duration-300 text-left"
       >
-        {/* Top Radial Glow */}
-        <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-purple-500/20 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-cyan-500/20 blur-3xl pointer-events-none" />
+        {/* Subtle Decorative Ambient Accents */}
+        <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-purple-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
 
         {/* Header Bar */}
-        <div className="relative z-10 flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/5">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-xl bg-gradient-to-tr from-purple-500 to-cyan-400 text-white shadow-sm">
+        <div className="relative z-10 flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-100 bg-white">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white shadow-sm">
               <Gift className="w-4 h-4" />
             </div>
             <div>
-              <h3 className={`text-sm font-sans font-extrabold tracking-wider uppercase ${t.text}`}>
+              <h3 className="text-sm font-sans font-extrabold tracking-wider uppercase text-slate-900">
                 Exclusive Promotions
               </h3>
-              <p className={`text-[11px] font-medium ${t.textMuted}`}>
+              <p className="text-[12px] font-medium text-slate-600">
                 Earn bonus USDT rewards directly into your wallet
               </p>
             </div>
@@ -104,9 +97,7 @@ export const OfferPromoModal: React.FC<OfferPromoModalProps> = ({
 
           <button
             onClick={handleClose}
-            className={`p-1.5 rounded-full border transition-all cursor-pointer ${
-              t.isDark ? 'border-white/10 hover:bg-white/10 text-slate-300' : 'border-slate-200 hover:bg-slate-100 text-slate-600'
-            }`}
+            className="p-1.5 rounded-full border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-all cursor-pointer"
             aria-label="Close promotion modal"
           >
             <X className="w-4 h-4" />
@@ -114,14 +105,14 @@ export const OfferPromoModal: React.FC<OfferPromoModalProps> = ({
         </div>
 
         {/* Tab Switcher */}
-        <div className="px-5 pt-3">
-          <div className={`grid grid-cols-2 p-1 rounded-2xl border ${t.isDark ? 'bg-slate-900/80 border-white/10' : 'bg-slate-100 border-slate-200'}`}>
+        <div className="px-5 pt-3 bg-white">
+          <div className="grid grid-cols-2 p-1 rounded-2xl border border-slate-200 bg-slate-100/90">
             <button
               onClick={() => setActiveTab('refer')}
               className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold font-sans transition-all cursor-pointer ${
                 activeTab === 'refer'
-                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
-                  : t.isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-black'
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 font-semibold'
               }`}
             >
               <Users className="w-3.5 h-3.5" />
@@ -131,8 +122,8 @@ export const OfferPromoModal: React.FC<OfferPromoModalProps> = ({
               onClick={() => setActiveTab('deposit')}
               className={`flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold font-sans transition-all cursor-pointer ${
                 activeTab === 'deposit'
-                  ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md'
-                  : t.isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-black'
+                  ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 font-semibold'
               }`}
             >
               <Coins className="w-3.5 h-3.5" />
@@ -142,12 +133,14 @@ export const OfferPromoModal: React.FC<OfferPromoModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+        <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto bg-white text-slate-900">
           {activeTab === 'refer' ? (
             <div className="space-y-4 animate-in fade-in duration-200">
               {/* Banner visual */}
-              <div className="relative rounded-2xl overflow-hidden aspect-[16/9] border border-purple-500/30 shadow-lg bg-slate-950 group cursor-pointer"
-                   onClick={() => handleAction('team')}>
+              <div
+                className="relative rounded-2xl overflow-hidden aspect-[16/9] border border-purple-200 shadow-md bg-slate-950 group cursor-pointer"
+                onClick={() => handleAction('team')}
+              >
                 <img
                   src="https://pub-9c62303890854a49a9eda8efb728c7ff.r2.dev/assets/images/branding/reffer.webp"
                   alt="Refer & Earn $0.10 USDT"
@@ -155,27 +148,33 @@ export const OfferPromoModal: React.FC<OfferPromoModalProps> = ({
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute top-2.5 right-2.5">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-600/90 backdrop-blur-md text-white border border-purple-400/40 shadow-md">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-600/95 backdrop-blur-md text-white border border-purple-400/50 shadow-md">
                     <Gift className="w-3.5 h-3.5 text-amber-300" />
                     <span>$0.10 / Referral</span>
                   </span>
                 </div>
               </div>
 
-              {/* Offer highlights */}
-              <div className={`p-3.5 rounded-2xl border ${t.isDark ? 'bg-purple-950/20 border-purple-500/20' : 'bg-purple-50 border-purple-100'}`}>
-                <ul className="text-xs space-y-1.5 font-sans leading-relaxed">
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400 shrink-0" />
-                    <span><strong>$0.10 USDT per registration:</strong> Rewarded instantly when your friend registers.</span>
+              {/* Offer highlights: High-contrast sharp text */}
+              <div className="p-4 rounded-2xl border border-purple-200/80 bg-purple-50/70 shadow-xs">
+                <ul className="text-xs space-y-2.5 font-sans leading-relaxed text-slate-800">
+                  <li className="flex items-start gap-2.5">
+                    <span className="w-2 h-2 rounded-full bg-purple-600 mt-1.5 shrink-0" />
+                    <span className="text-slate-800">
+                      <strong className="text-slate-950 font-bold">$0.10 USDT per registration:</strong> Rewarded instantly when your friend registers.
+                    </span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400 shrink-0" />
-                    <span><strong>Multi-tier commissions:</strong> Earn compounding yield from Level 1–4 downline activity.</span>
+                  <li className="flex items-start gap-2.5">
+                    <span className="w-2 h-2 rounded-full bg-purple-600 mt-1.5 shrink-0" />
+                    <span className="text-slate-800">
+                      <strong className="text-slate-950 font-bold">Multi-tier commissions:</strong> Earn compounding yield from Level 1–4 downline activity.
+                    </span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400 shrink-0" />
-                    <span><strong>No limit:</strong> Invite unlimited friends to maximize your daily passive income.</span>
+                  <li className="flex items-start gap-2.5">
+                    <span className="w-2 h-2 rounded-full bg-purple-600 mt-1.5 shrink-0" />
+                    <span className="text-slate-800">
+                      <strong className="text-slate-950 font-bold">No limit:</strong> Invite unlimited friends to maximize your daily passive income.
+                    </span>
                   </li>
                 </ul>
               </div>
@@ -183,18 +182,18 @@ export const OfferPromoModal: React.FC<OfferPromoModalProps> = ({
               {/* Quick Referral Link Copy Box */}
               {referralCode && (
                 <div className="space-y-1.5">
-                  <label className={`text-[11px] font-bold uppercase tracking-wider ${t.textMuted}`}>
+                  <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-700">
                     Your Invitation Link
                   </label>
-                  <div className={`flex items-center justify-between p-2 sm:p-2.5 rounded-xl border ${t.isDark ? 'bg-slate-900 border-white/10' : 'bg-slate-100 border-slate-200'}`}>
-                    <span className={`text-xs font-mono truncate mr-2 ${t.text}`}>
+                  <div className="flex items-center justify-between p-2 sm:p-2.5 rounded-xl border border-slate-300 bg-slate-50 shadow-xs">
+                    <span className="text-xs font-mono font-semibold text-slate-900 truncate mr-2 select-all">
                       {referralLink}
                     </span>
                     <button
                       onClick={handleCopyLink}
-                      className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-all active:scale-95 cursor-pointer"
+                      className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
                     >
-                      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copied ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
                       <span>{copied ? 'Copied!' : 'Copy'}</span>
                     </button>
                   </div>
@@ -204,7 +203,7 @@ export const OfferPromoModal: React.FC<OfferPromoModalProps> = ({
               {/* Primary Action Button */}
               <button
                 onClick={() => handleAction('team')}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 hover:opacity-95 transition-all shadow-lg shadow-purple-900/20 active:scale-[0.99] cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider text-white bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 transition-all shadow-md shadow-purple-900/20 active:scale-[0.99] cursor-pointer"
               >
                 <span>Go to My Team &amp; Referrals</span>
                 <ArrowRight className="w-4 h-4" />
@@ -213,8 +212,10 @@ export const OfferPromoModal: React.FC<OfferPromoModalProps> = ({
           ) : (
             <div className="space-y-4 animate-in fade-in duration-200">
               {/* Banner visual */}
-              <div className="relative rounded-2xl overflow-hidden aspect-[16/9] border border-cyan-500/30 shadow-lg bg-slate-950 group cursor-pointer"
-                   onClick={() => handleAction('deposit')}>
+              <div
+                className="relative rounded-2xl overflow-hidden aspect-[16/9] border border-cyan-200 shadow-md bg-slate-950 group cursor-pointer"
+                onClick={() => handleAction('deposit')}
+              >
                 <img
                   src="https://pub-9c62303890854a49a9eda8efb728c7ff.r2.dev/assets/images/branding/milestone.webp"
                   alt="Deposit Milestones Rewards"
@@ -222,27 +223,33 @@ export const OfferPromoModal: React.FC<OfferPromoModalProps> = ({
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute top-2.5 right-2.5">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-cyan-600/90 backdrop-blur-md text-white border border-cyan-400/40 shadow-md">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-cyan-600/95 backdrop-blur-md text-white border border-cyan-400/50 shadow-md">
                     <Gift className="w-3.5 h-3.5 text-amber-300" />
                     <span>Tier Rewards</span>
                   </span>
                 </div>
               </div>
 
-              {/* Offer highlights */}
-              <div className={`p-3.5 rounded-2xl border ${t.isDark ? 'bg-cyan-950/20 border-cyan-500/20' : 'bg-cyan-50 border-cyan-100'}`}>
-                <ul className="text-xs space-y-1.5 font-sans leading-relaxed">
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0" />
-                    <span><strong>Cumulative Milestones:</strong> Unlock bonus cash as your total deposits grow.</span>
+              {/* Offer highlights: High-contrast sharp text */}
+              <div className="p-4 rounded-2xl border border-cyan-200/80 bg-cyan-50/70 shadow-xs">
+                <ul className="text-xs space-y-2.5 font-sans leading-relaxed text-slate-800">
+                  <li className="flex items-start gap-2.5">
+                    <span className="w-2 h-2 rounded-full bg-cyan-600 mt-1.5 shrink-0" />
+                    <span className="text-slate-800">
+                      <strong className="text-slate-950 font-bold">Cumulative Milestones:</strong> Unlock bonus cash as your total deposits grow.
+                    </span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0" />
-                    <span><strong>VIP Upgrades:</strong> Higher deposit tiers automatically promote your VIP rank.</span>
+                  <li className="flex items-start gap-2.5">
+                    <span className="w-2 h-2 rounded-full bg-cyan-600 mt-1.5 shrink-0" />
+                    <span className="text-slate-800">
+                      <strong className="text-slate-950 font-bold">VIP Upgrades:</strong> Higher deposit tiers automatically promote your VIP rank.
+                    </span>
                   </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0" />
-                    <span><strong>Zero Fee TRC20/BEP20:</strong> Fast automated confirmations within minutes.</span>
+                  <li className="flex items-start gap-2.5">
+                    <span className="w-2 h-2 rounded-full bg-cyan-600 mt-1.5 shrink-0" />
+                    <span className="text-slate-800">
+                      <strong className="text-slate-950 font-bold">Zero Fee TRC20/BEP20:</strong> Fast automated confirmations within minutes.
+                    </span>
                   </li>
                 </ul>
               </div>
@@ -250,7 +257,7 @@ export const OfferPromoModal: React.FC<OfferPromoModalProps> = ({
               {/* Primary Action Button */}
               <button
                 onClick={() => handleAction('deposit')}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider text-white bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:opacity-95 transition-all shadow-lg shadow-cyan-900/20 active:scale-[0.99] cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider text-white bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-700 hover:to-indigo-700 transition-all shadow-md shadow-cyan-900/20 active:scale-[0.99] cursor-pointer"
               >
                 <span>Make a Deposit Now</span>
                 <ArrowRight className="w-4 h-4" />
@@ -260,7 +267,7 @@ export const OfferPromoModal: React.FC<OfferPromoModalProps> = ({
         </div>
 
         {/* Footer with "Don't show again" */}
-        <div className={`px-5 py-3 border-t flex items-center justify-between text-xs ${t.sep}`}>
+        <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between text-xs">
           <label className="flex items-center gap-2 cursor-pointer select-none">
             <input
               type="checkbox"
@@ -268,12 +275,12 @@ export const OfferPromoModal: React.FC<OfferPromoModalProps> = ({
               onChange={(e) => setDontShowAgain(e.target.checked)}
               className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300"
             />
-            <span className={t.textMuted}>Don&apos;t show again for today</span>
+            <span className="text-slate-600 font-medium">Don&apos;t show again for today</span>
           </label>
 
           <button
             onClick={handleClose}
-            className={`font-semibold hover:underline cursor-pointer ${t.textMuted}`}
+            className="font-bold text-slate-500 hover:text-slate-900 hover:underline cursor-pointer"
           >
             Dismiss
           </button>
