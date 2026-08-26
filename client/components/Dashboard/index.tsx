@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useAuth } from '../../hooks/useAuth.ts';
 import { useTheme } from '../../hooks/useTheme.ts';
 import { Button } from '../ui/Buttons/index.tsx';
@@ -14,6 +14,11 @@ import { BottomNav } from './BottomNav.tsx';
 import { GradientOrbs } from './GradientOrbs.tsx';
 import { api } from '../../services/api.ts';
 import { DashboardData } from '../../types/index.ts';
+import {
+  getCachedDashboardData,
+  fetchDashboardCached,
+  clearDashboardCache,
+} from '../../services/dashboardCache.ts';
 
 const VIP_CONFIG: Record<string, { label: string; color: string; bg: string; icon: string }> = {
   VIP1: { label: 'VIP1', color: '#94a3b8', bg: 'from-slate-400/30 to-slate-500/30', icon: '🥈' },
@@ -26,17 +31,24 @@ const VIP_CONFIG: Record<string, { label: string; color: string; bg: string; ico
   VIP8: { label: 'VIP8', color: '#3b82f6', bg: 'from-blue-500/30 to-cyan-500/30', icon: '🚀' },
 };
 
-// Tab Views
+// Primary Home Tab (eagerly loaded for 0ms initial paint)
 import { DashboardHome } from './DashboardHome.tsx';
-import { TeamView } from './Team/TeamView.tsx';
-import { ProfileView } from './ProfileView.tsx';
-import { SecurityView } from './SecurityView.tsx';
-import { TwoFactorView } from './TwoFactorView.tsx';
-import { WithdrawalAddressesView } from './WithdrawalAddressesView.tsx';
-import { SettingsView } from './SettingsView.tsx';
-import { SupportView } from './SupportView.tsx';
-import { TransactionsView } from './Transactions/TransactionsView.tsx';
-import { VIPView } from './VIP/VIPView.tsx';
+import { DashboardLayout } from './Layout/DashboardLayout.tsx';
+
+// Code-split / Lazy-loaded secondary sub-views
+const TeamView = React.lazy(() => import('./Team/TeamView.tsx').then(m => ({ default: m.TeamView })));
+const ProfileView = React.lazy(() => import('./ProfileView.tsx').then(m => ({ default: m.ProfileView })));
+const SecurityView = React.lazy(() => import('./SecurityView.tsx').then(m => ({ default: m.SecurityView })));
+const TwoFactorView = React.lazy(() => import('./TwoFactorView.tsx').then(m => ({ default: m.TwoFactorView })));
+const WithdrawalAddressesView = React.lazy(() => import('./WithdrawalAddressesView.tsx').then(m => ({ default: m.WithdrawalAddressesView })));
+const SettingsView = React.lazy(() => import('./SettingsView.tsx').then(m => ({ default: m.SettingsView })));
+const SupportView = React.lazy(() => import('./SupportView.tsx').then(m => ({ default: m.SupportView })));
+const TransactionsView = React.lazy(() => import('./Transactions/TransactionsView.tsx').then(m => ({ default: m.TransactionsView })));
+const VIPView = React.lazy(() => import('./VIP/VIPView.tsx').then(m => ({ default: m.VIPView })));
+const DepositView = React.lazy(() => import('./Deposit/DepositView.tsx').then(m => ({ default: m.DepositView })));
+const WithdrawalView = React.lazy(() => import('./Withdrawal/WithdrawalView.tsx').then(m => ({ default: m.WithdrawalView })));
+const StakingView = React.lazy(() => import('./Staking/StakingView.tsx').then(m => ({ default: m.StakingView })));
+const TaskView = React.lazy(() => import('./Task/TaskView.tsx').then(m => ({ default: m.TaskView })));
 
 // Loading Skeletons
 import {
@@ -50,13 +62,7 @@ import {
   SupportSkeleton,
 } from './Skeletons/index.ts';
 
-// Dedicated Sub-pages
-import { DashboardLayout } from './Layout/DashboardLayout.tsx';
-import { DepositView } from './Deposit/DepositView.tsx';
-import { WithdrawalView } from './Withdrawal/WithdrawalView.tsx';
-import { RewardsView } from './Rewards/RewardsView.tsx';
-import { StakingView } from './Staking/StakingView.tsx';
-import { TaskView } from './Task/TaskView.tsx';
+// Modals
 import { DepositSuccessModal } from './Deposit/DepositSuccessModal.tsx';
 import { DailyClaimModal } from './DailyClaimModal.tsx';
 import { WelcomeTrialFundModal } from './WelcomeTrialFundModal.tsx';
@@ -91,10 +97,10 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Dashboard state
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isPageLoading, setIsPageLoading] = useState(false);
+  // Initial snapshot from fast cache for 0ms instant display
+  const cachedInitialData = getCachedDashboardData();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(cachedInitialData);
+  const [isLoading, setIsLoading] = useState(!cachedInitialData);
 
   // Deposit Success Modal State
   const [depositSuccessData, setDepositSuccessData] = useState<{ amount: string; network: string } | null>(null);
@@ -131,13 +137,11 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
     setTimeout(() => setToastMessage(null), 3000);
   }, []);
 
-  const fetchDashboard = useCallback(async () => {
+  const fetchDashboard = useCallback(async (force = true) => {
     try {
-      const response = await api.get<DashboardData>('/users/dashboard');
-      if (response.success && response.data) {
-        setDashboardData(response.data);
-      } else {
-        showToast(response.error?.message || 'Failed to sync with the financial ledger.');
+      const data = await fetchDashboardCached(force);
+      if (data) {
+        setDashboardData(data);
       }
     } catch (error: any) {
       showToast(error.message || 'Network error occurred while updating the dashboard.');
@@ -145,15 +149,6 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       setIsLoading(false);
     }
   }, [showToast]);
-
-  useEffect(() => {
-    setIsPageLoading(true);
-    fetchDashboard();
-    const timer = setTimeout(() => {
-      setIsPageLoading(false);
-    }, 650);
-    return () => clearTimeout(timer);
-  }, [activeTab, fetchDashboard]);
 
   // Background polling for auto-verified deposits
   const checkAutoVerifiedDeposits = useCallback(async () => {
@@ -178,7 +173,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                 network: dep.network || 'USDT',
               });
               // Refresh wallet & dashboard balances
-              fetchDashboard();
+              fetchDashboard(true);
               break;
             }
           }
@@ -217,7 +212,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       const res = await clientTaskService.claimReward('REGISTRATION_TRIAL_FUND');
       if (res.success) {
         showToast(res.message || '🎉 Trial Fund welcome gift acknowledged and countdown activated!');
-        fetchDashboard();
+        fetchDashboard(true);
         return true;
       } else {
         showToast(res.message || 'Trial Fund could not be claimed.');
@@ -232,11 +227,16 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   };
 
   useEffect(() => {
-    fetchDashboard();
-    checkAutoVerifiedDeposits();
-    checkWelcomeTrialFund();
+    // Initial fetch with stale-while-revalidate
+    fetchDashboard(false);
 
-    // Check for auto-verified deposits only when the tab is visible (reduced frequency to 45s to avoid Neon compute burn)
+    // Defer non-critical background routines so initial screen render has zero CPU/network contention
+    const secondaryTimer = setTimeout(() => {
+      checkAutoVerifiedDeposits();
+      checkWelcomeTrialFund();
+    }, 1000);
+
+    // Check for auto-verified deposits only when the tab is visible
     const pollInterval = setInterval(() => {
       if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
         checkAutoVerifiedDeposits();
@@ -252,6 +252,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
+      clearTimeout(secondaryTimer);
       clearInterval(pollInterval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
@@ -271,9 +272,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       // If never seen or seen more than 12 hours ago
       if (!lastSeen || (Date.now() - parseInt(lastSeen, 10) > 12 * 60 * 60 * 1000)) {
         const timer = setTimeout(() => {
-          // If welcome modal or other critical modal is not active, open promo modal
           setIsPromoModalOpen(true);
-        }, 1200);
+        }, 1500);
         return () => clearTimeout(timer);
       }
     } catch {
@@ -282,6 +282,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   }, []);
 
   const handleLogout = () => {
+    clearDashboardCache();
     logout();
     onBackToLanding();
   };
@@ -302,18 +303,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
     }
   };
 
-  // Note: Team/Profile/Security/Settings/Support/Transactions still use their
-  // original light-only design and (pre-existing) mock data — that is
-  // unchanged, out of this redesign's scope. Wrapping them in a neutral
-  // light card frame keeps them looking intentional against the dark
-  // gradient-orb shell instead of visually clashing when dark mode is on.
-  const wrapLegacyView = (node: React.ReactNode) => (
-    <div className="bg-white rounded-3xl shadow-xl shadow-black/5 p-1">{node}</div>
-  );
-
   // Render main sub-view depending on active tab state
   const renderActiveView = () => {
-    if (isLoading || isPageLoading) {
+    if (isLoading && !dashboardData) {
       switch (activeTab) {
         case 'dashboard':
           return (
@@ -354,72 +346,138 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           <DashboardLayout variant="blank">
             <DashboardHome
               dashboardData={dashboardData}
-              onRefresh={fetchDashboard}
+              onRefresh={() => fetchDashboard(true)}
               onQuickAction={handleQuickAction}
               onDailyClaimSuccess={(info) => setDailyClaimSuccessData(info)}
             />
           </DashboardLayout>
         );
       case 'profile':
-        return <ProfileView />;
+        return (
+          <Suspense fallback={<ProfileSkeleton />}>
+            <ProfileView />
+          </Suspense>
+        );
       case 'vip':
-        return <VIPView dashboardData={dashboardData} />;
+        return (
+          <Suspense fallback={<VIPSkeleton />}>
+            <VIPView dashboardData={dashboardData} />
+          </Suspense>
+        );
       case 'team':
-        return <TeamView dashboardData={dashboardData} />;
+        return (
+          <Suspense fallback={<TeamSkeleton />}>
+            <TeamView dashboardData={dashboardData} />
+          </Suspense>
+        );
       case 'transactions':
-        return <TransactionsView />;
+        return (
+          <Suspense fallback={<TransactionSkeleton />}>
+            <TransactionsView />
+          </Suspense>
+        );
       case 'security':
-        return <SecurityView />;
+        return (
+          <Suspense fallback={<ProfileSkeleton />}>
+            <SecurityView />
+          </Suspense>
+        );
       case 'twoFactor':
-        return <TwoFactorView />;
+        return (
+          <Suspense fallback={<ProfileSkeleton />}>
+            <TwoFactorView />
+          </Suspense>
+        );
       case 'withdrawalAddresses':
-        return <WithdrawalAddressesView />;
+        return (
+          <Suspense fallback={<ProfileSkeleton />}>
+            <WithdrawalAddressesView />
+          </Suspense>
+        );
       case 'settings':
         return (
-          <SettingsView
-            onNavigate={(tab) => setActiveTab(tab)}
-            showToast={showToast}
-          />
+          <Suspense fallback={<ProfileSkeleton />}>
+            <SettingsView
+              onNavigate={(tab) => setActiveTab(tab)}
+              showToast={showToast}
+            />
+          </Suspense>
         );
       case 'support':
-        return <SupportView />;
+        return (
+          <Suspense fallback={<SupportSkeleton />}>
+            <SupportView />
+          </Suspense>
+        );
       case 'deposit':
         return (
-          <DepositView
-            dashboardData={dashboardData}
-            showToast={showToast}
-            onBack={() => setActiveTab('dashboard')}
-            onRefresh={fetchDashboard}
-            onDepositSuccess={(info) => setDepositSuccessData(info)}
-          />
+          <Suspense
+            fallback={
+              <DashboardLayout title="USDT Deposit Gateway" onBack={() => setActiveTab('dashboard')}>
+                <DepositSkeleton />
+              </DashboardLayout>
+            }
+          >
+            <DepositView
+              dashboardData={dashboardData}
+              showToast={showToast}
+              onBack={() => setActiveTab('dashboard')}
+              onRefresh={() => fetchDashboard(true)}
+              onDepositSuccess={(info) => setDepositSuccessData(info)}
+            />
+          </Suspense>
         );
       case 'withdrawal':
         return (
-          <WithdrawalView
-            showToast={showToast}
-            onBack={() => setActiveTab('dashboard')}
-          />
+          <Suspense
+            fallback={
+              <DashboardLayout title="USDT Withdrawal Portal" onBack={() => setActiveTab('dashboard')}>
+                <WithdrawalSkeleton />
+              </DashboardLayout>
+            }
+          >
+            <WithdrawalView
+              showToast={showToast}
+              onBack={() => setActiveTab('dashboard')}
+            />
+          </Suspense>
         );
       case 'staking':
       case 'rewards':
         return (
-          <StakingView
-            onBack={() => setActiveTab('dashboard')}
-          />
+          <Suspense
+            fallback={
+              <DashboardLayout title="Staking Rewards" onBack={() => setActiveTab('dashboard')}>
+                <DepositSkeleton />
+              </DashboardLayout>
+            }
+          >
+            <StakingView
+              onBack={() => setActiveTab('dashboard')}
+            />
+          </Suspense>
         );
       case 'task':
         return (
-          <TaskView
-            onBack={() => setActiveTab('dashboard')}
-            onNavigateToReferrals={() => setActiveTab('team')}
-            onNavigate={(tab) => setActiveTab(tab as DashboardTab)}
-            onRefresh={fetchDashboard}
-          />
+          <Suspense
+            fallback={
+              <DashboardLayout title="Tasks & Incentives" onBack={() => setActiveTab('dashboard')}>
+                <DepositSkeleton />
+              </DashboardLayout>
+            }
+          >
+            <TaskView
+              onBack={() => setActiveTab('dashboard')}
+              onNavigateToReferrals={() => setActiveTab('team')}
+              onNavigate={(tab) => setActiveTab(tab as DashboardTab)}
+              onRefresh={() => fetchDashboard(true)}
+            />
+          </Suspense>
         );
       default:
         return (
           <DashboardLayout variant="blank">
-            <DashboardHome dashboardData={dashboardData} onRefresh={fetchDashboard} onQuickAction={handleQuickAction} />
+            <DashboardHome dashboardData={dashboardData} onRefresh={() => fetchDashboard(true)} onQuickAction={handleQuickAction} />
           </DashboardLayout>
         );
     }

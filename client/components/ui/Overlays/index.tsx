@@ -15,6 +15,10 @@ interface ModalProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   id?: string;
   forceLight?: boolean;
+  className?: string;
+  contentClassName?: string;
+  backdropClassName?: string;
+  bodyClassName?: string;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -25,6 +29,10 @@ export const Modal: React.FC<ModalProps> = ({
   size = 'md',
   id,
   forceLight = false,
+  className = '',
+  contentClassName = '',
+  backdropClassName = '',
+  bodyClassName = '',
 }) => {
   // Prevent scrolling behind open modal
   useEffect(() => {
@@ -48,14 +56,14 @@ export const Modal: React.FC<ModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className={`fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3.5 sm:p-6 ${forceLight ? 'light' : ''}`} id={id}>
+        <div className={`fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-3.5 sm:p-6 ${forceLight ? 'light' : ''} ${className}`} id={id}>
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-gray-950/40 backdrop-blur-md"
+            className={`fixed inset-0 bg-gray-950/50 backdrop-blur-md ${backdropClassName}`}
             aria-hidden="true"
           />
 
@@ -66,9 +74,11 @@ export const Modal: React.FC<ModalProps> = ({
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
             className={`w-full ${sizes[size]} ${
-              forceLight
-                ? 'bg-white border border-slate-200 text-slate-900'
-                : 'bg-white dark:bg-[#0f112e] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white'
+              contentClassName || (
+                forceLight
+                  ? 'bg-white border border-slate-200 text-slate-900'
+                  : 'bg-white dark:bg-[#0f112e] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white'
+              )
             } rounded-[24px] sm:rounded-[28px] p-6 sm:p-8 shadow-2xl relative z-10 overflow-hidden text-left`}
             role="dialog"
             aria-modal="true"
@@ -106,7 +116,7 @@ export const Modal: React.FC<ModalProps> = ({
             )}
 
             {/* Main content body */}
-            <div className={`max-h-[70vh] overflow-y-auto pr-1 ${forceLight ? 'text-slate-900' : 'text-slate-900 dark:text-white'}`}>
+            <div className={`max-h-[70vh] overflow-y-auto pr-1 ${bodyClassName || (forceLight ? 'text-slate-900' : 'text-slate-900 dark:text-white')}`}>
               {children}
             </div>
           </motion.div>

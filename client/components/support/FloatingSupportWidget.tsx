@@ -11,9 +11,15 @@ import {
   Send,
   User,
   Mail,
-  ChevronLeft
+  ChevronLeft,
+  MessageSquare,
+  Sparkles,
+  AlertCircle,
+  Clock,
+  CheckCircle2
 } from 'lucide-react';
 import { api } from '../../services/api.ts';
+import { useTheme } from '../../hooks/useTheme.ts';
 
 interface FloatingSupportWidgetProps {
   isDark?: boolean;
@@ -39,7 +45,10 @@ interface SupportMessage {
   createdAt: string;
 }
 
-export const FloatingSupportWidget: React.FC<FloatingSupportWidgetProps> = ({ isDark = true }) => {
+export const FloatingSupportWidget: React.FC<FloatingSupportWidgetProps> = ({ isDark: propIsDark }) => {
+  const themeContext = useTheme();
+  const isDark = propIsDark !== undefined ? propIsDark : themeContext.isDark;
+
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [guestSessionId, setGuestSessionId] = useState<string>('');
   
@@ -55,7 +64,7 @@ export const FloatingSupportWidget: React.FC<FloatingSupportWidgetProps> = ({ is
   const [isLoadingMessages, setIsLoadingMessages] = useState<boolean>(false);
   const [hasUnread, setHasUnread] = useState<boolean>(false);
 
-  // New Ticket Form State (Simplified: Name, Required Email, Problem Description)
+  // New Ticket Form State
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -68,18 +77,23 @@ export const FloatingSupportWidget: React.FC<FloatingSupportWidgetProps> = ({ is
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [mounted, setMounted] = useState<boolean>(false);
   const [isScrolledPastHero, setIsScrolledPastHero] = useState<boolean>(false);
+  const [scrollProgress, setScrollProgress] = useState<number>(0);
 
-  // Detect scroll past Hero section so widget is hidden on Hero and appears upon scrolling down
+  // Detect scroll past Hero section and calculate page scroll progress
   useEffect(() => {
     const checkScrollPosition = () => {
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+      const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = scrollHeight > 0 ? Math.min(100, Math.max(0, (scrollY / scrollHeight) * 100)) : 0;
+      setScrollProgress(progress);
+
       const hero = document.getElementById('hero');
       if (hero) {
         const heroRect = hero.getBoundingClientRect();
-        // Visible once the hero section is scrolled past or scrollY exceeds 320px
-        const pastHero = heroRect.bottom <= 220 || window.scrollY > 320;
+        const pastHero = heroRect.bottom <= 220 || scrollY > 320;
         setIsScrolledPastHero(pastHero);
       } else {
-        setIsScrolledPastHero(window.scrollY > 280);
+        setIsScrolledPastHero(scrollY > 280);
       }
     };
 
@@ -134,7 +148,6 @@ export const FloatingSupportWidget: React.FC<FloatingSupportWidgetProps> = ({ is
       if (res.success && Array.isArray(res.data)) {
         setTickets(res.data);
         if (res.data.length > 0 && !activeTicket) {
-          // If there's an open ticket, select it
           const openTicket = res.data.find((t: any) => t.status === 'OPEN' || t.status === 'IN_PROGRESS') || res.data[0];
           setActiveTicket(openTicket);
         }
@@ -150,7 +163,6 @@ export const FloatingSupportWidget: React.FC<FloatingSupportWidgetProps> = ({ is
       const res = await api.getGuestTicketMessages(ticketId, sid);
       if (res.success && Array.isArray(res.data)) {
         if (messages.length > 0 && res.data.length > messages.length) {
-          // New message received
           const lastMsg = res.data[res.data.length - 1];
           if (lastMsg.senderType === 'ADMIN') {
             setHasUnread(true);
@@ -184,7 +196,6 @@ export const FloatingSupportWidget: React.FC<FloatingSupportWidgetProps> = ({ is
     setFormError('');
 
     try {
-      // Save contact details to local storage
       if (formData.name) localStorage.setItem('metafirm_guest_name', formData.name.trim());
       if (formData.email) localStorage.setItem('metafirm_guest_email', formData.email.trim());
 
@@ -249,184 +260,250 @@ export const FloatingSupportWidget: React.FC<FloatingSupportWidgetProps> = ({ is
     <>
       {/* Floating Trigger Button (Hidden on Hero, Appears after scrolling past Hero) */}
       <div
-        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9999] flex items-center gap-2.5 transition-all duration-400 ease-out ${
+        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9999] flex items-center gap-3 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           isScrolledPastHero || isOpen
             ? 'opacity-100 translate-y-0 pointer-events-auto scale-100'
             : 'opacity-0 translate-y-6 pointer-events-none scale-90'
         }`}
       >
         {!isOpen && (
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/95 text-white text-[11px] shadow-xl border border-white/15 backdrop-blur-md animate-fade-in pointer-events-none select-none">
+          <div className="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 dark:bg-navy-900/90 text-white text-[11px] shadow-2xl border border-white/15 backdrop-blur-xl animate-fade-in pointer-events-none select-none">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-semibold text-slate-200">24/7 Support</span>
+            <span className="font-bold tracking-wide text-slate-200 font-sans">24/7 Support Desk</span>
           </div>
         )}
 
-        <button
-          onClick={() => {
-            setIsOpen(!isOpen);
-            if (!isOpen) {
-              setHasUnread(false);
-            }
-          }}
-          className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer touch-manipulation ${
-            isOpen
-              ? 'bg-slate-800 text-white rotate-90 border border-slate-700'
-              : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-blue-500/40 ring-2 ring-blue-400/30'
-          }`}
-          aria-label="Open Live Support"
-          title="Open Live Support"
-        >
-          {isOpen ? (
-            <X className="w-5 h-5 sm:w-6 sm:h-6" />
-          ) : (
-            <>
-              <Headphones className="w-5 h-5 sm:w-6 sm:h-6" />
-              {hasUnread && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-slate-950">
-                  1
-                </span>
-              )}
-            </>
+        {/* Trigger Button with Circular Scroll Progress Ring */}
+        <div className="relative group">
+          {/* Circular SVG Scroll Progress Ring */}
+          {!isOpen && (
+            <svg
+              className="absolute -inset-1.5 sm:-inset-2 w-[calc(100%+12px)] sm:w-[calc(100%+16px)] h-[calc(100%+12px)] sm:h-[calc(100%+16px)] pointer-events-none -rotate-90 z-0 transition-opacity duration-300"
+              viewBox="0 0 100 100"
+            >
+              <defs>
+                <linearGradient id="supportScrollProgressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#E91E8C" />
+                  <stop offset="50%" stopColor="#1565F0" />
+                  <stop offset="100%" stopColor="#29ABE2" />
+                </linearGradient>
+              </defs>
+
+              {/* Background Track Ring */}
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3.5"
+                className="text-slate-300/30 dark:text-white/10"
+              />
+
+              {/* Animated Progress Arc */}
+              <circle
+                cx="50"
+                cy="50"
+                r="45"
+                fill="none"
+                stroke="url(#supportScrollProgressGrad)"
+                strokeWidth="3.8"
+                strokeLinecap="round"
+                strokeDasharray={2 * Math.PI * 45}
+                strokeDashoffset={2 * Math.PI * 45 * (1 - scrollProgress / 100)}
+                className="transition-[stroke-dashoffset] duration-150 ease-out"
+                style={{
+                  filter: 'drop-shadow(0 0 4px rgba(233, 30, 140, 0.6))',
+                }}
+              />
+            </svg>
           )}
-        </button>
+
+          <button
+            onClick={() => {
+              setIsOpen(!isOpen);
+              if (!isOpen) {
+                setHasUnread(false);
+              }
+            }}
+            className={`relative z-10 w-13 h-13 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer touch-manipulation focus:outline-none ${
+              isOpen
+                ? 'bg-slate-900 dark:bg-navy-900 text-white rotate-90 border border-white/20 shadow-2xl'
+                : 'bg-brand-gradient text-white shadow-[0_12px_32px_-4px_rgba(233,30,140,0.55),0_6px_16px_rgba(21,101,240,0.35)] hover:shadow-[0_16px_36px_-2px_rgba(233,30,140,0.7),0_8px_20px_rgba(41,171,226,0.45)] ring-2 ring-white/25 hover:ring-white/50'
+            }`}
+            aria-label="Open Live Support"
+            title={isOpen ? 'Close Support' : `Open Live Support (${Math.round(scrollProgress)}% scrolled)`}
+          >
+            {isOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <>
+                <Headphones className="w-6 h-6 drop-shadow-md" />
+                {hasUnread && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center border-2 border-slate-950 shadow-md animate-bounce">
+                    1
+                  </span>
+                )}
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Slide-Up Chat Window */}
+      {/* Slide-Up Support Desk Window */}
       {isOpen && (
         <div
-          className="fixed bottom-18 sm:bottom-22 right-3 sm:right-6 left-3 sm:left-auto w-auto sm:w-[380px] max-w-[calc(100vw-1.5rem)] max-h-[85vh] sm:max-h-[560px] h-[500px] sm:h-[520px] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-700/60 bg-slate-900 text-slate-100 backdrop-blur-2xl z-[9999] animate-scale-up"
-          style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(59, 130, 246, 0.15)' }}
+          className="fixed bottom-20 sm:bottom-24 right-3 sm:right-6 left-3 sm:left-auto w-auto sm:w-[410px] max-w-[calc(100vw-1.5rem)] max-h-[85vh] sm:max-h-[580px] h-[520px] sm:h-[550px] rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_40px_rgba(233,30,140,0.2)] flex flex-col overflow-hidden border border-slate-200/80 dark:border-white/15 bg-white/95 dark:bg-navy-950/95 text-slate-900 dark:text-slate-100 backdrop-blur-2xl z-[9999] animate-scale-up"
         >
+          {/* Top MetaFirm Signature Gradient Strip */}
+          <div className="h-1.5 w-full bg-brand-gradient shrink-0" />
+
           {/* Header */}
-          <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 p-3.5 border-b border-slate-800 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2.5">
+          <div className="bg-slate-50/90 dark:bg-navy-900/90 px-4 py-3.5 border-b border-slate-200 dark:border-white/10 flex items-center justify-between shrink-0 backdrop-blur-md">
+            <div className="flex items-center gap-3">
               {view === 'CHAT' && (
                 <button
                   onClick={() => setView('FORM')}
-                  className="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  className="p-1.5 rounded-xl hover:bg-slate-200 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                   title="Back to New Inquiry"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
               )}
-              <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
-                <Headphones className="w-4 h-4" />
+              
+              <div className="w-9 h-9 rounded-xl bg-brand-gradient p-[1px] shadow-sm shrink-0">
+                <div className="w-full h-full rounded-[11px] bg-slate-900 flex items-center justify-center text-white">
+                  <Headphones className="w-4 h-4 text-brand-cyan" />
+                </div>
               </div>
+
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-xs text-white tracking-tight">Support Desk</h3>
-                  <span className="flex items-center gap-1 text-[9px] text-emerald-400 font-semibold px-1.5 py-0.2 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                    <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
+                  <h3 className="font-display font-bold text-sm text-slate-900 dark:text-white tracking-tight">
+                    MetaFirm Support
+                  </h3>
+                  <span className="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     Online
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-400 font-medium">Guest & Visitor Assistance</p>
+                <p className="text-[11px] text-slate-500 dark:text-ink-300 font-medium">
+                  Guest & Visitor Live Assistance
+                </p>
               </div>
             </div>
 
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-              title="Minimize chat"
+              className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10 transition-colors cursor-pointer"
+              title="Close support desk"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           {/* Body Content */}
-          <div className="flex-1 overflow-y-auto flex flex-col bg-slate-950/50">
+          <div className="flex-1 overflow-y-auto flex flex-col bg-slate-50/40 dark:bg-navy-950/60">
             {/* VIEW: DIRECT INQUIRY FORM */}
             {view === 'FORM' && (
-              <form onSubmit={handleCreateTicket} className="p-4 flex flex-col gap-3">
-                {/* Active chat shortcut if previous ticket exists */}
-                {tickets.length > 0 && (
-                  <div className="flex items-center justify-between p-2 rounded-xl bg-blue-950/40 border border-blue-500/20 text-xs">
-                    <span className="text-[11px] text-slate-300">Previous chat available</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const latestTicket = tickets[0];
-                        setActiveTicket(latestTicket);
-                        setView('CHAT');
-                      }}
-                      className="text-[11px] font-bold text-blue-400 hover:text-blue-300 underline cursor-pointer"
-                    >
-                      View Active Thread →
-                    </button>
-                  </div>
-                )}
+              <form onSubmit={handleCreateTicket} className="p-4 sm:p-5 flex flex-col gap-4 flex-1 justify-between">
+                <div className="space-y-3.5">
+                  {/* Active chat shortcut if previous ticket exists */}
+                  {tickets.length > 0 && (
+                    <div className="flex items-center justify-between p-3 rounded-2xl bg-brand-blue/10 dark:bg-brand-blue/15 border border-brand-blue/20 dark:border-brand-cyan/25 text-xs backdrop-blur-sm">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="w-4 h-4 text-brand-blue dark:text-brand-cyan shrink-0" />
+                        <span className="text-[11px] font-medium text-slate-700 dark:text-ink-300">
+                          Active conversation thread found
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const latestTicket = tickets[0];
+                          setActiveTicket(latestTicket);
+                          setView('CHAT');
+                        }}
+                        className="text-[11px] font-bold text-brand-blue dark:text-brand-cyan hover:underline cursor-pointer flex items-center gap-1 font-mono"
+                      >
+                        Resume Chat →
+                      </button>
+                    </div>
+                  )}
 
-                {/* Contact Inputs */}
-                <div className="space-y-2.5">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                      Your Name / Username <span className="text-red-400">*</span>
-                    </label>
-                    <div className="relative">
-                      <User className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
-                      <input
-                        type="text"
-                        placeholder="e.g. John Doe"
-                        value={formData.name}
-                        onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  {/* Contact Inputs */}
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                        Your Name / Username <span className="text-brand-magenta">*</span>
+                      </label>
+                      <div className="relative">
+                        <User className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-3 pointer-events-none" />
+                        <input
+                          type="text"
+                          placeholder="e.g. Alex Trader"
+                          value={formData.name}
+                          onChange={e => setFormData({ ...formData, name: e.target.value })}
+                          required
+                          className="w-full bg-white dark:bg-navy-900/80 border border-slate-300/80 dark:border-white/15 rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue-light transition-all shadow-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                        Email Address <span className="text-brand-magenta">*</span>
+                      </label>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3.5 top-3 pointer-events-none" />
+                        <input
+                          type="email"
+                          placeholder="investor@example.com"
+                          value={formData.email}
+                          onChange={e => setFormData({ ...formData, email: e.target.value })}
+                          required
+                          className="w-full bg-white dark:bg-navy-900/80 border border-slate-300/80 dark:border-white/15 rounded-2xl pl-10 pr-4 py-2.5 text-xs sm:text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue-light transition-all shadow-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                        Describe your problem <span className="text-brand-magenta">*</span>
+                      </label>
+                      <textarea
+                        rows={3}
+                        placeholder="Please explain the issue or question in detail..."
+                        value={formData.description}
+                        onChange={e => setFormData({ ...formData, description: e.target.value })}
                         required
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                        className="w-full bg-white dark:bg-navy-900/80 border border-slate-300/80 dark:border-white/15 rounded-2xl p-3.5 text-xs sm:text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue-light resize-none transition-all shadow-sm min-h-[105px]"
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                      Email Address <span className="text-red-400">*</span>
-                    </label>
-                    <div className="relative">
-                      <Mail className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
-                      <input
-                        type="email"
-                        placeholder="name@email.com"
-                        value={formData.email}
-                        onChange={e => setFormData({ ...formData, email: e.target.value })}
-                        required
-                        className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                      />
+                  {formError && (
+                    <div className="text-xs text-red-600 dark:text-red-400 bg-red-500/10 border border-red-500/20 p-2.5 rounded-xl flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{formError}</span>
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-300 mb-1">
-                      Describe your problem <span className="text-red-400">*</span>
-                    </label>
-                    <textarea
-                      rows={4}
-                      placeholder="Please explain the issue or question..."
-                      value={formData.description}
-                      onChange={e => setFormData({ ...formData, description: e.target.value })}
-                      required
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 resize-none"
-                    />
-                  </div>
+                  )}
                 </div>
 
-                {formError && (
-                  <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 p-2 rounded-xl">
-                    {formError}
-                  </p>
-                )}
-
+                {/* Submit Action Button */}
                 <button
                   type="submit"
                   disabled={isSubmittingTicket}
-                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 disabled:opacity-50 transition-all cursor-pointer mt-1"
+                  className="w-full py-3.5 px-5 rounded-2xl bg-brand-gradient text-white text-xs sm:text-sm font-bold shadow-[0_10px_25px_-5px_rgba(233,30,140,0.45)] hover:shadow-[0_14px_30px_-3px_rgba(233,30,140,0.6)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                 >
                   {isSubmittingTicket ? (
                     <>
-                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Submitting Inquiry...</span>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Connecting Specialist...</span>
                     </>
                   ) : (
                     <>
-                      <Send className="w-3.5 h-3.5" />
+                      <Send className="w-4 h-4" />
                       <span>Start Live Support Chat</span>
                     </>
                   )}
@@ -438,36 +515,40 @@ export const FloatingSupportWidget: React.FC<FloatingSupportWidgetProps> = ({ is
             {view === 'CHAT' && activeTicket && (
               <div className="flex-1 flex flex-col h-full">
                 {/* Active Ticket Banner */}
-                <div className="bg-slate-900/90 px-3.5 py-2 border-b border-slate-800 flex items-center justify-between text-xs">
+                <div className="bg-slate-100/90 dark:bg-navy-900/90 px-4 py-2.5 border-b border-slate-200 dark:border-white/10 flex items-center justify-between text-xs backdrop-blur-sm">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-blue-400 font-bold text-[11px]">{activeTicket.ticketNumber}</span>
-                    <span className="text-slate-300 font-semibold truncate max-w-[170px]">{activeTicket.subject}</span>
+                    <span className="font-mono text-brand-blue dark:text-brand-cyan font-bold text-xs bg-brand-blue/10 dark:bg-brand-cyan/10 px-2 py-0.5 rounded-lg">
+                      {activeTicket.ticketNumber}
+                    </span>
+                    <span className="text-slate-700 dark:text-slate-200 font-semibold truncate max-w-[180px]">
+                      {activeTicket.subject}
+                    </span>
                   </div>
-                  <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded ${
+                  <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
                     activeTicket.status === 'OPEN'
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30'
                       : activeTicket.status === 'RESOLVED'
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                      : 'bg-slate-800 text-slate-400'
+                      ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30'
+                      : 'bg-slate-200 dark:bg-navy-800 text-slate-600 dark:text-slate-400'
                   }`}>
                     {activeTicket.status}
                   </span>
                 </div>
 
                 {/* Messages List */}
-                <div className="flex-1 p-3.5 overflow-y-auto space-y-2.5">
+                <div className="flex-1 p-4 overflow-y-auto space-y-3">
                   {isLoadingMessages && messages.length === 0 ? (
-                    <div className="py-12 text-center">
-                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                      <p className="text-xs text-slate-500">Connecting to support agent...</p>
+                    <div className="py-14 text-center">
+                      <div className="w-5 h-5 border-2 border-brand-magenta border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Connecting with support specialist...</p>
                     </div>
                   ) : (
                     <>
                       {/* Initial description message */}
                       <div className="flex justify-start">
-                        <div className="max-w-[85%] rounded-2xl rounded-tl-none p-2.5 text-xs bg-slate-900 border border-slate-800 text-slate-200">
-                          <div className="flex items-center justify-between gap-3 text-[10px] text-slate-400 mb-1 border-b border-slate-800 pb-1">
-                            <span className="font-semibold">{formData.name || 'You (Guest)'}</span>
+                        <div className="max-w-[85%] rounded-2xl rounded-tl-none p-3 text-xs bg-white dark:bg-navy-900 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 shadow-sm">
+                          <div className="flex items-center justify-between gap-3 text-[10px] text-slate-400 dark:text-slate-500 mb-1.5 border-b border-slate-100 dark:border-white/5 pb-1">
+                            <span className="font-bold text-slate-700 dark:text-slate-300">{formData.name || 'You (Guest)'}</span>
                             <span className="font-mono">{new Date(activeTicket.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                           </div>
                           <p className="whitespace-pre-wrap leading-relaxed">{activeTicket.description}</p>
@@ -485,19 +566,19 @@ export const FloatingSupportWidget: React.FC<FloatingSupportWidgetProps> = ({ is
                               className={`flex ${isAgent ? 'justify-start' : 'justify-end'}`}
                             >
                               <div
-                                className={`max-w-[85%] rounded-2xl p-2.5 text-xs shadow-sm ${
+                                className={`max-w-[85%] rounded-2xl p-3 text-xs shadow-md ${
                                   isAgent
-                                    ? 'bg-gradient-to-r from-blue-900/90 to-indigo-900/90 text-white border border-blue-500/30 rounded-tl-none'
-                                    : 'bg-slate-800 text-slate-100 border border-slate-700/80 rounded-tr-none'
+                                    ? 'bg-gradient-to-r from-slate-900 to-navy-900 text-white border border-brand-cyan/30 rounded-tl-none'
+                                    : 'bg-brand-gradient text-white rounded-tr-none'
                                 }`}
                               >
-                                <div className="flex items-center justify-between gap-3 text-[10px] opacity-75 mb-1 border-b border-white/10 pb-1">
+                                <div className="flex items-center justify-between gap-3 text-[10px] opacity-80 mb-1 border-b border-white/15 pb-1">
                                   <span className="font-bold">
-                                    {isAgent ? 'Support Specialist' : (msg.senderName || 'You')}
+                                    {isAgent ? 'MetaFirm Support Specialist' : (msg.senderName || 'You')}
                                   </span>
                                   <span className="font-mono">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                 </div>
-                                <p className="whitespace-pre-wrap leading-relaxed">{msg.message}</p>
+                                <p className="whitespace-pre-wrap leading-relaxed font-sans">{msg.message}</p>
                               </div>
                             </div>
                           );
@@ -509,30 +590,34 @@ export const FloatingSupportWidget: React.FC<FloatingSupportWidgetProps> = ({ is
 
                 {/* Reply Box */}
                 {activeTicket.status !== 'CLOSED' && activeTicket.status !== 'RESOLVED' ? (
-                  <form onSubmit={handleSendMessage} className="p-2.5 bg-slate-900 border-t border-slate-800 flex gap-2">
+                  <form onSubmit={handleSendMessage} className="p-3 bg-slate-100/90 dark:bg-navy-900/90 border-t border-slate-200 dark:border-white/10 flex gap-2 backdrop-blur-sm">
                     <input
                       type="text"
                       placeholder="Type your message..."
                       value={newMessage}
                       onChange={e => setNewMessage(e.target.value)}
                       disabled={isSending}
-                      className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                      className="flex-1 bg-white dark:bg-navy-950 border border-slate-300 dark:border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue-light"
                     />
                     <button
                       type="submit"
                       disabled={isSending || !newMessage.trim()}
-                      className="p-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-40 transition-colors cursor-pointer flex items-center justify-center"
+                      className="p-2.5 rounded-xl bg-brand-gradient text-white disabled:opacity-40 transition-all hover:scale-105 active:scale-95 cursor-pointer flex items-center justify-center shadow-md shadow-brand-magenta/25"
                     >
                       {isSending ? (
-                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       ) : (
-                        <Send className="w-3.5 h-3.5" />
+                        <Send className="w-4 h-4" />
                       )}
                     </button>
                   </form>
                 ) : (
-                  <div className="p-2.5 bg-slate-900 border-t border-slate-800 text-center text-xs text-slate-400">
-                    This inquiry has been settled. Click <button type="button" onClick={() => setView('NEW_TICKET')} className="text-blue-400 underline font-bold">here</button> to open a new chat.
+                  <div className="p-3 bg-slate-100 dark:bg-navy-900 border-t border-slate-200 dark:border-white/10 text-center text-xs text-slate-500 dark:text-slate-400">
+                    This inquiry has been settled. Click{' '}
+                    <button type="button" onClick={() => setView('FORM')} className="text-brand-blue dark:text-brand-cyan underline font-bold">
+                      here
+                    </button>{' '}
+                    to start a new inquiry.
                   </div>
                 )}
               </div>
@@ -546,4 +631,5 @@ export const FloatingSupportWidget: React.FC<FloatingSupportWidgetProps> = ({ is
 };
 
 export default FloatingSupportWidget;
+
 

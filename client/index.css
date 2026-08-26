@@ -54,13 +54,17 @@
      =================================================================== */
 
   /* Frosted-glass card with the MetaFirm brand gradient as a thin border
-     ring. Deliberately light (not a heavy dark panel) for high legibility. */
+     ring. Optimized for crystal clear contrast in both light and dark modes. */
   .auth-glass-card {
     position: relative;
     isolation: isolate;
-    background: rgba(255, 255, 255, 0.86);
+    background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(28px) saturate(160%);
     -webkit-backdrop-filter: blur(28px) saturate(160%);
+  }
+  :is(.dark, [data-theme='dark']) .auth-glass-card {
+    background: rgba(13, 16, 42, 0.95);
+    color: #f8fafc;
   }
   .auth-glass-card::before {
     content: '';
@@ -76,13 +80,16 @@
     z-index: 2;
   }
 
-  /* Soft, light backdrop behind the auth card — a gentle brand-tinted
-     wash instead of a heavy black scrim, so the page never feels dark. */
+  /* Backdrop behind the auth card */
   .auth-glass-backdrop {
     background: linear-gradient(135deg, rgba(233,30,140,0.10) 0%, rgba(21,101,240,0.12) 55%, rgba(41,171,226,0.12) 100%),
-      rgba(248, 250, 252, 0.55);
+      rgba(248, 250, 252, 0.65);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
+  }
+  :is(.dark, [data-theme='dark']) .auth-glass-backdrop {
+    background: linear-gradient(135deg, rgba(233,30,140,0.15) 0%, rgba(21,101,240,0.20) 55%, rgba(41,171,226,0.15) 100%),
+      rgba(3, 7, 18, 0.75);
   }
 
   /* Inner "glass chip" used for the security badge / input focus rings. */
@@ -90,6 +97,9 @@
     background: rgba(255, 255, 255, 0.65);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+  }
+  :is(.dark, [data-theme='dark']) .auth-glass-chip {
+    background: rgba(255, 255, 255, 0.08);
   }
 }
 

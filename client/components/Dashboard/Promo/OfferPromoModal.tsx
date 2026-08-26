@@ -38,7 +38,10 @@ export const OfferPromoModal: React.FC<OfferPromoModalProps> = ({
   const handleClose = () => {
     if (dontShowAgain) {
       try {
-        localStorage.setItem('metafirm_promo_popup_dismissed_until', (Date.now() + 86400000 * 3).toString());
+        // Set dismissed until end of today (midnight) or next 24 hours
+        const endOfToday = new Date();
+        endOfToday.setHours(23, 59, 59, 999);
+        localStorage.setItem('metafirm_promo_popup_dismissed_until', endOfToday.getTime().toString());
       } catch (e) {
         // ignore storage errors
       }
@@ -265,7 +268,7 @@ export const OfferPromoModal: React.FC<OfferPromoModalProps> = ({
               onChange={(e) => setDontShowAgain(e.target.checked)}
               className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300"
             />
-            <span className={t.textMuted}>Don&apos;t show again for 3 days</span>
+            <span className={t.textMuted}>Don&apos;t show again for today</span>
           </label>
 
           <button

@@ -77,6 +77,31 @@ export class SupportRepository {
   }
 
   /**
+   * Retrieve support tickets for a guest session
+   */
+  async findByGuestSession(guestSessionId: string) {
+    try {
+      const searchPattern = `%GUEST:${guestSessionId}%`;
+      const result = await db
+        .select()
+        .from(supportTickets)
+        .where(
+          or(
+            eq(supportTickets.attachmentName, `GUEST:${guestSessionId}`),
+            ilike(supportTickets.description, searchPattern)
+          )
+        )
+        .orderBy(desc(supportTickets.createdAt))
+        .limit(50);
+
+      return result;
+    } catch (error) {
+      console.error('Database query (findByGuestSession) failed:', error);
+      return [];
+    }
+  }
+
+  /**
    * Create a new support ticket
    */
   async createTicket(data: {

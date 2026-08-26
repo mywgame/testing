@@ -5,6 +5,8 @@
 
 import crypto from 'crypto';
 import { supportRepository } from '../repositories/supportRepository.ts';
+import { authRepository } from '../repositories/authRepository.ts';
+import { userRepository } from '../repositories/userRepository.ts';
 import { notificationService } from './notificationService.ts';
 
 export class SupportService {
@@ -177,6 +179,123 @@ export class SupportService {
    */
   async getTicketById(ticketId: string) {
     return supportRepository.findById(ticketId);
+  }
+
+  /**
+   * Guest Support: Create a new guest inquiry ticket
+   */
+  async createGuestSupportInquiry(data: {
+    guestSessionId: string;
+    guestName: string;
+    guestEmail?: string;
+    guestPhone?: string;
+    category?: string;
+    subject?: string;
+    description: string;
+  }) {
+    let user = null;
+    if (data.guestEmail) {
+      user = await authRepository.findByEmail(data.guestEmail);
+    }
+    if (!user) {
+      const allUsers = await userRepository.findAll({ limit: 1 });
+      user = allUsers[0] || null;
+    }
+
+    if (!user) {
+      throw new Error('Support service is currently initializing. Please try again in a few moments.');
+    }
+
+    const ticketNumber = this.generateTicketNumber();
+    const guestMeta = `\n\n[Guest Session: ${data.guestSessionId} | Name: ${data.guestName} | Email: ${data.guestEmail || 'N/A'} | Phone: ${data.guestPhone || 'N/A'}]`;
+    const fullDescription = `${data.description}${guestMeta}`;
+
+    const ticket = await supportRepository.createTicket({
+      userId: user.id,
+      ticketNumber,
+      category: data.category || 'GENERAL',
+      subject: data.subject || `Inquiry from ${data.guestName}`,
+      description: fullDescription,
+      priority: 'MEDIUM',
+      attachmentName: `GUEST:${data.guestSessionId}`,
+    });
+
+    await supportRepository.createMessage({
+      ticketId: ticket.id,
+      senderId: null,
+      senderType: 'USER',
+      message: data.description,
+    });
+
+    await notificationService.notifyAdmins({
+      title: 'New Guest Support Inquiry',
+      description: `Inquiry ${ticket.ticketNumber} from ${data.guestName} (${data.guestEmail || 'Guest Visitor'}): "${data.description.substring(0, 60)}..."`,
+      icon: 'MessageSquare',
+      type: 'support',
+      priority: 'HIGH',
+    });
+
+    return ticket;
+  }
+
+  /**
+   * Guest Support: Retrieve tickets submitted in a guest session
+   */
+  async getGuestTickets(guestSessionId: string) {
+    return supportRepository.findByGuestSession(guestSessionId);
+  }
+
+  /**
+   * Guest Support: Retrieve message thread for a guest ticket
+   */
+  async getGuestTicketMessages(ticketId: string, guestSessionId: string) {
+    const ticket = await supportRepository.findById(ticketId);
+    if (!ticket) {
+      throw new Error(`Ticket not found for ID: ${ticketId}`);
+    }
+    if (ticket.attachmentName !== `GUEST:${guestSessionId}` && !ticket.description.includes(guestSessionId)) {
+      throw new Error('Unauthorized access to guest ticket.');
+    }
+
+    const messages = await supportRepository.findMessagesByTicketId(ticketId);
+    return [...messages].reverse();
+  }
+
+  /**
+   * Guest Support: Add a reply to a guest ticket
+   */
+  async addGuestTicketReply(data: {
+    ticketId: string;
+    guestSessionId: string;
+    senderName?: string;
+    message: string;
+  }) {
+    const ticket = await supportRepository.findById(data.ticketId);
+    if (!ticket) {
+      throw new Error(`Ticket not found for ID: ${data.ticketId}`);
+    }
+    if (ticket.attachmentName !== `GUEST:${data.guestSessionId}` && !ticket.description.includes(data.guestSessionId)) {
+      throw new Error('Unauthorized access to guest ticket.');
+    }
+
+    const reply = await supportRepository.createMessage({
+      ticketId: ticket.id,
+      senderId: null,
+      senderType: 'USER',
+      message: data.message,
+    });
+
+    await supportRepository.updateTicket(ticket.id, { status: 'OPEN' });
+
+    await notificationService.notifyAdmins({
+      title: 'New Guest Ticket Reply',
+      description: `${data.senderName || 'Guest'} replied to ticket ${ticket.ticketNumber}: "${data.message.substring(0, 60)}..."`,
+      icon: 'MessageSquare',
+      type: 'support',
+      priority: 'MEDIUM',
+    });
+
+    return reply;
   }
 }
 

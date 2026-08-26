@@ -40,6 +40,7 @@ import { Button } from './components/ui/Buttons/index.tsx';
 import { LoadingScreen } from './components/LoadingScreen.tsx';
 import { AppVersionGuard } from './components/AppVersionGuard.tsx';
 import { FloatingSupportWidget } from './components/support/FloatingSupportWidget.tsx';
+import { prefetchDashboardData } from './services/dashboardCache.ts';
 
 
 /**
@@ -144,6 +145,7 @@ function MainAppContent() {
   useEffect(() => {
     if (!authLoading && user && currentView === 'landing') {
       setIsAuthModalOpen(false);
+      prefetchDashboardData();
       const role = (user.role || '').toLowerCase();
       if (['admin', 'superadmin', 'operator', 'support', 'finance', 'auditor'].includes(role)) {
         setCurrentView('admin');

@@ -366,6 +366,48 @@ class ApiService {
   }
 
   /**
+   * Guest: Fetch all guest tickets
+   */
+  async getGuestTickets(guestSessionId: string): Promise<ApiResponse<any>> {
+    return this.get<any>(`/support/guest/tickets/${encodeURIComponent(guestSessionId)}`);
+  }
+
+  /**
+   * Guest: Fetch messages for a guest ticket
+   */
+  async getGuestTicketMessages(ticketId: string, guestSessionId: string): Promise<ApiResponse<any>> {
+    return this.get<any>(`/support/guest/tickets/${ticketId}/messages?guestSessionId=${encodeURIComponent(guestSessionId)}`, {
+      'x-guest-session-id': guestSessionId
+    });
+  }
+
+  /**
+   * Guest: Create a new support inquiry
+   */
+  async createGuestSupportInquiry(data: {
+    guestSessionId: string;
+    guestName: string;
+    guestEmail: string;
+    category?: string;
+    subject?: string;
+    description: string;
+    guestPhone?: string;
+  }): Promise<ApiResponse<any>> {
+    return this.post<any>('/support/guest/inquiry', data);
+  }
+
+  /**
+   * Guest: Reply to an existing guest ticket
+   */
+  async replyToGuestTicket(ticketId: string, data: {
+    guestSessionId: string;
+    senderName?: string;
+    message: string;
+  }): Promise<ApiResponse<any>> {
+    return this.post<any>(`/support/guest/tickets/${ticketId}/reply`, data);
+  }
+
+  /**
    * Admin: Retrieve all support tickets with pagination, search, and category filters
    */
   async getAdminSupportTickets(params?: {

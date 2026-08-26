@@ -17,6 +17,7 @@ import { BottomNav } from '../Dashboard/BottomNav.tsx';
 import { DashboardTab } from '../Dashboard/Sidebar.tsx';
 import { OfferPromoModal } from '../Dashboard/Promo/OfferPromoModal.tsx';
 import { useAuth } from '../../hooks/useAuth.ts';
+import { prefetchDashboardData } from '../../services/dashboardCache.ts';
 
 interface VenturesPageProps {
   onNavigateToDashboard: (tab?: DashboardTab) => void;
@@ -30,6 +31,13 @@ export const VenturesPage: React.FC<VenturesPageProps> = ({
   const { user } = useAuth();
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const hasCheckedPromoPopup = useRef(false);
+
+  // Background prefetch dashboard data so switching to Dashboard is instant
+  useEffect(() => {
+    if (user) {
+      prefetchDashboardData();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (hasCheckedPromoPopup.current || !user) return;
